@@ -620,7 +620,7 @@ struct DayDetailView: View {
     var body: some View {
         HStack(spacing: 0) {
             // Vertical daylight visualization (left side)
-            if featureFlags.daylightVisualizationCalendar {
+            if featureFlags.daylightVisualizationDayView {
                 VerticalDaylightVisualizationView(date: date)
                     .frame(width: 20)
             }
