@@ -17,6 +17,7 @@ struct ContentView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
+    @StateObject private var featureFlags = FeatureFlags.shared
     @Environment(\.colorScheme) var colorScheme
     @State private var searchText = ""
     @State private var showQuickAdd = false
@@ -542,34 +543,44 @@ struct DayDetailView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
+    @StateObject private var featureFlags = FeatureFlags.shared
 
     var body: some View {
-        VStack(alignment: .leading) {
-            HStack {
-                Text(date.formatted(.dateTime.month(.wide).day().year()))
-                    .font(uiConfig.scaledFont(28, weight: .bold))
-                Spacer()
-                Button(action: { calendarViewModel.toggleDayDetail() }) {
-                    Image(systemName: "xmark")
-                        .foregroundColor(themeManager.currentPalette.textSecondary)
-                }
+        HStack(spacing: 0) {
+            // Vertical daylight visualization (left side)
+            if featureFlags.daylightVisualization {
+                VerticalDaylightVisualizationView(date: date)
+                    .frame(width: 20)
             }
-            .standardPadding()
 
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    let dayEvents = calendarViewModel.events.filter { event in
-                        Calendar.current.isDate(event.startDate, inSameDayAs: date)
-                    }
-
-                    if dayEvents.isEmpty {
-                        Text("No events for this day")
+            // Main content (right side)
+            VStack(alignment: .leading) {
+                HStack {
+                    Text(date.formatted(.dateTime.month(.wide).day().year()))
+                        .font(uiConfig.scaledFont(28, weight: .bold))
+                    Spacer()
+                    Button(action: { calendarViewModel.toggleDayDetail() }) {
+                        Image(systemName: "xmark")
                             .foregroundColor(themeManager.currentPalette.textSecondary)
-                            .font(uiConfig.eventDetailFont)
-                            .standardPadding()
-                    } else {
-                        ForEach(dayEvents) { event in
-                            EventDetailView(event: event)
+                    }
+                }
+                .standardPadding()
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 16) {
+                        let dayEvents = calendarViewModel.events.filter { event in
+                            Calendar.current.isDate(event.startDate, inSameDayAs: date)
+                        }
+
+                        if dayEvents.isEmpty {
+                            Text("No events for this day")
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                                .font(uiConfig.eventDetailFont)
+                                .standardPadding()
+                        } else {
+                            ForEach(dayEvents) { event in
+                                EventDetailView(event: event)
+                            }
                         }
                     }
                 }
