@@ -102,11 +102,21 @@ struct ContentView: View {
 
     private var monthYearDisplay: some View {
         ZStack {
-            HStack {
-                Spacer()
-                yearDisplay
+            if calendarViewModel.viewMode == .year {
+                // Year view: Show only the year centered
+                HStack {
+                    Spacer()
+                    yearDisplay
+                    Spacer()
+                }
+            } else {
+                // Other views: Show month centered with year on right
+                HStack {
+                    Spacer()
+                    yearDisplay
+                }
+                monthDisplay
             }
-            monthDisplay
         }
         .frame(height: 60)
     }
