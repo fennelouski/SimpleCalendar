@@ -30,6 +30,7 @@ A beautiful, multi-platform calendar application for iOS, iPadOS, and macOS desi
 - **📤 Event Export**: Export events to other calendar applications
 - **🔄 Refresh**: Command+R to refresh calendar data
 - **🌅 Daylight Visualization**: Command+L to toggle daylight cycle display
+- **⚙️ Settings**: Comprehensive settings with sub-menus for themes, typography, and features
 - **⌨️ Keyboard Shortcuts**: Full keyboard navigation support
 
 ### Experimental Features (Feature Flags)
