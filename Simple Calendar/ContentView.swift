@@ -396,6 +396,10 @@ struct DayView: View {
         .roundedCorners(.small)
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
+                .stroke(themeManager.currentTheme.palette.gridLine, lineWidth: 0.5)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.small.value)
                 .stroke(day.isToday ? themeManager.currentTheme.palette.todayHighlight : Color.clear, lineWidth: 2)
         )
     }

@@ -19,6 +19,7 @@ struct ColorPalette {
     let textSecondary: Color
     let border: Color
     let highlight: Color
+    let gridLine: Color
     let eventColors: [Color] // Colors for different event types
     let icon: String
 
@@ -65,6 +66,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 textSecondary: Color(hex: "546E7A"), // Blue grey
                 border: Color(hex: "B3E5FC"),      // Light border
                 highlight: Color(hex: "1E88E5"),   // Ocean blue highlight
+                gridLine: Color(hex: "B3E5FC").opacity(0.5), // Subtle grid line
                 eventColors: [
                     Color(hex: "0277BD"), // Deep blue
                     Color(hex: "00BCD4"), // Cyan
@@ -86,6 +88,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 textSecondary: Color(hex: "546E7A"), // Grey
                 border: Color(hex: "C8E6C9"),      // Light green border
                 highlight: Color(hex: "388E3C"),   // Forest green highlight
+                gridLine: Color(hex: "C8E6C9").opacity(0.5), // Subtle grid line
                 eventColors: [
                     Color(hex: "2E7D32"), // Deep green
                     Color(hex: "43A047"), // Medium green
@@ -107,6 +110,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 textSecondary: Color(hex: "546E7A"), // Grey
                 border: Color(hex: "FFCCBC"),      // Light orange border
                 highlight: Color(hex: "F4511E"),   // Orange red highlight
+                gridLine: Color(hex: "FFCCBC").opacity(0.5), // Subtle grid line
                 eventColors: [
                     Color(hex: "D84315"), // Deep orange
                     Color(hex: "E65100"), // Orange
@@ -128,6 +132,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 textSecondary: Color(hex: "546E7A"), // Grey
                 border: Color(hex: "CE93D8"),      // Light purple border
                 highlight: Color(hex: "5E35B1"),   // Deep purple highlight
+                gridLine: Color(hex: "CE93D8").opacity(0.5), // Subtle grid line
                 eventColors: [
                     Color(hex: "4527A0"), // Deep purple
                     Color(hex: "673AB7"), // Purple
@@ -149,6 +154,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 textSecondary: Color(hex: "546E7A"), // Grey
                 border: Color(hex: "F8BBD9"),      // Light pink border
                 highlight: Color(hex: "E91E63"),   // Pink highlight
+                gridLine: Color(hex: "F8BBD9").opacity(0.5), // Subtle grid line
                 eventColors: [
                     Color(hex: "C2185B"), // Deep pink
                     Color(hex: "E91E63"), // Pink
@@ -170,6 +176,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 textSecondary: Color(hex: "546E7A"), // Grey
                 border: Color(hex: "FFCCBC"),      // Light orange border
                 highlight: Color(hex: "E65100"),   // Orange highlight
+                gridLine: Color(hex: "FFCCBC").opacity(0.5), // Subtle grid line
                 eventColors: [
                     Color(hex: "D84315"), // Deep orange
                     Color(hex: "E65100"), // Orange
@@ -191,6 +198,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 textSecondary: Color(hex: "546E7A"), // Grey
                 border: Color(hex: "B3E5FC"),      // Light blue border
                 highlight: Color(hex: "1976D2"),   // Blue highlight
+                gridLine: Color(hex: "B3E5FC").opacity(0.5), // Subtle grid line
                 eventColors: [
                     Color(hex: "0D47A1"), // Deep blue
                     Color(hex: "1976D2"), // Blue
@@ -212,6 +220,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 textSecondary: Color(hex: "546E7A"), // Grey
                 border: Color(hex: "FFF9C4"),      // Light yellow border
                 highlight: Color(hex: "FF4081"),   // Pink highlight
+                gridLine: Color(hex: "FFF9C4").opacity(0.5), // Subtle grid line
                 eventColors: [
                     Color(hex: "E91E63"), // Pink
                     Color(hex: "FF9800"), // Orange
