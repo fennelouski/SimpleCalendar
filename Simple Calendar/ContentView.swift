@@ -133,6 +133,12 @@ struct ContentView: View {
             let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: daysPerRow)
             let days = generateCalendarDays()
 
+            // Calculate available height for calendar content
+            let headerHeight: CGFloat = calendarViewModel.viewMode == .year ? 0 : 32 // Header height + spacing
+            let availableHeight = geometry.size.height - headerHeight - 32 // Subtract padding
+            let rowsCount = calculateRowsCount(for: days.count, columns: daysPerRow)
+            let cellHeight = max(availableHeight / CGFloat(rowsCount), 60) // Minimum height of 60
+
             VStack(spacing: 8) {
                 // Headers (only for non-year views)
                 if calendarViewModel.viewMode != .year {
@@ -154,6 +160,7 @@ struct ContentView: View {
                         ForEach(days.indices, id: \.self) { index in
                             let day = days[index]
                             MonthMiniView(monthDate: day.date, geometry: geometry)
+                                .frame(height: cellHeight)
                                 .onTapGesture {
                                     // Switch to month view for the selected month
                                     calendarViewModel.currentDate = day.date
@@ -163,7 +170,7 @@ struct ContentView: View {
                     } else {
                         // Regular views: show day cells
                         ForEach(days) { day in
-                            DayView(day: day, geometry: geometry)
+                            DayView(day: day, geometry: geometry, cellHeight: cellHeight, columnsCount: daysPerRow)
                                 .onTapGesture(count: 2) {
                                     handleDayDoubleClick(day.date)
                                 }
@@ -212,9 +219,12 @@ struct ContentView: View {
                     }
                 }
                 .padding(.horizontal)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+    }
+
+    private func calculateRowsCount(for itemCount: Int, columns: Int) -> Int {
+        return (itemCount + columns - 1) / columns // Ceiling division
     }
 
     private var dayDetailSlideOut: some View {
@@ -440,12 +450,12 @@ struct ContentView: View {
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
 
         if let fileURL = EventExporter.exportEventsInDateRange(startDate: startOfDay, endDate: endOfDay, events: events) {
-            #if os(macOS)
+#if os(macOS)
             let sharingService = NSSharingServicePicker(items: [fileURL])
             if let window = NSApplication.shared.windows.first {
                 sharingService.show(relativeTo: NSRect.zero, of: window.contentView!, preferredEdge: .minY)
             }
-            #endif
+#endif
         }
     }
 }
@@ -453,6 +463,8 @@ struct ContentView: View {
 struct DayView: View {
     let day: CalendarDay
     let geometry: GeometryProxy
+    let cellHeight: CGFloat
+    let columnsCount: Int
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var featureFlags = FeatureFlags.shared
@@ -480,13 +492,13 @@ struct DayView: View {
             Spacer()
         }
         .compactPadding()
-        .frame(height: geometry.size.width / 7 - 16)
+        .frame(height: cellHeight)
         .background(dayBackgroundColor)
         .roundedCorners(.small)
         .overlay(alignment: .top) {
             // Daylight visualization (only if enabled)
             if featureFlags.daylightVisualization {
-                DaylightVisualizationView(date: day.date, width: geometry.size.width)
+                DaylightVisualizationView(date: day.date, width: geometry.size.width / CGFloat(columnsCount))
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small.value))
             }
         }
