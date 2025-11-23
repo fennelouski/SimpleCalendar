@@ -557,7 +557,8 @@ struct DayView: View {
         }
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
-                .stroke(themeManager.currentPalette.gridLine.opacity(uiConfig.gridLineOpacity), lineWidth: 0.5)
+                .stroke(themeManager.currentPalette.gridLine.opacity(uiConfig.gridLineOpacity),
+                       lineWidth: gridLineWidth(for: uiConfig.gridLineOpacity))
         )
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
@@ -1092,7 +1093,12 @@ struct MonthMiniView: View {
     }
 }
 
-private func dayName(for columnIndex: Int, availableWidth: CGFloat? = nil) -> String {
+    private func gridLineWidth(for opacity: Double) -> CGFloat {
+        // Scale from 1pt at 0% opacity to 5pt at 100% opacity
+        return 1.0 + (opacity * 4.0)
+    }
+
+    private func dayName(for columnIndex: Int, availableWidth: CGFloat? = nil) -> String {
     let calendar = Calendar.current
 
     // Calculate which weekday this column represents
