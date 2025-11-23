@@ -14,7 +14,7 @@ struct SettingsView: View {
     var body: some View {
         EmptyView()
             .sheet(isPresented: $showSettings) {
-                SettingsContentView(showSettings: $showSettings)
+                SettingsContentView(showSettings: $showSettings, googleOAuthManager: calendarViewModel.googleOAuthManager)
             }
             .onReceive(NotificationCenter.default.publisher(for: .init("ShowSettings"))) { _ in
                 showSettings = true
@@ -28,7 +28,7 @@ struct SettingsContentView: View {
     @StateObject private var featureFlags = FeatureFlags.shared
     @Binding var showSettings: Bool
     @State private var isGoogleCalendarEnabled = false
-    @State private var googleAccountEmail = ""
+    @ObservedObject var googleOAuthManager: GoogleOAuthManager
     @State private var showColorTheme = false
     @State private var showTypography = false
     @State private var showFeatureFlags = false
@@ -60,24 +60,29 @@ struct SettingsContentView: View {
                             Toggle("Google Calendar", isOn: $isGoogleCalendarEnabled)
 
                             if isGoogleCalendarEnabled {
-                                if googleAccountEmail.isEmpty {
+                                if !googleOAuthManager.isAuthenticated {
                                     Button("Sign in to Google") {
-                                        // Google OAuth would go here
-                                        print("Google sign in tapped")
+                                        googleOAuthManager.signIn()
                                     }
                                     .foregroundColor(.blue)
                                     .padding(.vertical, 4)
+
+                                    if let error = googleOAuthManager.authenticationError {
+                                        Text(error)
+                                            .foregroundColor(.red)
+                                            .font(.caption)
+                                    }
                                 } else {
                                     HStack {
                                         Text("Signed in as:")
                                             .foregroundColor(.secondary)
                                         Spacer()
-                                        Text(googleAccountEmail)
+                                        Text(googleOAuthManager.userEmail ?? "Unknown")
                                             .foregroundColor(.secondary)
                                     }
 
                                     Button("Sign Out") {
-                                        googleAccountEmail = ""
+                                        googleOAuthManager.signOut()
                                         isGoogleCalendarEnabled = false
                                     }
                                     .foregroundColor(.red)

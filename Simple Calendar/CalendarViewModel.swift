@@ -29,7 +29,7 @@ class CalendarViewModel: ObservableObject {
     @Published var selectedEventForImage: CalendarEvent?
 
     private let eventStore = EKEventStore()
-    private let googleOAuthManager = GoogleOAuthManager()
+    let googleOAuthManager = GoogleOAuthManager()
     private let googleCalendarAPI: GoogleCalendarAPI
     private let imageManager = ImageManager.shared
     private var cancellables = Set<AnyCancellable>()

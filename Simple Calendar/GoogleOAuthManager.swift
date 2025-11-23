@@ -205,6 +205,7 @@ class GoogleOAuthManager: NSObject, ObservableObject, ASWebAuthenticationPresent
         }
     }
 
+
     private func refreshAccessToken(refreshToken: String, completion: @escaping (String?) -> Void) {
         var request = URLRequest(url: URL(string: tokenEndpoint)!)
         request.httpMethod = "POST"

@@ -50,6 +50,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
     case autumn = 5
     case winter = 6
     case rainbow = 7
+    case system = 8
 
     var id: Int { rawValue }
 
@@ -230,6 +231,51 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 ],
                 icon: "rainbow"
             )
+        case .system:
+            // System theme that adapts to light/dark mode and uses system colors
+            #if os(macOS)
+            return ColorPalette(
+                name: "System",
+                primary: Color(NSColor.systemBlue),
+                secondary: Color(NSColor.systemGray),
+                accent: Color(NSColor.systemOrange),
+                background: Color(NSColor.windowBackgroundColor),
+                surface: Color(NSColor.controlBackgroundColor),
+                textPrimary: Color(NSColor.labelColor),
+                textSecondary: Color(NSColor.secondaryLabelColor),
+                border: Color(NSColor.separatorColor),
+                highlight: Color(NSColor.systemBlue),
+                gridLine: Color(NSColor.separatorColor).opacity(0.5),
+                eventColors: [
+                    Color(NSColor.systemBlue),
+                    Color(NSColor.systemGreen),
+                    Color(NSColor.systemOrange),
+                    Color(NSColor.systemPurple)
+                ],
+                icon: "circle.grid.3x3"
+            )
+            #else
+            return ColorPalette(
+                name: "System",
+                primary: Color(UIColor.systemBlue),
+                secondary: Color(UIColor.systemGray),
+                accent: Color(UIColor.systemOrange),
+                background: Color(UIColor.systemBackground),
+                surface: Color(UIColor.secondarySystemBackground),
+                textPrimary: Color(UIColor.label),
+                textSecondary: Color(UIColor.secondaryLabel),
+                border: Color(UIColor.separator),
+                highlight: Color(UIColor.systemBlue),
+                gridLine: Color(UIColor.separator).opacity(0.5),
+                eventColors: [
+                    Color(UIColor.systemBlue),
+                    Color(UIColor.systemGreen),
+                    Color(UIColor.systemOrange),
+                    Color(UIColor.systemPurple)
+                ],
+                icon: "circle.grid.3x3"
+            )
+            #endif
         }
     }
 
