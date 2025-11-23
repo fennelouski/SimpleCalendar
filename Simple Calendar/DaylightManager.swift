@@ -97,36 +97,66 @@ class DaylightManager {
         ]
     }
 
-    /// Get color for a specific hour of the day
+    /// Get color for a specific hour of the day with smooth interpolation between phases
     func colorForHour(_ hour: Double, date: Date) -> DaylightColor {
         let periods = daylightPeriods(for: date)
 
-        for period in periods {
+        // Find the current period and interpolate with the next period for smooth transitions
+        for (index, period) in periods.enumerated() {
             if hour >= period.startHour && hour < period.endHour {
-                // For daylight period, interpolate between light and rich blue
+                // Special handling for daylight period - use lighter blue in the middle
                 if period.phase == .daylight {
                     let progress = (hour - period.startHour) / period.duration
-                    if progress < 0.5 {
-                        // Morning: light blue to rich blue
-                        let factor = progress * 2
-                        let red = DaylightColor.daylightLight.red + (DaylightColor.daylightRich.red - DaylightColor.daylightLight.red) * factor
-                        let green = DaylightColor.daylightLight.green + (DaylightColor.daylightRich.green - DaylightColor.daylightLight.green) * factor
-                        let blue = DaylightColor.daylightLight.blue + (DaylightColor.daylightRich.blue - DaylightColor.daylightLight.blue) * factor
-                        return DaylightColor(red: red, green: green, blue: blue, alpha: 1.0)
+                    // Create a smoother daylight gradient with lighter blue in the middle
+                    let midPoint = 0.5
+                    var factor: Double
+
+                    if progress < midPoint {
+                        // First half: transition to lighter blue
+                        factor = progress / midPoint
+                        let lighterBlue = DaylightColor(red: 100, green: 180, blue: 255, alpha: 1.0) // Lighter blue
+                        return interpolateColor(from: DaylightColor.daylightRich, to: lighterBlue, factor: factor)
                     } else {
-                        // Afternoon: rich blue to light blue
-                        let factor = (progress - 0.5) * 2
-                        let red = DaylightColor.daylightRich.red + (DaylightColor.daylightLight.red - DaylightColor.daylightRich.red) * factor
-                        let green = DaylightColor.daylightRich.green + (DaylightColor.daylightLight.green - DaylightColor.daylightRich.green) * factor
-                        let blue = DaylightColor.daylightRich.blue + (DaylightColor.daylightLight.blue - DaylightColor.daylightRich.blue) * factor
-                        return DaylightColor(red: red, green: green, blue: blue, alpha: 1.0)
+                        // Second half: transition back to rich blue
+                        factor = (progress - midPoint) / midPoint
+                        let lighterBlue = DaylightColor(red: 100, green: 180, blue: 255, alpha: 1.0) // Lighter blue
+                        return interpolateColor(from: lighterBlue, to: DaylightColor.daylightRich, factor: factor)
                     }
                 }
-                return period.color
+
+                // For other periods, interpolate with adjacent periods for smooth transitions
+                let progress = (hour - period.startHour) / period.duration
+
+                // If we're in the first 20% of the period, blend with the previous period
+                if progress < 0.2 && index > 0 {
+                    let prevPeriod = periods[index - 1]
+                    let blendFactor = progress / 0.2
+                    return interpolateColor(from: prevPeriod.color, to: period.color, factor: blendFactor)
+                }
+                // If we're in the last 20% of the period, blend with the next period
+                else if progress > 0.8 && index < periods.count - 1 {
+                    let nextPeriod = periods[index + 1]
+                    let blendFactor = (progress - 0.8) / 0.2
+                    return interpolateColor(from: period.color, to: nextPeriod.color, factor: blendFactor)
+                }
+                // Otherwise, use the period color directly
+                else {
+                    return period.color
+                }
             }
         }
 
         return .night
+    }
+
+    /// Interpolate between two DaylightColor values
+    private func interpolateColor(from startColor: DaylightColor, to endColor: DaylightColor, factor: Double) -> DaylightColor {
+        let clampedFactor = max(0, min(1, factor))
+        let red = startColor.red + (endColor.red - startColor.red) * clampedFactor
+        let green = startColor.green + (endColor.green - startColor.green) * clampedFactor
+        let blue = startColor.blue + (endColor.blue - startColor.blue) * clampedFactor
+        let alpha = startColor.alpha + (endColor.alpha - startColor.alpha) * clampedFactor
+        return DaylightColor(red: red, green: green, blue: blue, alpha: alpha)
     }
 
     /// Calculate day of year (1-365)
