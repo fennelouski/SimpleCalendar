@@ -36,22 +36,41 @@ class CalendarViewModel: ObservableObject {
 
     init() {
         googleCalendarAPI = GoogleCalendarAPI(oauthManager: googleOAuthManager)
-        requestCalendarAccess()
+
+        // Check calendar authorization status
+        let status = EKEventStore.authorizationStatus(for: .event)
+        switch status {
+        case .authorized:
+            print("📅 Calendar access already granted")
+            loadSystemEvents()
+        case .notDetermined:
+            requestCalendarAccess()
+        case .denied, .restricted:
+            print("📅 Calendar access denied or restricted")
+        @unknown default:
+            print("📅 Unknown calendar authorization status")
+        }
+
         setupKeyboardShortcuts()
-        loadAllEvents()
+        loadAllEvents() // This will load Google events
     }
 
     func requestCalendarAccess() {
         eventStore.requestAccess(to: .event) { [weak self] granted, error in
-            if granted {
-                self?.loadAllEvents()
+            DispatchQueue.main.async {
+                if granted {
+                    print("📅 Calendar access granted")
+                    self?.loadSystemEvents()
+                } else {
+                    print("📅 Calendar access denied: \(error?.localizedDescription ?? "Unknown error")")
+                }
             }
         }
     }
 
     func loadAllEvents() {
-        loadSystemEvents()
         loadGoogleEvents()
+        // System events are loaded separately when calendar access is granted
     }
 
     /// Refresh all calendar data from both system and Google calendars
