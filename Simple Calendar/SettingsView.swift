@@ -154,16 +154,6 @@ struct SettingsContentView: View {
                     // Appearance
                     SettingsSection(title: "Appearance") {
                         VStack(spacing: 12) {
-                            SettingsRow(
-                                title: "Light/Dark Mode",
-                                subtitle: "Follows system appearance",
-                                trailingContent: AnyView(
-                                    Toggle("", isOn: .constant(true))
-                                        .disabled(true)
-                                        .labelsHidden()
-                                )
-                            )
-
                             Button(action: {
                                 showColorTheme = true
                             }) {
