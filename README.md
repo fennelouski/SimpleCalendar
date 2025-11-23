@@ -180,6 +180,35 @@ For questions, issues, or feature requests:
 - Open an [issue](https://github.com/fennelouski/SimpleCalendar/issues) on GitHub
 - Check the in-app help documentation (`Command+?`)
 
+## 🌅 Daylight Visualization
+
+The Daylight Visualization feature adds a beautiful 3-pixel high gradient bar to the top of each calendar day, showing the complete daylight cycle for that day.
+
+### Color Coding
+- **🌙 Night**: Black/dark colors for nighttime hours
+- **🌅 Astronomical Twilight**: Very dark purple (barely visible before sunrise)
+- **🌆 Nautical Twilight**: Dark purple (nautical navigation possible)
+- **🌇 Civil Twilight**: Medium purple-blue (civil activities possible)
+- **🌅 Sunrise**: Red-orange gradient during sunrise
+- **✨ Golden Hour**: Golden yellow during morning golden hour
+- **☀️ Daylight**: Blue gradient fading from light to rich blue during the day
+- **🌇 Evening Golden Hour**: Golden yellow during evening golden hour
+- **🌆 Sunset**: Red-orange gradient during sunset
+- **🌙 Twilight Phases**: Reverse order of morning twilight
+
+### How It Works
+- Each calendar day square shows a horizontal gradient representing 24 hours
+- Each pixel column represents 15 minutes (96 total periods per day)
+- Sunrise/sunset times are calculated based on your location and season
+- Toggle on/off with **Command+L** or through Settings > Feature Flags
+
+### Educational Value
+This feature helps users understand:
+- Natural daylight cycles and their variation by season
+- Sunrise and sunset timing for different days
+- The science of twilight phases
+- How daylight affects daily activities
+
 ---
 
 **Built with ❤️ for teaching calendar concepts to kids while providing powerful features for adults.**
