@@ -906,38 +906,40 @@ struct MonthMiniView: View {
 private func dayName(for columnIndex: Int, availableWidth: CGFloat? = nil) -> String {
     let calendar = Calendar.current
 
-    // Adjust for calendar's first weekday (usually Sunday = 0 or Monday = 0)
+    // Calculate which weekday this column represents
+    // calendar.firstWeekday is 1-based (1 = Sunday in US locale)
     let firstWeekday = calendar.firstWeekday - 1 // Convert to 0-based
-    let adjustedIndex = (columnIndex + firstWeekday) % 7
+    let weekdayIndex = (columnIndex + firstWeekday) % 7
 
-    // Create a date for this weekday (using a reference date)
-    let referenceDate = Date()
-    let weekday = (adjustedIndex + 1) % 7 + 1 // Convert back to 1-based for Calendar
-    var dateComponents = calendar.dateComponents([.year, .month, .day], from: referenceDate)
-    dateComponents.weekday = weekday
-    let weekdayDate = calendar.date(from: dateComponents) ?? referenceDate
-
-    // Use DateFormatter for proper localization
+    // Use DateFormatter to get localized weekday names
     let formatter = DateFormatter()
 
     // Determine format based on available width
     if let width = availableWidth {
         if width > 80 {
             // Full name for wide columns
-            formatter.dateFormat = "EEEE" // Full weekday name
+            formatter.dateFormat = "EEEE" // Full weekday name (Sunday, Monday, etc.)
         } else if width > 50 {
             // Abbreviated for medium columns
-            formatter.dateFormat = "EEE" // Abbreviated weekday name (Mon, Tue, etc.)
+            formatter.dateFormat = "EEE" // Abbreviated weekday name (Sun, Mon, etc.)
         } else {
             // Short for narrow columns
-            formatter.dateFormat = "EEEEE" // Very short (M, T, W, etc.)
+            formatter.dateFormat = "EEEEE" // Very short (S, M, T, etc.)
         }
     } else {
         // Default to abbreviated if no width provided
         formatter.dateFormat = "EEE"
     }
 
-    return formatter.string(from: weekdayDate)
+    // Create a date that falls on the desired weekday
+    // Use a known Sunday as reference and add days
+    let referenceSunday = DateComponents(calendar: calendar, year: 2024, month: 1, day: 7) // Jan 7, 2024 is a Sunday
+    let referenceDate = calendar.date(from: referenceSunday)!
+
+    // Add the weekday offset to get the correct day of the week
+    let targetDate = calendar.date(byAdding: .day, value: weekdayIndex, to: referenceDate)!
+
+    return formatter.string(from: targetDate)
 }
 
 struct KeyCommandsView: View {
