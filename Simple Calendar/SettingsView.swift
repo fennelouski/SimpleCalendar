@@ -82,12 +82,12 @@ struct SettingsContentView: View {
                     Text("Settings")
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
                     Spacer()
                     Button("Done") {
                         showSettings = false
                     }
-                    .foregroundColor(themeManager.currentTheme.palette.primary)
+                    .foregroundColor(themeManager.currentPalette.primary)
                 }
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
@@ -124,10 +124,10 @@ struct SettingsContentView: View {
                                     Button("Sign in to Google") {
                                         googleOAuthManager.signIn()
                                     }
-                                    .foregroundColor(themeManager.currentTheme.palette.primary)
+                                    .foregroundColor(themeManager.currentPalette.primary)
                                     .padding(.vertical, 8)
                                     .padding(.horizontal, 12)
-                                    .background(themeManager.currentTheme.palette.surface.opacity(0.8))
+                                    .background(themeManager.currentPalette.surface.opacity(0.8))
                                     .cornerRadius(8)
 
                                     if let error = googleOAuthManager.authenticationError {
@@ -169,7 +169,7 @@ struct SettingsContentView: View {
                             }) {
                                 SettingsRow(
                                     title: "Color Theme",
-                                    subtitle: themeManager.currentTheme.palette.name,
+                                    subtitle: themeManager.currentPalette.name,
                                     showChevron: true
                                 )
                             }
@@ -178,15 +178,15 @@ struct SettingsContentView: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 Text("Grid Line Contrast")
                                     .font(.subheadline)
-                                    .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                                    .foregroundColor(themeManager.currentPalette.textPrimary)
 
                                 HStack {
                                     Slider(value: $uiConfig.gridLineOpacity, in: 0.0...1.0, step: 0.05)
-                                        .accentColor(themeManager.currentTheme.palette.primary)
+                                        .accentColor(themeManager.currentPalette.primary)
 
                                     Text("\(Int(uiConfig.gridLineOpacity * 100))%")
                                         .font(.caption)
-                                        .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                                        .foregroundColor(themeManager.currentPalette.textSecondary)
                                         .frame(width: 40, alignment: .trailing)
                                 }
                             }
@@ -252,7 +252,7 @@ struct SettingsContentView: View {
                 .padding(.horizontal, 16)
             }
             .padding(.bottom, 20)
-            .background(themeManager.currentTheme.palette.calendarBackground)
+            .background(themeManager.currentPalette.calendarBackground)
         }
     }
 }
@@ -273,7 +273,7 @@ struct SettingsSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.headline)
-                .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                .foregroundColor(themeManager.currentPalette.textPrimary)
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
 
@@ -283,11 +283,11 @@ struct SettingsSection<Content: View>: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
         }
-        .background(themeManager.currentTheme.palette.surface.opacity(0.6))
+        .background(themeManager.currentPalette.surface.opacity(0.6))
         .cornerRadius(12)
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(themeManager.currentTheme.palette.border.opacity(0.3), lineWidth: 0.5)
+                .stroke(themeManager.currentPalette.border.opacity(0.3), lineWidth: 0.5)
         )
     }
 }
@@ -311,11 +311,11 @@ struct SettingsRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.body)
-                    .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
                 if let subtitle = subtitle {
                     Text(subtitle)
                         .font(.subheadline)
-                        .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                         .lineLimit(1)
                 }
             }
@@ -327,7 +327,7 @@ struct SettingsRow: View {
 
             if showChevron {
                 Image(systemName: "chevron.right")
-                    .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
                     .font(.body)
             }
         }
@@ -350,7 +350,7 @@ struct ColorThemeSettingsView: View {
                     Text("Color Theme")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
                     Spacer()
                 }
                 .padding(.horizontal)
@@ -372,7 +372,7 @@ struct ColorThemeSettingsView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(theme.palette.name)
                                         .font(.headline)
-                                        .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                                        .foregroundColor(themeManager.currentPalette.textPrimary)
 
                                     // Color Preview
                                     HStack(spacing: 6) {
@@ -408,11 +408,11 @@ struct ColorThemeSettingsView: View {
                                 }
                             }
                             .padding(16)
-                            .background(themeManager.currentTheme.palette.surface.opacity(0.6))
+                            .background(themeManager.currentPalette.surface.opacity(0.6))
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(themeManager.currentTheme == theme ? theme.palette.primary : themeManager.currentTheme.palette.border.opacity(0.3), lineWidth: themeManager.currentTheme == theme ? 2 : 0.5)
+                                    .stroke(themeManager.currentTheme == theme ? theme.palette.primary : themeManager.currentPalette.border.opacity(0.3), lineWidth: themeManager.currentTheme == theme ? 2 : 0.5)
                             )
                         }
                         .buttonStyle(.plain)
@@ -437,7 +437,7 @@ struct TypographySettingsView: View {
                     Text("Typography")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
                     Spacer()
                 }
                 .padding(.horizontal)
@@ -513,7 +513,7 @@ struct FeatureFlagsSettingsView: View {
                     Text("Experimental Features")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
                     Spacer()
                 }
                 .padding(.horizontal)

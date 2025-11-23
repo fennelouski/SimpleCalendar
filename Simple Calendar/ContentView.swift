@@ -17,6 +17,7 @@ struct ContentView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
+    @Environment(\.colorScheme) var colorScheme
     @State private var searchText = ""
     @State private var showQuickAdd = false
 
@@ -34,7 +35,7 @@ struct ContentView: View {
                     .overlay(keyCommandsOverlay, alignment: .center)
             }
         }
-        .background(themeManager.currentTheme.palette.calendarBackground)
+        .background(themeManager.currentPalette.calendarBackground)
         #if os(macOS)
         .addKeyboardShortcuts()
         #endif
@@ -85,7 +86,7 @@ struct ContentView: View {
                 calendarGrid
             }
             .adaptivePadding(for: geometry)
-            .background(themeManager.currentTheme.palette.calendarBackground)
+            .background(themeManager.currentPalette.calendarBackground)
         }
     }
 
@@ -116,7 +117,7 @@ struct ContentView: View {
         return Text(monthName)
             .font(.custom(font, size: 32 * uiConfig.fontSizeCategory.scaleFactor))
             .fontWeight(.bold)
-            .foregroundColor(themeManager.currentTheme.palette.monthText)
+            .foregroundColor(themeManager.currentPalette.monthText)
             .onTapGesture {
                 calendarViewModel.toggleYearView()
             }
@@ -125,7 +126,7 @@ struct ContentView: View {
     private var yearDisplay: some View {
         Text(calendarViewModel.currentDate.formatted(.dateTime.year()))
             .font(uiConfig.yearTitleFont)
-            .foregroundColor(themeManager.currentTheme.palette.yearText)
+            .foregroundColor(themeManager.currentPalette.yearText)
     }
 
     private var calendarGrid: some View {
@@ -146,7 +147,7 @@ struct ContentView: View {
                         ForEach(0..<daysPerRow, id: \.self) { index in
                             Text(dayName(for: index))
                                 .font(uiConfig.dayNameFont)
-                                .foregroundColor(themeManager.currentTheme.palette.dayNameText)
+                                .foregroundColor(themeManager.currentPalette.dayNameText)
                                 .frame(height: 24)
                         }
                     }
@@ -232,7 +233,7 @@ struct ContentView: View {
             if calendarViewModel.showDayDetail, let selectedDate = calendarViewModel.selectedDate {
                 DayDetailView(date: selectedDate)
                     .frame(width: 300)
-                    .background(themeManager.currentTheme.palette.calendarSurface)
+                    .background(themeManager.currentPalette.calendarSurface)
                     .roundedCorners(.medium)
                     .shadow(radius: 10)
                     .transition(.move(edge: .trailing))
@@ -245,7 +246,7 @@ struct ContentView: View {
             if calendarViewModel.showSearch {
                 SearchView(searchText: $searchText)
                     .frame(width: 400, height: 60)
-                    .background(themeManager.currentTheme.palette.calendarSurface)
+                    .background(themeManager.currentPalette.calendarSurface)
                     .cornerRadius(8)
                     .shadow(radius: 10)
             }
@@ -257,7 +258,7 @@ struct ContentView: View {
             if calendarViewModel.showKeyCommands {
                 KeyCommandsView()
                     .frame(width: 400, height: 500)
-                    .background(themeManager.currentTheme.palette.calendarSurface)
+                    .background(themeManager.currentPalette.calendarSurface)
                     .cornerRadius(8)
                     .shadow(radius: 10)
             }
@@ -480,13 +481,13 @@ struct DayView: View {
                 Text(event.title)
                     .font(uiConfig.captionFont)
                     .lineLimit(1)
-                    .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
             }
 
             if day.events.count > 3 {
                 Text("+\(day.events.count - 3) more")
                     .font(uiConfig.smallCaptionFont)
-                    .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
             }
 
             Spacer()
@@ -504,27 +505,27 @@ struct DayView: View {
         }
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
-                .stroke(themeManager.currentTheme.palette.gridLine.opacity(uiConfig.gridLineOpacity), lineWidth: 0.5)
+                .stroke(themeManager.currentPalette.gridLine.opacity(uiConfig.gridLineOpacity), lineWidth: 0.5)
         )
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
-                .stroke(day.isToday ? themeManager.currentTheme.palette.todayHighlight : Color.clear, lineWidth: 2)
+                .stroke(day.isToday ? themeManager.currentPalette.todayHighlight : Color.clear, lineWidth: 2)
         )
     }
 
     private var dayTextColor: Color {
         if day.isSelected {
-            return themeManager.currentTheme.palette.calendarSurface
+            return themeManager.currentPalette.calendarSurface
         } else if day.isCurrentMonth {
-            return themeManager.currentTheme.palette.textPrimary
+            return themeManager.currentPalette.textPrimary
         } else {
-            return themeManager.currentTheme.palette.textSecondary
+            return themeManager.currentPalette.textSecondary
         }
     }
 
     private var dayBackgroundColor: Color {
         if day.isSelected {
-            return themeManager.currentTheme.palette.selectedDay
+            return themeManager.currentPalette.selectedDay
         } else {
             return .clear
         }
@@ -545,7 +546,7 @@ struct DayDetailView: View {
                 Spacer()
                 Button(action: { calendarViewModel.toggleDayDetail() }) {
                     Image(systemName: "xmark")
-                        .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                 }
             }
             .standardPadding()
@@ -558,7 +559,7 @@ struct DayDetailView: View {
 
                     if dayEvents.isEmpty {
                         Text("No events for this day")
-                            .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
                             .font(uiConfig.eventDetailFont)
                             .standardPadding()
                     } else {
@@ -632,16 +633,16 @@ struct EventDetailView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Weather Forecast")
                             .font(uiConfig.eventDetailFont)
-                            .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                            .foregroundColor(themeManager.currentPalette.textPrimary)
 
                         HStack {
                             Image(systemName: weather.icon)
-                                .foregroundColor(themeManager.currentTheme.palette.accent)
+                                .foregroundColor(themeManager.currentPalette.accent)
                             Text(weather.temperatureString)
                                 .font(uiConfig.eventDetailFont)
                             Text(weather.condition)
                                 .font(uiConfig.captionFont)
-                                .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
                         }
 
                         HStack(spacing: 16) {
@@ -649,7 +650,7 @@ struct EventDetailView: View {
                             Label(weather.windSpeedString, systemImage: "wind")
                         }
                         .font(uiConfig.captionFont)
-                        .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                     }
                     .padding(12)
                     .background(Color.gray.opacity(0.1))
@@ -660,11 +661,11 @@ struct EventDetailView: View {
             if let notes = event.notes {
                 Text(notes)
                     .font(uiConfig.scaledFont(.body))
-                    .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
             }
         }
         .standardPadding()
-        .background(themeManager.currentTheme.palette.calendarSurface)
+        .background(themeManager.currentPalette.calendarSurface)
         .roundedCorners(.normal)
         .padding(.horizontal)
         .onAppear {
@@ -800,7 +801,7 @@ struct MonthMiniView: View {
             Text(monthDate.formatted(.dateTime.month(.wide)))
                 .font(uiConfig.captionFont)
                 .fontWeight(.semibold)
-                .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                .foregroundColor(themeManager.currentPalette.textPrimary)
 
             // Mini calendar grid
             let monthDays = generateMiniMonthDays(for: monthDate)
@@ -811,20 +812,20 @@ struct MonthMiniView: View {
                     Text(day.date.formatted(.dateTime.day()))
                         .font(.system(size: 8))
                         .foregroundColor(day.isCurrentMonth ?
-                            (day.isToday ? themeManager.currentTheme.palette.accent : themeManager.currentTheme.palette.textPrimary) :
-                            themeManager.currentTheme.palette.textSecondary.opacity(0.5))
+                            (day.isToday ? themeManager.currentPalette.accent : themeManager.currentPalette.textPrimary) :
+                            themeManager.currentPalette.textSecondary.opacity(0.5))
                         .frame(width: 12, height: 12)
-                        .background(day.isToday ? themeManager.currentTheme.palette.accent.opacity(0.2) : Color.clear)
+                        .background(day.isToday ? themeManager.currentPalette.accent.opacity(0.2) : Color.clear)
                         .cornerRadius(2)
                 }
             }
         }
         .padding(6)
-        .background(themeManager.currentTheme.palette.surface)
+        .background(themeManager.currentPalette.surface)
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small.value))
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
-                .stroke(themeManager.currentTheme.palette.gridLine, lineWidth: 0.5)
+                .stroke(themeManager.currentPalette.gridLine, lineWidth: 0.5)
         )
     }
 

@@ -26,15 +26,15 @@ struct QuickAddView: View {
             HStack {
                 Text("Quick Add Event")
                     .font(uiConfig.scaledFont(.headline, weight: .bold))
-                    .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
                 Spacer()
                 Button(action: { isPresented = false }) {
                     Image(systemName: "xmark")
-                        .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                 }
             }
             .padding()
-            .background(themeManager.currentTheme.palette.calendarSurface)
+            .background(themeManager.currentPalette.calendarSurface)
 
             Divider()
 
@@ -80,7 +80,7 @@ struct QuickAddView: View {
                         isPresented = false
                     }
                     .font(uiConfig.scaledFont(.body))
-                    .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
 
                     Spacer()
 
@@ -88,7 +88,7 @@ struct QuickAddView: View {
                         addEvent()
                     }
                     .font(uiConfig.scaledFont(.body, weight: .medium))
-                    .foregroundColor(themeManager.currentTheme.palette.buttonPrimary)
+                    .foregroundColor(themeManager.currentPalette.buttonPrimary)
                     .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
                 .padding()
@@ -96,7 +96,7 @@ struct QuickAddView: View {
             .padding(.vertical)
         }
         .frame(width: 400)
-        .background(themeManager.currentTheme.palette.calendarSurface)
+        .background(themeManager.currentPalette.calendarSurface)
         .roundedCorners(.normal)
         .shadow(radius: 10)
     }

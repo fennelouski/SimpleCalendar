@@ -7,6 +7,11 @@
 
 import SwiftUI
 import Combine
+#if os(macOS)
+import AppKit
+#else
+import UIKit
+#endif
 
 struct ColorPalette {
     let name: String
@@ -54,73 +59,142 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
 
     var id: Int { rawValue }
 
-    var palette: ColorPalette {
+    func palette(for colorScheme: ColorScheme) -> ColorPalette {
         switch self {
         case .ocean:
-            return ColorPalette(
-                name: "Ocean",
-                primary: Color(hex: "1E88E5"),      // Ocean blue
-                secondary: Color(hex: "4FC3F7"),    // Light blue
-                accent: Color(hex: "FFD54F"),      // Sandy yellow
-                background: Color(hex: "E3F2FD"),   // Light blue background
-                surface: Color(hex: "FFFFFF"),     // White
-                textPrimary: Color(hex: "0D47A1"),  // Dark blue
-                textSecondary: Color(hex: "546E7A"), // Blue grey
-                border: Color(hex: "B3E5FC"),      // Light border
-                highlight: Color(hex: "1E88E5"),   // Ocean blue highlight
-                gridLine: Color(hex: "B3E5FC").opacity(0.8), // Visible grid line
-                eventColors: [
-                    Color(hex: "0277BD"), // Deep blue
-                    Color(hex: "00BCD4"), // Cyan
-                    Color(hex: "4DD0E1"), // Light cyan
-                    Color(hex: "B2EBF2")  // Very light cyan
-                ],
-                icon: "water.waves"
-            )
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Ocean",
+                    primary: Color(hex: "4FC3F7"),      // Light blue (more visible in dark)
+                    secondary: Color(hex: "81D4FA"),    // Lighter blue
+                    accent: Color(hex: "FFD54F"),      // Sandy yellow (same for contrast)
+                    background: Color(hex: "0D47A1"),   // Dark blue background
+                    surface: Color(hex: "1E3A5F"),     // Dark surface
+                    textPrimary: Color(hex: "FFFFFF"),  // White text
+                    textSecondary: Color(hex: "B3E5FC"), // Light blue text
+                    border: Color(hex: "4FC3F7"),      // Blue border
+                    highlight: Color(hex: "4FC3F7"),   // Light blue highlight
+                    gridLine: Color(hex: "4FC3F7").opacity(0.6), // Visible grid line
+                    eventColors: [
+                        Color(hex: "4FC3F7"), // Light blue
+                        Color(hex: "81D4FA"), // Lighter blue
+                        Color(hex: "B3E5FC"), // Very light blue
+                        Color(hex: "E1F5FE")  // Pale blue
+                    ],
+                    icon: "water.waves"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Ocean",
+                    primary: Color(hex: "1E88E5"),      // Ocean blue
+                    secondary: Color(hex: "4FC3F7"),    // Light blue
+                    accent: Color(hex: "FFD54F"),      // Sandy yellow
+                    background: Color(hex: "E3F2FD"),   // Light blue background
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "0D47A1"),  // Dark blue
+                    textSecondary: Color(hex: "546E7A"), // Blue grey
+                    border: Color(hex: "B3E5FC"),      // Light border
+                    highlight: Color(hex: "1E88E5"),   // Ocean blue highlight
+                    gridLine: Color(hex: "B3E5FC").opacity(0.8), // Visible grid line
+                    eventColors: [
+                        Color(hex: "0277BD"), // Deep blue
+                        Color(hex: "00BCD4"), // Cyan
+                        Color(hex: "4DD0E1"), // Light cyan
+                        Color(hex: "B2EBF2")  // Very light cyan
+                    ],
+                    icon: "water.waves"
+                )
+            }
 
         case .forest:
-            return ColorPalette(
-                name: "Forest",
-                primary: Color(hex: "388E3C"),      // Forest green
-                secondary: Color(hex: "66BB6A"),    // Light green
-                accent: Color(hex: "FFD54F"),      // Sunshine yellow
-                background: Color(hex: "E8F5E8"),   // Light green background
-                surface: Color(hex: "FFFFFF"),     // White
-                textPrimary: Color(hex: "1B5E20"),  // Dark green
-                textSecondary: Color(hex: "546E7A"), // Grey
-                border: Color(hex: "C8E6C9"),      // Light green border
-                highlight: Color(hex: "388E3C"),   // Forest green highlight
-                gridLine: Color(hex: "C8E6C9").opacity(0.8), // Visible grid line
-                eventColors: [
-                    Color(hex: "2E7D32"), // Deep green
-                    Color(hex: "43A047"), // Medium green
-                    Color(hex: "66BB6A"), // Light green
-                    Color(hex: "A5D6A7")  // Pale green
-                ],
-                icon: "leaf.fill"
-            )
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Forest",
+                    primary: Color(hex: "66BB6A"),      // Light green (more visible in dark)
+                    secondary: Color(hex: "81C784"),    // Lighter green
+                    accent: Color(hex: "FFD54F"),      // Sunshine yellow (same for contrast)
+                    background: Color(hex: "1B5E20"),   // Dark green background
+                    surface: Color(hex: "2E4D33"),     // Dark surface
+                    textPrimary: Color(hex: "FFFFFF"),  // White text
+                    textSecondary: Color(hex: "C8E6C9"), // Light green text
+                    border: Color(hex: "66BB6A"),      // Green border
+                    highlight: Color(hex: "66BB6A"),   // Light green highlight
+                    gridLine: Color(hex: "66BB6A").opacity(0.6), // Visible grid line
+                    eventColors: [
+                        Color(hex: "66BB6A"), // Light green
+                        Color(hex: "81C784"), // Lighter green
+                        Color(hex: "A5D6A7"), // Pale green
+                        Color(hex: "C8E6C9")  // Very pale green
+                    ],
+                    icon: "leaf.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Forest",
+                    primary: Color(hex: "388E3C"),      // Forest green
+                    secondary: Color(hex: "66BB6A"),    // Light green
+                    accent: Color(hex: "FFD54F"),      // Sunshine yellow
+                    background: Color(hex: "E8F5E8"),   // Light green background
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "1B5E20"),  // Dark green
+                    textSecondary: Color(hex: "546E7A"), // Grey
+                    border: Color(hex: "C8E6C9"),      // Light green border
+                    highlight: Color(hex: "388E3C"),   // Forest green highlight
+                    gridLine: Color(hex: "C8E6C9").opacity(0.8), // Visible grid line
+                    eventColors: [
+                        Color(hex: "2E7D32"), // Deep green
+                        Color(hex: "43A047"), // Medium green
+                        Color(hex: "66BB6A"), // Light green
+                        Color(hex: "A5D6A7")  // Pale green
+                    ],
+                    icon: "leaf.fill"
+                )
+            }
 
         case .sunset:
-            return ColorPalette(
-                name: "Sunset",
-                primary: Color(hex: "F4511E"),      // Orange red
-                secondary: Color(hex: "FB8C00"),    // Orange
-                accent: Color(hex: "FFD54F"),      // Yellow
-                background: Color(hex: "FFF3E0"),   // Light orange background
-                surface: Color(hex: "FFFFFF"),     // White
-                textPrimary: Color(hex: "BF360C"),  // Dark red
-                textSecondary: Color(hex: "546E7A"), // Grey
-                border: Color(hex: "FFCCBC"),      // Light orange border
-                highlight: Color(hex: "F4511E"),   // Orange red highlight
-                gridLine: Color(hex: "FFCCBC").opacity(0.8), // Visible grid line
-                eventColors: [
-                    Color(hex: "D84315"), // Deep orange
-                    Color(hex: "E65100"), // Orange
-                    Color(hex: "EF6C00"), // Light orange
-                    Color(hex: "F57C00")  // Pale orange
-                ],
-                icon: "sunset.fill"
-            )
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Sunset",
+                    primary: Color(hex: "FB8C00"),      // Orange (more visible in dark)
+                    secondary: Color(hex: "FF9800"),    // Lighter orange
+                    accent: Color(hex: "FFD54F"),      // Yellow (same for contrast)
+                    background: Color(hex: "BF360C"),   // Dark red background
+                    surface: Color(hex: "D84315"),     // Dark surface
+                    textPrimary: Color(hex: "FFFFFF"),  // White text
+                    textSecondary: Color(hex: "FFCCBC"), // Light orange text
+                    border: Color(hex: "FB8C00"),      // Orange border
+                    highlight: Color(hex: "FB8C00"),   // Orange highlight
+                    gridLine: Color(hex: "FB8C00").opacity(0.6), // Visible grid line
+                    eventColors: [
+                        Color(hex: "FB8C00"), // Orange
+                        Color(hex: "FF9800"), // Lighter orange
+                        Color(hex: "FFCCBC"), // Pale orange
+                        Color(hex: "FFF3E0")  // Very pale orange
+                    ],
+                    icon: "sunset.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Sunset",
+                    primary: Color(hex: "F4511E"),      // Orange red
+                    secondary: Color(hex: "FB8C00"),    // Orange
+                    accent: Color(hex: "FFD54F"),      // Yellow
+                    background: Color(hex: "FFF3E0"),   // Light orange background
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "BF360C"),  // Dark red
+                    textSecondary: Color(hex: "546E7A"), // Grey
+                    border: Color(hex: "FFCCBC"),      // Light orange border
+                    highlight: Color(hex: "F4511E"),   // Orange red highlight
+                    gridLine: Color(hex: "FFCCBC").opacity(0.8), // Visible grid line
+                    eventColors: [
+                        Color(hex: "D84315"), // Deep orange
+                        Color(hex: "E65100"), // Orange
+                        Color(hex: "EF6C00"), // Light orange
+                        Color(hex: "F57C00")  // Pale orange
+                    ],
+                    icon: "sunset.fill"
+                )
+            }
 
         case .space:
             return ColorPalette(
@@ -232,50 +306,96 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 icon: "rainbow"
             )
         case .system:
-            // System theme that adapts to light/dark mode and uses system colors
-            #if os(macOS)
-            return ColorPalette(
-                name: "System",
-                primary: Color(NSColor.systemBlue),
-                secondary: Color(NSColor.systemGray),
-                accent: Color(NSColor.systemOrange),
-                background: Color(NSColor.windowBackgroundColor),
-                surface: Color(NSColor.controlBackgroundColor),
-                textPrimary: Color(NSColor.labelColor),
-                textSecondary: Color(NSColor.secondaryLabelColor),
-                border: Color(NSColor.separatorColor),
-                highlight: Color(NSColor.systemBlue),
-                gridLine: Color(NSColor.separatorColor).opacity(0.5),
-                eventColors: [
-                    Color(NSColor.systemBlue),
-                    Color(NSColor.systemGreen),
-                    Color(NSColor.systemOrange),
-                    Color(NSColor.systemPurple)
-                ],
-                icon: "circle.grid.3x3"
-            )
-            #else
-            return ColorPalette(
-                name: "System",
-                primary: Color(UIColor.systemBlue),
-                secondary: Color(UIColor.systemGray),
-                accent: Color(UIColor.systemOrange),
-                background: Color(UIColor.systemBackground),
-                surface: Color(UIColor.secondarySystemBackground),
-                textPrimary: Color(UIColor.label),
-                textSecondary: Color(UIColor.secondaryLabel),
-                border: Color(UIColor.separator),
-                highlight: Color(UIColor.systemBlue),
-                gridLine: Color(UIColor.separator).opacity(0.5),
-                eventColors: [
-                    Color(UIColor.systemBlue),
-                    Color(UIColor.systemGreen),
-                    Color(UIColor.systemOrange),
-                    Color(UIColor.systemPurple)
-                ],
-                icon: "circle.grid.3x3"
-            )
-            #endif
+            // System theme that uses appropriate colors for the current color scheme
+            if colorScheme == .dark {
+                #if os(macOS)
+                return ColorPalette(
+                    name: "System",
+                    primary: Color(NSColor.systemBlue),
+                    secondary: Color(NSColor.systemGray),
+                    accent: Color(NSColor.systemOrange),
+                    background: Color(NSColor.windowBackgroundColor),
+                    surface: Color(NSColor.controlBackgroundColor),
+                    textPrimary: Color(NSColor.labelColor),
+                    textSecondary: Color(NSColor.secondaryLabelColor),
+                    border: Color(NSColor.separatorColor),
+                    highlight: Color(NSColor.systemBlue),
+                    gridLine: Color(NSColor.separatorColor).opacity(0.6),
+                    eventColors: [
+                        Color(NSColor.systemBlue),
+                        Color(NSColor.systemGreen),
+                        Color(NSColor.systemOrange),
+                        Color(NSColor.systemPurple)
+                    ],
+                    icon: "circle.grid.3x3"
+                )
+                #else
+                return ColorPalette(
+                    name: "System",
+                    primary: Color(UIColor.systemBlue),
+                    secondary: Color(UIColor.systemGray),
+                    accent: Color(UIColor.systemOrange),
+                    background: Color(UIColor.systemBackground),
+                    surface: Color(UIColor.secondarySystemBackground),
+                    textPrimary: Color(UIColor.label),
+                    textSecondary: Color(UIColor.secondaryLabel),
+                    border: Color(UIColor.separator),
+                    highlight: Color(UIColor.systemBlue),
+                    gridLine: Color(UIColor.separator).opacity(0.6),
+                    eventColors: [
+                        Color(UIColor.systemBlue),
+                        Color(UIColor.systemGreen),
+                        Color(UIColor.systemOrange),
+                        Color(UIColor.systemPurple)
+                    ],
+                    icon: "circle.grid.3x3"
+                )
+                #endif
+            } else {
+                #if os(macOS)
+                return ColorPalette(
+                    name: "System",
+                    primary: Color(NSColor.systemBlue),
+                    secondary: Color(NSColor.systemGray),
+                    accent: Color(NSColor.systemOrange),
+                    background: Color(NSColor.windowBackgroundColor),
+                    surface: Color(NSColor.controlBackgroundColor),
+                    textPrimary: Color(NSColor.labelColor),
+                    textSecondary: Color(NSColor.secondaryLabelColor),
+                    border: Color(NSColor.separatorColor),
+                    highlight: Color(NSColor.systemBlue),
+                    gridLine: Color(NSColor.separatorColor).opacity(0.5),
+                    eventColors: [
+                        Color(NSColor.systemBlue),
+                        Color(NSColor.systemGreen),
+                        Color(NSColor.systemOrange),
+                        Color(NSColor.systemPurple)
+                    ],
+                    icon: "circle.grid.3x3"
+                )
+                #else
+                return ColorPalette(
+                    name: "System",
+                    primary: Color(UIColor.systemBlue),
+                    secondary: Color(UIColor.systemGray),
+                    accent: Color(UIColor.systemOrange),
+                    background: Color(UIColor.systemBackground),
+                    surface: Color(UIColor.secondarySystemBackground),
+                    textPrimary: Color(UIColor.label),
+                    textSecondary: Color(UIColor.secondaryLabel),
+                    border: Color(UIColor.separator),
+                    highlight: Color(UIColor.systemBlue),
+                    gridLine: Color(UIColor.separator).opacity(0.5),
+                    eventColors: [
+                        Color(UIColor.systemBlue),
+                        Color(UIColor.systemGreen),
+                        Color(UIColor.systemOrange),
+                        Color(UIColor.systemPurple)
+                    ],
+                    icon: "circle.grid.3x3"
+                )
+                #endif
+            }
         }
     }
 
@@ -320,11 +440,38 @@ class ThemeManager: ObservableObject {
         }
     }
 
+    // Get palette for a specific color scheme
+    func palette(for colorScheme: ColorScheme) -> ColorPalette {
+        currentTheme.palette(for: colorScheme)
+    }
+
+    // Convenience property for current system color scheme (set by views)
+    private var _currentColorScheme: ColorScheme = .light
+    var currentColorScheme: ColorScheme {
+        get { _currentColorScheme }
+        set {
+            if _currentColorScheme != newValue {
+                _currentColorScheme = newValue
+                // Trigger UI updates when color scheme changes
+                objectWillChange.send()
+            }
+        }
+    }
+
+    // Computed property that returns the appropriate palette based on current color scheme
+    var currentPalette: ColorPalette {
+        currentTheme.palette(for: currentColorScheme)
+    }
+
     private let themeKey = "selectedColorTheme"
 
     init() {
         let savedThemeRaw = UserDefaults.standard.integer(forKey: themeKey)
         self.currentTheme = ColorTheme(rawValue: savedThemeRaw) ?? .default
+
+        // Default to light mode - users can restart app to see correct theme
+        // TODO: Implement proper system color scheme detection
+        self.currentColorScheme = .light
     }
 
     func setTheme(_ theme: ColorTheme) {
