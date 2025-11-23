@@ -76,6 +76,8 @@ class KeyHandlingView: NSView {
             calendarViewModel.setViewMode(.sevenDays)
         case 29: // 0
             calendarViewModel.setViewMode(.twoWeeks)
+        case 36: // return
+            calendarViewModel.toggleDayDetail()
         case 126: // up arrow
             calendarViewModel.moveUpOneWeek()
         case 125: // down arrow

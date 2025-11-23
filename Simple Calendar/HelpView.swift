@@ -320,6 +320,7 @@ struct HelpView: View {
                 KeyboardShortcutRow(shortcut: "⌘N", description: "New event")
                 KeyboardShortcutRow(shortcut: "⌘F", description: "Search events")
                 KeyboardShortcutRow(shortcut: "⌘D", description: "Show current day details")
+                KeyboardShortcutRow(shortcut: "Return", description: "Toggle day detail slide-out")
                 KeyboardShortcutRow(shortcut: "⌘K", description: "Show keyboard shortcuts popup")
                 KeyboardShortcutRow(shortcut: "⌘⇧K", description: "Show shortcuts in slide-out")
                 KeyboardShortcutRow(shortcut: "⌘⇧F", description: "Toggle fullscreen")

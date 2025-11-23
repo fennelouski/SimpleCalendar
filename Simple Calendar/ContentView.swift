@@ -951,6 +951,7 @@ struct KeyCommandsView: View {
                     KeyCommandRow(key: "Cmd + K", description: "Show shortcuts")
                     KeyCommandRow(key: "Cmd + Shift + K", description: "Show shortcuts in slide-out")
                     KeyCommandRow(key: "Cmd + D", description: "Show day detail")
+                    KeyCommandRow(key: "Return", description: "Toggle day detail slide-out")
                     KeyCommandRow(key: "Cmd + ,", description: "Settings")
                     KeyCommandRow(key: "Cmd + A", description: "Switch to agenda view")
                     KeyCommandRow(key: "Cmd + N", description: "Create new event")
