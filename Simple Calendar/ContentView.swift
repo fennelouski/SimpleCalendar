@@ -117,6 +117,9 @@ struct ContentView: View {
             .font(.custom(font, size: 32 * uiConfig.fontSizeCategory.scaleFactor))
             .fontWeight(.bold)
             .foregroundColor(themeManager.currentTheme.palette.monthText)
+            .onTapGesture {
+                calendarViewModel.toggleYearView()
+            }
     }
 
     private var yearDisplay: some View {
@@ -131,65 +134,81 @@ struct ContentView: View {
             let days = generateCalendarDays()
 
             VStack(spacing: 8) {
-                // Day headers
-                LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(0..<daysPerRow, id: \.self) { index in
-                        Text(dayName(for: index))
-                            .font(uiConfig.dayNameFont)
-                            .foregroundColor(themeManager.currentTheme.palette.dayNameText)
-                            .frame(height: 24)
+                // Headers (only for non-year views)
+                if calendarViewModel.viewMode != .year {
+                    LazyVGrid(columns: columns, spacing: 8) {
+                        ForEach(0..<daysPerRow, id: \.self) { index in
+                            Text(dayName(for: index))
+                                .font(uiConfig.dayNameFont)
+                                .foregroundColor(themeManager.currentTheme.palette.dayNameText)
+                                .frame(height: 24)
+                        }
                     }
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
 
-                // Calendar days
+                // Calendar content
                 LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(days) { day in
-                        DayView(day: day, geometry: geometry)
-                            .onTapGesture(count: 2) {
-                                handleDayDoubleClick(day.date)
-                            }
-                            .onTapGesture(count: 1) {
-                                calendarViewModel.selectDate(day.date)
-                            }
-                            .simultaneousGesture(
-                                TapGesture(count: 1)
-                                    .onEnded {
-                                        calendarViewModel.selectDate(day.date)
-                                    }
-                            )
-                            .contextMenu {
-                                Button(action: {
-                                    calendarViewModel.selectedDate = day.date
-                                    calendarViewModel.showEventCreation = true
-                                }) {
-                                    Label("Create Event", systemImage: "plus")
+                    if calendarViewModel.viewMode == .year {
+                        // Year view: show mini months
+                        ForEach(days.indices, id: \.self) { index in
+                            let day = days[index]
+                            MonthMiniView(monthDate: day.date, geometry: geometry)
+                                .onTapGesture {
+                                    // Switch to month view for the selected month
+                                    calendarViewModel.currentDate = day.date
+                                    calendarViewModel.setViewMode(.month)
                                 }
-
-                                Button(action: {
-                                    calendarViewModel.selectedDate = day.date
-                                    calendarViewModel.showEventTemplates = true
-                                }) {
-                                    Label("Quick Create", systemImage: "sparkles")
+                        }
+                    } else {
+                        // Regular views: show day cells
+                        ForEach(days) { day in
+                            DayView(day: day, geometry: geometry)
+                                .onTapGesture(count: 2) {
+                                    handleDayDoubleClick(day.date)
                                 }
-
-                                Divider()
-
-                                if !day.events.isEmpty {
-                                    Button(action: {
-                                        exportDayEvents(day.events)
-                                    }) {
-                                        Label("Export Events", systemImage: "square.and.arrow.up")
-                                    }
-                                }
-
-                                Button(action: {
+                                .onTapGesture(count: 1) {
                                     calendarViewModel.selectDate(day.date)
-                                    calendarViewModel.setViewMode(.singleDay)
-                                }) {
-                                    Label("View Day", systemImage: "calendar")
                                 }
-                            }
+                                .simultaneousGesture(
+                                    TapGesture(count: 1)
+                                        .onEnded {
+                                            calendarViewModel.selectDate(day.date)
+                                        }
+                                )
+                                .contextMenu {
+                                    Button(action: {
+                                        calendarViewModel.selectedDate = day.date
+                                        calendarViewModel.showEventCreation = true
+                                    }) {
+                                        Label("Create Event", systemImage: "plus")
+                                    }
+
+                                    Button(action: {
+                                        calendarViewModel.selectedDate = day.date
+                                        calendarViewModel.showEventTemplates = true
+                                    }) {
+                                        Label("Quick Create", systemImage: "sparkles")
+                                    }
+
+                                    Divider()
+
+                                    if !day.events.isEmpty {
+                                        Button(action: {
+                                            exportDayEvents(day.events)
+                                        }) {
+                                            Label("Export Events", systemImage: "square.and.arrow.up")
+                                        }
+                                    }
+
+                                    Button(action: {
+                                        calendarViewModel.selectDate(day.date)
+                                        calendarViewModel.setViewMode(.singleDay)
+                                    }) {
+                                        Label("View Day", systemImage: "calendar")
+                                    }
+                                }
+                        }
                     }
                 }
                 .padding(.horizontal)
@@ -239,6 +258,8 @@ struct ContentView: View {
         switch calendarViewModel.viewMode {
         case .month:
             return 7
+        case .year:
+            return 3 // 3 months per row for year view
         case .twoWeeks:
             return 7
         default:
@@ -255,10 +276,41 @@ struct ContentView: View {
         switch calendarViewModel.viewMode {
         case .month:
             days = generateMonthDays(for: currentMonth)
+        case .year:
+            days = generateYearDays(for: currentMonth)
         case .twoWeeks:
             days = generateTwoWeekDays(for: currentMonth)
         default:
             days = generateDayRangeDays(for: currentMonth, days: calendarViewModel.viewMode.dayCount)
+        }
+
+        return days
+    }
+
+    private func generateYearDays(for date: Date) -> [CalendarDay] {
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: date)
+
+        var days: [CalendarDay] = []
+
+        // Create one representative day for each month
+        for month in 1...12 {
+            var components = DateComponents()
+            components.year = year
+            components.month = month
+            components.day = 1
+
+            if let monthDate = calendar.date(from: components) {
+                let calendarDay = CalendarDay(
+                    id: monthDate,
+                    date: monthDate,
+                    isToday: false,
+                    isSelected: false,
+                    events: [], // Year view doesn't show events
+                    isCurrentMonth: true
+                )
+                days.append(calendarDay)
+            }
         }
 
         return days
@@ -720,6 +772,96 @@ struct SearchResultRow: View {
         .background(Color.gray.opacity(0.1))
         .cornerRadius(6)
         .padding(.horizontal)
+    }
+}
+
+struct MonthMiniView: View {
+    let monthDate: Date
+    let geometry: GeometryProxy
+    @EnvironmentObject var calendarViewModel: CalendarViewModel
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var uiConfig: UIConfiguration
+
+    var body: some View {
+        VStack(spacing: 4) {
+            // Month name
+            Text(monthDate.formatted(.dateTime.month(.wide)))
+                .font(uiConfig.captionFont)
+                .fontWeight(.semibold)
+                .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+
+            // Mini calendar grid
+            let monthDays = generateMiniMonthDays(for: monthDate)
+            let miniColumns = Array(repeating: GridItem(.flexible(), spacing: 1), count: 7)
+
+            LazyVGrid(columns: miniColumns, spacing: 1) {
+                ForEach(monthDays) { day in
+                    Text(day.date.formatted(.dateTime.day()))
+                        .font(.system(size: 8))
+                        .foregroundColor(day.isCurrentMonth ?
+                            (day.isToday ? themeManager.currentTheme.palette.accent : themeManager.currentTheme.palette.textPrimary) :
+                            themeManager.currentTheme.palette.textSecondary.opacity(0.5))
+                        .frame(width: 12, height: 12)
+                        .background(day.isToday ? themeManager.currentTheme.palette.accent.opacity(0.2) : Color.clear)
+                        .cornerRadius(2)
+                }
+            }
+        }
+        .padding(6)
+        .background(themeManager.currentTheme.palette.surface)
+        .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small.value))
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerRadius.small.value)
+                .stroke(themeManager.currentTheme.palette.gridLine, lineWidth: 0.5)
+        )
+    }
+
+    private func generateMiniMonthDays(for date: Date) -> [CalendarDay] {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month], from: date)
+
+        guard let startOfMonth = calendar.date(from: components),
+              let range = calendar.range(of: .day, in: .month, for: startOfMonth) else {
+            return []
+        }
+
+        let firstWeekday = calendar.component(.weekday, from: startOfMonth)
+        let daysFromPreviousMonth = firstWeekday - calendar.firstWeekday
+        let totalCells = 42 // 6 weeks * 7 days for consistent mini calendar size
+
+        var days: [CalendarDay] = []
+
+        // Previous month days
+        if daysFromPreviousMonth > 0 {
+            let previousMonth = calendar.date(byAdding: .month, value: -1, to: startOfMonth)!
+            let daysInPreviousMonth = calendar.range(of: .day, in: .month, for: previousMonth)!.count
+
+            for i in (daysInPreviousMonth - daysFromPreviousMonth + 1)...daysInPreviousMonth {
+                if let date = calendar.date(bySetting: .day, value: i, of: previousMonth) {
+                    days.append(CalendarDay(id: date, date: date, isToday: false, isSelected: false, events: [], isCurrentMonth: false))
+                }
+            }
+        }
+
+        // Current month days
+        for day in 1...range.count {
+            if let date = calendar.date(bySetting: .day, value: day, of: startOfMonth) {
+                let isToday = calendar.isDateInToday(date)
+                days.append(CalendarDay(id: date, date: date, isToday: isToday, isSelected: false, events: [], isCurrentMonth: true))
+            }
+        }
+
+        // Next month days to fill the grid
+        let remainingCells = totalCells - days.count
+        let nextMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
+
+        for day in 1...remainingCells {
+            if let date = calendar.date(bySetting: .day, value: day, of: nextMonth) {
+                days.append(CalendarDay(id: date, date: date, isToday: false, isSelected: false, events: [], isCurrentMonth: false))
+            }
+        }
+
+        return days
     }
 }
 

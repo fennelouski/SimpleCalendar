@@ -104,6 +104,8 @@ class KeyHandlingView: NSView {
             calendarViewModel.setViewMode(.month)
         case 13: // w
             calendarViewModel.setViewMode(.sevenDays) // Week view
+        case 16: // y
+            calendarViewModel.setViewMode(.year) // Year view
         default:
             break
         }

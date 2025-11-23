@@ -46,6 +46,7 @@ enum CalendarViewMode {
     case week // Standard week view
     case twoWeeks
     case month // Approximate for month view
+    case year // Full year view
     case agenda // List view of upcoming events
 
     var dayCount: Int {
@@ -60,6 +61,7 @@ enum CalendarViewMode {
         case .week: return 7
         case .twoWeeks: return 14
         case .month: return 31
+        case .year: return 365 // Approximate for year view
         case .agenda: return 0 // Not applicable for agenda view
         }
     }
@@ -76,6 +78,7 @@ enum CalendarViewMode {
         case .week: return "Week"
         case .twoWeeks: return "2 Weeks"
         case .month: return "Month"
+        case .year: return "Year"
         case .agenda: return "Agenda"
         }
     }

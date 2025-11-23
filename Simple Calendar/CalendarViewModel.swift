@@ -17,6 +17,7 @@ class CalendarViewModel: ObservableObject {
     @Published var currentDate: Date = Date()
     @Published var selectedDate: Date?
     @Published var viewMode: CalendarViewMode = .month
+    @Published var previousViewMode: CalendarViewMode? = nil
     @Published var events: [CalendarEvent] = []
     @Published var showDayDetail: Bool = false
     @Published var showSearch: Bool = false
@@ -110,12 +111,30 @@ class CalendarViewModel: ObservableObject {
     }
 
     func navigateToNextMonth() {
-        currentDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate)!
-        loadAllEvents()
+        if viewMode == .year {
+            navigateToNextYear()
+        } else {
+            currentDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate)!
+            loadAllEvents()
+        }
     }
 
     func navigateToPreviousMonth() {
-        currentDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
+        if viewMode == .year {
+            navigateToPreviousYear()
+        } else {
+            currentDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
+            loadAllEvents()
+        }
+    }
+
+    func navigateToNextYear() {
+        currentDate = Calendar.current.date(byAdding: .year, value: 1, to: currentDate)!
+        loadAllEvents()
+    }
+
+    func navigateToPreviousYear() {
+        currentDate = Calendar.current.date(byAdding: .year, value: -1, to: currentDate)!
         loadAllEvents()
     }
 
@@ -134,7 +153,23 @@ class CalendarViewModel: ObservableObject {
     }
 
     func setViewMode(_ mode: CalendarViewMode) {
+        // Save previous view mode for toggling back
+        if mode != .year {
+            previousViewMode = viewMode
+        }
         viewMode = mode
+    }
+
+    func toggleYearView() {
+        if viewMode == .year {
+            // Return to previous view or month view
+            viewMode = previousViewMode ?? .month
+            previousViewMode = nil
+        } else {
+            // Save current view and switch to year view
+            previousViewMode = viewMode
+            viewMode = .year
+        }
     }
 
     func moveUpOneWeek() {
