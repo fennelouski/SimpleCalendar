@@ -200,26 +200,75 @@ class CalendarViewModel: ObservableObject {
     }
 
     func moveUpOneWeek() {
-        if let selectedDate = selectedDate {
-            self.selectedDate = Calendar.current.date(byAdding: .day, value: -7, to: selectedDate)
+        if let selectedDate = selectedDate,
+           let newDate = Calendar.current.date(byAdding: .day, value: -7, to: selectedDate) {
+            self.selectedDate = newDate
+            ensureSelectedDateIsVisible()
         }
     }
 
     func moveDownOneWeek() {
-        if let selectedDate = selectedDate {
-            self.selectedDate = Calendar.current.date(byAdding: .day, value: 7, to: selectedDate)
+        if let selectedDate = selectedDate,
+           let newDate = Calendar.current.date(byAdding: .day, value: 7, to: selectedDate) {
+            self.selectedDate = newDate
+            ensureSelectedDateIsVisible()
         }
     }
 
     func moveLeftOneDay() {
-        if let selectedDate = selectedDate {
-            self.selectedDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate)
+        if let selectedDate = selectedDate,
+           let newDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) {
+            self.selectedDate = newDate
+            ensureSelectedDateIsVisible()
         }
     }
 
     func moveRightOneDay() {
-        if let selectedDate = selectedDate {
-            self.selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate)
+        if let selectedDate = selectedDate,
+           let newDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) {
+            self.selectedDate = newDate
+            ensureSelectedDateIsVisible()
+        }
+    }
+
+    /// Ensures the selected date is visible in the current view by updating currentDate if necessary
+    private func ensureSelectedDateIsVisible() {
+        guard let selectedDate = selectedDate else { return }
+
+        let calendar = Calendar.current
+
+        switch viewMode {
+        case .month:
+            // For month view, check if selected date is in the current month
+            let currentMonthComponents = calendar.dateComponents([.year, .month], from: currentDate)
+            let selectedMonthComponents = calendar.dateComponents([.year, .month], from: selectedDate)
+
+            if currentMonthComponents != selectedMonthComponents {
+                // Selected date is in a different month, update currentDate to that month
+                if let newCurrentDate = calendar.date(from: selectedMonthComponents) {
+                    currentDate = newCurrentDate
+                    loadAllEvents()
+                }
+            }
+
+        case .year:
+            // For year view, check if selected date is in the current year
+            let currentYear = calendar.component(.year, from: currentDate)
+            let selectedYear = calendar.component(.year, from: selectedDate)
+
+            if currentYear != selectedYear {
+                // Selected date is in a different year, update currentDate to that year
+                if let newCurrentDate = calendar.date(from: calendar.dateComponents([.year], from: selectedDate)) {
+                    currentDate = newCurrentDate
+                    loadAllEvents()
+                }
+            }
+
+        default:
+            // For day-based views (singleDay, twoDays, threeDays, etc.), center the view on the selected date
+            // These views typically show a range of days around the selected date
+            currentDate = selectedDate
+            loadAllEvents()
         }
     }
 
