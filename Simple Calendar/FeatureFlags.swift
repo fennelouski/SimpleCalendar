@@ -75,6 +75,15 @@ class FeatureFlags: ObservableObject {
         }
     }
 
+    @Published var weekendTintingEnabled: Bool = false {
+        didSet {
+            UserDefaults.standard.set(weekendTintingEnabled, forKey: "feature_weekendTintingEnabled")
+            // Also sync to iCloud
+            NSUbiquitousKeyValueStore.default.set(weekendTintingEnabled, forKey: "feature_weekendTintingEnabled")
+            NSUbiquitousKeyValueStore.default.synchronize()
+        }
+    }
+
     private init() {
         // Load initial values from UserDefaults
         advancedViews = UserDefaults.standard.bool(forKey: "feature_advancedViews")
@@ -163,6 +172,7 @@ class FeatureFlags: ObservableObject {
         }
 
         onThisDayEnabled = getOnThisDayFlag()
+        weekendTintingEnabled = getWeekendTintingFlag()
     }
 
     /// Get On This Day flag with iCloud sync support
@@ -175,6 +185,18 @@ class FeatureFlags: ObservableObject {
 
         // Fall back to local UserDefaults, defaulting to false
         return UserDefaults.standard.bool(forKey: "feature_onThisDayEnabled")
+    }
+
+    /// Get Weekend Tinting flag with iCloud sync support
+    private func getWeekendTintingFlag() -> Bool {
+        // Try iCloud first, then local defaults
+        let iCloudValue = NSUbiquitousKeyValueStore.default.bool(forKey: "feature_weekendTintingEnabled")
+        if NSUbiquitousKeyValueStore.default.object(forKey: "feature_weekendTintingEnabled") != nil {
+            return iCloudValue
+        }
+
+        // Fall back to local UserDefaults, defaulting to false
+        return UserDefaults.standard.bool(forKey: "feature_weekendTintingEnabled")
     }
 
     /// Reset all feature flags to defaults
@@ -197,6 +219,7 @@ class FeatureFlags: ObservableObject {
         collaborationFeatures = true
         daylightVisualization = true
         onThisDayEnabled = false  // Default to off
+        weekendTintingEnabled = false  // Default to off
 
         saveAll()
     }
@@ -220,6 +243,7 @@ class FeatureFlags: ObservableObject {
         UserDefaults.standard.set(collaborationFeatures, forKey: "feature_collaborationFeatures")
         UserDefaults.standard.set(daylightVisualization, forKey: "feature_daylightVisualization")
         UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
+        UserDefaults.standard.set(weekendTintingEnabled, forKey: "feature_weekendTintingEnabled")
         UserDefaults.standard.synchronize()
     }
 

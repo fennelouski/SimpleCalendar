@@ -577,6 +577,9 @@ struct FeatureFlagsSettingsView: View {
 
                             Toggle("On This Day", isOn: $featureFlags.onThisDayEnabled)
                                 .help("Show historical events, holidays, and observances for each day")
+
+                            Toggle("Weekend Tinting", isOn: $featureFlags.weekendTintingEnabled)
+                                .help("Apply subtle background tinting to weekend days")
                         }
                     }
 

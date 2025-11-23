@@ -358,7 +358,12 @@ struct ContentView: View {
         let firstWeekday = calendar.component(.weekday, from: firstDayOfMonth)
 
         // Add days from previous month to fill the first week
-        let daysFromPreviousMonth = firstWeekday - calendar.firstWeekday
+        var daysFromPreviousMonth = firstWeekday - calendar.firstWeekday
+        // Ensure daysFromPreviousMonth is between 0 and 6
+        if daysFromPreviousMonth < 0 {
+            daysFromPreviousMonth += 7
+        }
+        daysFromPreviousMonth = min(daysFromPreviousMonth, 6)
 
         guard let previousMonth = calendar.date(byAdding: .month, value: -1, to: startOfMonth),
               let daysInPreviousMonthRange = calendar.range(of: .day, in: .month, for: previousMonth) else {
@@ -368,10 +373,13 @@ struct ContentView: View {
         let daysInPreviousMonth = daysInPreviousMonthRange.count
         var days: [CalendarDay] = []
 
-        // Previous month days
-        for i in (daysInPreviousMonth - daysFromPreviousMonth + 1)...daysInPreviousMonth {
-            if let date = calendar.date(bySetting: .day, value: i, of: previousMonth) {
-                days.append(createCalendarDay(for: date, isCurrentMonth: false))
+        // Previous month days (only if we need to fill the week)
+        if daysFromPreviousMonth > 0 {
+            let startDay = max(1, daysInPreviousMonth - daysFromPreviousMonth + 1)
+            for i in startDay...daysInPreviousMonth {
+                if let date = calendar.date(bySetting: .day, value: i, of: previousMonth) {
+                    days.append(createCalendarDay(for: date, isCurrentMonth: false))
+                }
             }
         }
 
@@ -579,9 +587,18 @@ struct DayView: View {
     private var dayBackgroundColor: Color {
         if day.isSelected {
             return themeManager.currentPalette.selectedDay
+        } else if featureFlags.weekendTintingEnabled && isWeekend {
+            // Apply subtle weekend tinting
+            return themeManager.currentPalette.surface.opacity(0.3)
         } else {
             return .clear
         }
+    }
+
+    private var isWeekend: Bool {
+        let weekday = Calendar.current.component(.weekday, from: day.date)
+        // weekday 1 = Sunday, 7 = Saturday in Gregorian calendar
+        return weekday == 1 || weekday == 7
     }
 }
 
