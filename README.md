@@ -12,6 +12,7 @@ A beautiful, multi-platform calendar application for iOS, iPadOS, and macOS desi
 ### Core Calendar Features
 - **Multi-platform Support**: Native apps for iOS, iPadOS, and macOS
 - **Beautiful Interface**: Clean, child-friendly design with intuitive navigation
+- **Grid Lines**: Subtle grid lines enhance calendar readability
 - **Multiple View Modes**: Day, 2-day, 3-day, up to 9-day views, 2-week view, and full month view
 - **System Calendar Integration**: Sync with macOS Calendar app
 - **Google Calendar Integration**: Connect and sync with Google Calendar
