@@ -32,7 +32,7 @@ struct SettingsContentView: View {
     @State private var showFeatureFlags = false
 
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             HStack {
                 Text("Settings")
                     .font(.title)
@@ -44,7 +44,8 @@ struct SettingsContentView: View {
             }
             .padding()
 
-            Form {
+            ScrollView {
+                Form {
                 Section(header: Text("Calendar Integration")) {
                     Toggle("System Calendar", isOn: .constant(true))
                         .disabled(true)
@@ -259,8 +260,8 @@ struct SettingsContentView: View {
                 }
             }
             .padding(.horizontal)
+            }
         }
-        .frame(minWidth: 400, minHeight: 500)
         .frame(minWidth: 400, minHeight: 500)
     }
 }

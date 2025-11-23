@@ -78,6 +78,9 @@ open "Simple Calendar.xcodeproj"
 ### Advanced Features
 - **Refresh Data**: `Command+R`
 - **Toggle Daylight Visualization**: `Command+L`
+- **Settings**: `Command+,`
+- **New Event**: `Command+N`
+- **Help**: `Command+?`
 - **Quick Add Event**: `Command+N`
 - **Search Events**: `Command+F`
 - **Settings**: `Command+,`
