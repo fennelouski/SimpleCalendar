@@ -70,6 +70,9 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .ToggleDaylightVisualization)) { _ in
             FeatureFlags.shared.daylightVisualization.toggle()
         }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("NewEvent"))) { _ in
+            calendarViewModel.showEventCreation = true
+        }
         .onReceive(NotificationCenter.default.publisher(for: .init("ShowQuickAdd"))) { _ in
             showQuickAdd = true
         }
@@ -251,37 +254,51 @@ struct ContentView: View {
     private func generateMonthDays(for date: Date) -> [CalendarDay] {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month], from: date)
-        let startOfMonth = calendar.date(from: components)!
 
-        let range = calendar.range(of: .day, in: .month, for: startOfMonth)!
-        let firstDayOfMonth = calendar.date(from: components)!
+        guard let startOfMonth = calendar.date(from: components),
+              let range = calendar.range(of: .day, in: .month, for: startOfMonth),
+              let firstDayOfMonth = calendar.date(from: components) else {
+            return []
+        }
+
         let firstWeekday = calendar.component(.weekday, from: firstDayOfMonth)
 
         // Add days from previous month to fill the first week
         let daysFromPreviousMonth = firstWeekday - calendar.firstWeekday
-        let previousMonth = calendar.date(byAdding: .month, value: -1, to: startOfMonth)!
-        let daysInPreviousMonth = calendar.range(of: .day, in: .month, for: previousMonth)!.count
 
+        guard let previousMonth = calendar.date(byAdding: .month, value: -1, to: startOfMonth),
+              let daysInPreviousMonthRange = calendar.range(of: .day, in: .month, for: previousMonth) else {
+            return []
+        }
+
+        let daysInPreviousMonth = daysInPreviousMonthRange.count
         var days: [CalendarDay] = []
 
         // Previous month days
         for i in (daysInPreviousMonth - daysFromPreviousMonth + 1)...daysInPreviousMonth {
-            let date = calendar.date(bySetting: .day, value: i, of: previousMonth)!
-            days.append(createCalendarDay(for: date, isCurrentMonth: false))
+            if let date = calendar.date(bySetting: .day, value: i, of: previousMonth) {
+                days.append(createCalendarDay(for: date, isCurrentMonth: false))
+            }
         }
 
         // Current month days
         for day in 1...range.count {
-            let date = calendar.date(bySetting: .day, value: day, of: startOfMonth)!
-            days.append(createCalendarDay(for: date, isCurrentMonth: true))
+            if let date = calendar.date(bySetting: .day, value: day, of: startOfMonth) {
+                days.append(createCalendarDay(for: date, isCurrentMonth: true))
+            }
         }
 
         // Next month days to fill the last week
         let remainingCells = (7 - (days.count % 7)) % 7
-        let nextMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
+
+        guard let nextMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth) else {
+            return days
+        }
+
         for day in 1...remainingCells {
-            let date = calendar.date(bySetting: .day, value: day, of: nextMonth)!
-            days.append(createCalendarDay(for: date, isCurrentMonth: false))
+            if let date = calendar.date(bySetting: .day, value: day, of: nextMonth) {
+                days.append(createCalendarDay(for: date, isCurrentMonth: false))
+            }
         }
 
         return days

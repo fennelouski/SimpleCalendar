@@ -37,6 +37,26 @@ struct Simple_CalendarApp: App {
         .modelContainer(sharedModelContainer)
         .commands {
             #if os(macOS)
+            CommandGroup(replacing: .appInfo) {
+                Button("About Simple Calendar") {
+                    NSApplication.shared.orderFrontStandardAboutPanel()
+                }
+            }
+
+            CommandGroup(replacing: .appSettings) {
+                Button("Settings...") {
+                    NotificationCenter.default.post(name: Notification.Name("ShowSettings"), object: nil)
+                }
+                .keyboardShortcut(",", modifiers: .command)
+            }
+
+            CommandGroup(after: .newItem) {
+                Button("New Event") {
+                    NotificationCenter.default.post(name: Notification.Name("NewEvent"), object: nil)
+                }
+                .keyboardShortcut("n", modifiers: .command)
+            }
+
             CommandGroup(replacing: .help) {
                 Button("Simple Calendar Help") {
                     showHelp()
