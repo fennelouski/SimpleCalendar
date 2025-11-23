@@ -15,15 +15,6 @@ extension Notification.Name {
     static let RefreshCalendar = Notification.Name("RefreshCalendar")
 }
 
-struct KeyboardShortcutsViewModifier: ViewModifier {
-    @EnvironmentObject var calendarViewModel: CalendarViewModel
-
-    func body(content: Content) -> some View {
-        content
-            .background(KeyEventHandler(calendarViewModel: calendarViewModel))
-    }
-}
-
 #if os(macOS)
 struct KeyEventHandler: NSViewRepresentable {
     let calendarViewModel: CalendarViewModel
@@ -37,9 +28,7 @@ struct KeyEventHandler: NSViewRepresentable {
         // No updates needed
     }
 }
-#endif
 
-#if os(macOS)
 class KeyHandlingView: NSView {
     let calendarViewModel: CalendarViewModel
 
@@ -113,6 +102,15 @@ class KeyHandlingView: NSView {
 
     override var acceptsFirstResponder: Bool {
         return true
+    }
+}
+
+struct KeyboardShortcutsViewModifier: ViewModifier {
+    @EnvironmentObject var calendarViewModel: CalendarViewModel
+
+    func body(content: Content) -> some View {
+        content
+            .background(KeyEventHandler(calendarViewModel: calendarViewModel))
     }
 }
 #endif

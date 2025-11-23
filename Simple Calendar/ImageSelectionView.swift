@@ -177,7 +177,7 @@ struct ImageThumbnailView: View {
     var body: some View {
         ZStack {
             if let image = thumbnailImage {
-                Image(nsImage: image)
+                Image(platformImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 120, height: 120)

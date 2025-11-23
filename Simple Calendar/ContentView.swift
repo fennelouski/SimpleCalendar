@@ -194,7 +194,7 @@ struct ContentView: View {
             if calendarViewModel.showSearch {
                 SearchView(searchText: $searchText)
                     .frame(width: 400, height: 60)
-                    .background(Color(.systemBackground))
+                    .background(themeManager.currentTheme.palette.calendarSurface)
                     .cornerRadius(8)
                     .shadow(radius: 10)
             }
@@ -206,7 +206,7 @@ struct ContentView: View {
             if calendarViewModel.showKeyCommands {
                 KeyCommandsView()
                     .frame(width: 400, height: 500)
-                    .background(Color(.systemBackground))
+                    .background(themeManager.currentTheme.palette.calendarSurface)
                     .cornerRadius(8)
                     .shadow(radius: 10)
             }
@@ -473,7 +473,7 @@ struct EventDetailView: View {
             // Event Image
             if let image = eventImage {
                 ZStack(alignment: .bottomTrailing) {
-                    Image(uiImage: image)
+                    Image(platformImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(height: 120)
@@ -540,7 +540,7 @@ struct EventDetailView: View {
                         .foregroundColor(themeManager.currentTheme.palette.textSecondary)
                     }
                     .padding(12)
-                    .background(themeManager.currentTheme.palette.calendarSurface.opacity(0.8))
+                    .background(Color.gray.opacity(0.1))
                     .roundedCorners(.small)
                 }
             }
@@ -588,6 +588,7 @@ struct EventDetailView: View {
 struct SearchView: View {
     @Binding var searchText: String
     @EnvironmentObject var calendarViewModel: CalendarViewModel
+    @EnvironmentObject var themeManager: ThemeManager
 
     var searchResults: [CalendarEvent] {
         guard !searchText.isEmpty else { return [] }
@@ -668,7 +669,7 @@ struct SearchResultRow: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
-        .background(Color(.secondarySystemBackground))
+        .background(Color.gray.opacity(0.1))
         .cornerRadius(6)
         .padding(.horizontal)
     }
@@ -728,7 +729,7 @@ struct KeyCommandRow: View {
                 .font(.system(.body, design: .monospaced))
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Color(.secondarySystemBackground))
+                .background(Color.gray.opacity(0.1))
                 .cornerRadius(4)
             Text(description)
                 .foregroundColor(.secondary)

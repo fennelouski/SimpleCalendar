@@ -36,15 +36,18 @@ struct Simple_CalendarApp: App {
         }
         .modelContainer(sharedModelContainer)
         .commands {
+            #if os(macOS)
             CommandGroup(replacing: .help) {
                 Button("Simple Calendar Help") {
                     showHelp()
                 }
                 .keyboardShortcut("?", modifiers: .command)
             }
+            #endif
         }
     }
 
+    #if os(macOS)
     private func showHelp() {
         // Create a new window for help
         let helpWindow = NSWindow(
@@ -58,4 +61,5 @@ struct Simple_CalendarApp: App {
         helpWindow.contentView = NSHostingView(rootView: HelpView())
         helpWindow.makeKeyAndOrderFront(nil)
     }
+    #endif
 }

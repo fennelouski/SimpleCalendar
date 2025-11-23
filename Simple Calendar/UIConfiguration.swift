@@ -132,7 +132,7 @@ class UIConfiguration: ObservableObject {
         .system(size: baseSize * fontSizeCategory.scaleFactor, weight: weight)
     }
 
-    func scaledFont(_ style: Font.TextStyle) -> Font {
+    func scaledFont(_ style: Font.TextStyle, weight: Font.Weight = .regular) -> Font {
         let baseSize: CGFloat
         switch style {
         case .largeTitle: baseSize = 34
@@ -148,7 +148,7 @@ class UIConfiguration: ObservableObject {
         case .caption2: baseSize = 11
         @unknown default: baseSize = 17
         }
-        return .system(size: baseSize * fontSizeCategory.scaleFactor, weight: .regular)
+        return .system(size: baseSize * fontSizeCategory.scaleFactor, weight: weight)
     }
 
     // MARK: - Predefined Font Sizes
@@ -189,11 +189,11 @@ extension View {
 extension Color {
     static func backgroundRounded(opacity: Double = 1.0) -> some View {
         RoundedRectangle(cornerRadius: CornerRadius.normal.value)
-            .fill(Color(.windowBackgroundColor).opacity(opacity))
+            .fill(Color.white.opacity(opacity))
     }
 
     static func surfaceRounded() -> some View {
         RoundedRectangle(cornerRadius: CornerRadius.medium.value)
-            .fill(Color(.controlBackgroundColor))
+            .fill(Color.gray.opacity(0.2))
     }
 }

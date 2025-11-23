@@ -122,7 +122,7 @@ struct TemplateCard: View {
         }
         .padding()
         .frame(height: 120)
-        .background(Color(.controlBackgroundColor))
+        .background(Color.gray.opacity(0.1))
         .cornerRadius(8)
         .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
     }

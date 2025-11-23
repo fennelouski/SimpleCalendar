@@ -165,7 +165,7 @@ struct SettingsContentView: View {
                                 .font(uiConfig.eventDetailFont)
                         }
                         .padding(8)
-                        .background(Color(.controlBackgroundColor))
+                        .background(Color.gray.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.medium.value))
                     }
                     .padding(.vertical, 4)

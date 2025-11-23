@@ -81,7 +81,7 @@ struct EventCreationView: View {
                             Spacer()
                             if let imageId = selectedImageId,
                                let image = ImageManager.shared.getImage(for: imageId) {
-                                Image(nsImage: image)
+                                Image(platformImage: image)
                                     .resizable()
                                     .aspectRatio(contentMode: .fill)
                                     .frame(width: 40, height: 40)
