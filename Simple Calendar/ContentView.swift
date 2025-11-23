@@ -130,7 +130,19 @@ struct ContentView: View {
             let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: daysPerRow)
             let days = generateCalendarDays()
 
-            ScrollView {
+            VStack(spacing: 8) {
+                // Day headers
+                LazyVGrid(columns: columns, spacing: 8) {
+                    ForEach(0..<daysPerRow, id: \.self) { index in
+                        Text(dayName(for: index))
+                            .font(uiConfig.dayNameFont)
+                            .foregroundColor(themeManager.currentTheme.palette.dayNameText)
+                            .frame(height: 24)
+                    }
+                }
+                .padding(.horizontal)
+
+                // Calendar days
                 LazyVGrid(columns: columns, spacing: 8) {
                     ForEach(days) { day in
                         DayView(day: day, geometry: geometry)
@@ -181,6 +193,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(.horizontal)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
@@ -708,6 +721,17 @@ struct SearchResultRow: View {
         .cornerRadius(6)
         .padding(.horizontal)
     }
+}
+
+private func dayName(for columnIndex: Int) -> String {
+    let calendar = Calendar.current
+    let weekdaySymbols = calendar.veryShortWeekdaySymbols
+
+    // Adjust for calendar's first weekday (usually Sunday = 0 or Monday = 0)
+    let firstWeekday = calendar.firstWeekday - 1 // Convert to 0-based
+    let adjustedIndex = (columnIndex + firstWeekday) % 7
+
+    return weekdaySymbols[adjustedIndex]
 }
 
 struct KeyCommandsView: View {

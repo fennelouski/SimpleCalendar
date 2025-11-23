@@ -14,167 +14,192 @@ class FeatureFlags: ObservableObject {
 
     // MARK: - Feature Flags
 
-    /// Enable advanced calendar views (agenda, templates, etc.)
-    var advancedViews: Bool {
-        get { getFlag("advancedViews", defaultValue: true) }
-        set { setFlag("advancedViews", value: newValue) }
+    @Published var advancedViews: Bool = true {
+        didSet { UserDefaults.standard.set(advancedViews, forKey: "feature_advancedViews") }
+    }
+    @Published var imageIntegration: Bool = true {
+        didSet { UserDefaults.standard.set(imageIntegration, forKey: "feature_imageIntegration") }
+    }
+    @Published var googleCalendarIntegration: Bool = true {
+        didSet { UserDefaults.standard.set(googleCalendarIntegration, forKey: "feature_googleCalendarIntegration") }
+    }
+    @Published var colorThemes: Bool = true {
+        didSet { UserDefaults.standard.set(colorThemes, forKey: "feature_colorThemes") }
+    }
+    @Published var fontSizeCustomization: Bool = true {
+        didSet { UserDefaults.standard.set(fontSizeCustomization, forKey: "feature_fontSizeCustomization") }
+    }
+    @Published var eventExport: Bool = true {
+        didSet { UserDefaults.standard.set(eventExport, forKey: "feature_eventExport") }
+    }
+    @Published var mapIntegration: Bool = true {
+        didSet { UserDefaults.standard.set(mapIntegration, forKey: "feature_mapIntegration") }
+    }
+    @Published var advancedKeyboardShortcuts: Bool = true {
+        didSet { UserDefaults.standard.set(advancedKeyboardShortcuts, forKey: "feature_advancedKeyboardShortcuts") }
+    }
+    @Published var eventReminders: Bool = true {
+        didSet { UserDefaults.standard.set(eventReminders, forKey: "feature_eventReminders") }
+    }
+    @Published var recurringEvents: Bool = true {
+        didSet { UserDefaults.standard.set(recurringEvents, forKey: "feature_recurringEvents") }
+    }
+    @Published var eventTemplates: Bool = true {
+        didSet { UserDefaults.standard.set(eventTemplates, forKey: "feature_eventTemplates") }
+    }
+    @Published var weatherIntegration: Bool = true {
+        didSet { UserDefaults.standard.set(weatherIntegration, forKey: "feature_weatherIntegration") }
+    }
+    @Published var calendarSharing: Bool = true {
+        didSet { UserDefaults.standard.set(calendarSharing, forKey: "feature_calendarSharing") }
+    }
+    @Published var naturalLanguageEvents: Bool = true {
+        didSet { UserDefaults.standard.set(naturalLanguageEvents, forKey: "feature_naturalLanguageEvents") }
+    }
+    @Published var aiEventSuggestions: Bool = true {
+        didSet { UserDefaults.standard.set(aiEventSuggestions, forKey: "feature_aiEventSuggestions") }
+    }
+    @Published var collaborationFeatures: Bool = true {
+        didSet { UserDefaults.standard.set(collaborationFeatures, forKey: "feature_collaborationFeatures") }
+    }
+    @Published var daylightVisualization: Bool = true {
+        didSet { UserDefaults.standard.set(daylightVisualization, forKey: "feature_daylightVisualization") }
     }
 
-    /// Enable image integration with Unsplash
-    var imageIntegration: Bool {
-        get { getFlag("imageIntegration", defaultValue: true) }
-        set { setFlag("imageIntegration", value: newValue) }
-    }
+    private init() {
+        // Load initial values from UserDefaults
+        advancedViews = UserDefaults.standard.bool(forKey: "feature_advancedViews")
+        if advancedViews == false && UserDefaults.standard.object(forKey: "feature_advancedViews") == nil {
+            advancedViews = true // Default to true if not set
+        }
 
-    /// Enable Google Calendar integration
-    var googleCalendarIntegration: Bool {
-        get { getFlag("googleCalendarIntegration", defaultValue: true) }
-        set { setFlag("googleCalendarIntegration", value: newValue) }
-    }
+        imageIntegration = UserDefaults.standard.bool(forKey: "feature_imageIntegration")
+        if imageIntegration == false && UserDefaults.standard.object(forKey: "feature_imageIntegration") == nil {
+            imageIntegration = true
+        }
 
-    /// Enable color themes
-    var colorThemes: Bool {
-        get { getFlag("colorThemes", defaultValue: true) }
-        set { setFlag("colorThemes", value: newValue) }
-    }
+        googleCalendarIntegration = UserDefaults.standard.bool(forKey: "feature_googleCalendarIntegration")
+        if googleCalendarIntegration == false && UserDefaults.standard.object(forKey: "feature_googleCalendarIntegration") == nil {
+            googleCalendarIntegration = true
+        }
 
-    /// Enable font size customization
-    var fontSizeCustomization: Bool {
-        get { getFlag("fontSizeCustomization", defaultValue: true) }
-        set { setFlag("fontSizeCustomization", value: newValue) }
-    }
+        colorThemes = UserDefaults.standard.bool(forKey: "feature_colorThemes")
+        if colorThemes == false && UserDefaults.standard.object(forKey: "feature_colorThemes") == nil {
+            colorThemes = true
+        }
 
-    /// Enable event export functionality
-    var eventExport: Bool {
-        get { getFlag("eventExport", defaultValue: true) }
-        set { setFlag("eventExport", value: newValue) }
-    }
+        fontSizeCustomization = UserDefaults.standard.bool(forKey: "feature_fontSizeCustomization")
+        if fontSizeCustomization == false && UserDefaults.standard.object(forKey: "feature_fontSizeCustomization") == nil {
+            fontSizeCustomization = true
+        }
 
-    /// Enable map integration for events with locations
-    var mapIntegration: Bool {
-        get { getFlag("mapIntegration", defaultValue: true) }
-        set { setFlag("mapIntegration", value: newValue) }
-    }
+        eventExport = UserDefaults.standard.bool(forKey: "feature_eventExport")
+        if eventExport == false && UserDefaults.standard.object(forKey: "feature_eventExport") == nil {
+            eventExport = true
+        }
 
-    /// Enable advanced keyboard shortcuts
-    var advancedKeyboardShortcuts: Bool {
-        get { getFlag("advancedKeyboardShortcuts", defaultValue: true) }
-        set { setFlag("advancedKeyboardShortcuts", value: newValue) }
-    }
+        mapIntegration = UserDefaults.standard.bool(forKey: "feature_mapIntegration")
+        if mapIntegration == false && UserDefaults.standard.object(forKey: "feature_mapIntegration") == nil {
+            mapIntegration = true
+        }
 
-    /// Enable event reminders and notifications
-    var eventReminders: Bool {
-        get { getFlag("eventReminders", defaultValue: true) }
-        set { setFlag("eventReminders", value: newValue) }
-    }
+        advancedKeyboardShortcuts = UserDefaults.standard.bool(forKey: "feature_advancedKeyboardShortcuts")
+        if advancedKeyboardShortcuts == false && UserDefaults.standard.object(forKey: "feature_advancedKeyboardShortcuts") == nil {
+            advancedKeyboardShortcuts = true
+        }
 
-    /// Enable recurring events
-    var recurringEvents: Bool {
-        get { getFlag("recurringEvents", defaultValue: true) }
-        set { setFlag("recurringEvents", value: newValue) }
-    }
+        eventReminders = UserDefaults.standard.bool(forKey: "feature_eventReminders")
+        if eventReminders == false && UserDefaults.standard.object(forKey: "feature_eventReminders") == nil {
+            eventReminders = true
+        }
 
-    /// Enable event templates for quick creation
-    var eventTemplates: Bool {
-        get { getFlag("eventTemplates", defaultValue: true) }
-        set { setFlag("eventTemplates", value: newValue) }
-    }
+        recurringEvents = UserDefaults.standard.bool(forKey: "feature_recurringEvents")
+        if recurringEvents == false && UserDefaults.standard.object(forKey: "feature_recurringEvents") == nil {
+            recurringEvents = true
+        }
 
-    /// Enable weather integration (planned feature)
-    var weatherIntegration: Bool {
-        get { getFlag("weatherIntegration", defaultValue: false) }
-        set { setFlag("weatherIntegration", value: newValue) }
-    }
+        eventTemplates = UserDefaults.standard.bool(forKey: "feature_eventTemplates")
+        if eventTemplates == false && UserDefaults.standard.object(forKey: "feature_eventTemplates") == nil {
+            eventTemplates = true
+        }
 
-    /// Enable calendar sharing (planned feature)
-    var calendarSharing: Bool {
-        get { getFlag("calendarSharing", defaultValue: false) }
-        set { setFlag("calendarSharing", value: newValue) }
-    }
+        weatherIntegration = UserDefaults.standard.bool(forKey: "feature_weatherIntegration")
+        if weatherIntegration == false && UserDefaults.standard.object(forKey: "feature_weatherIntegration") == nil {
+            weatherIntegration = true
+        }
 
-    /// Enable natural language event creation (planned feature)
-    var naturalLanguageEvents: Bool {
-        get { getFlag("naturalLanguageEvents", defaultValue: false) }
-        set { setFlag("naturalLanguageEvents", value: newValue) }
-    }
+        calendarSharing = UserDefaults.standard.bool(forKey: "feature_calendarSharing")
+        if calendarSharing == false && UserDefaults.standard.object(forKey: "feature_calendarSharing") == nil {
+            calendarSharing = true
+        }
 
-    /// Enable AI-powered event suggestions (planned feature)
-    var aiEventSuggestions: Bool {
-        get { getFlag("aiEventSuggestions", defaultValue: false) }
-        set { setFlag("aiEventSuggestions", value: newValue) }
-    }
+        naturalLanguageEvents = UserDefaults.standard.bool(forKey: "feature_naturalLanguageEvents")
+        if naturalLanguageEvents == false && UserDefaults.standard.object(forKey: "feature_naturalLanguageEvents") == nil {
+            naturalLanguageEvents = true
+        }
 
-    /// Enable collaborative features (planned feature)
-    var collaborationFeatures: Bool {
-        get { getFlag("collaborationFeatures", defaultValue: false) }
-        set { setFlag("collaborationFeatures", value: newValue) }
-    }
+        aiEventSuggestions = UserDefaults.standard.bool(forKey: "feature_aiEventSuggestions")
+        if aiEventSuggestions == false && UserDefaults.standard.object(forKey: "feature_aiEventSuggestions") == nil {
+            aiEventSuggestions = true
+        }
 
-    /// Enable daylight visualization on calendar days
-    var daylightVisualization: Bool {
-        get { getFlag("daylightVisualization", defaultValue: true) }
-        set { setFlag("daylightVisualization", value: newValue) }
-    }
+        collaborationFeatures = UserDefaults.standard.bool(forKey: "feature_collaborationFeatures")
+        if collaborationFeatures == false && UserDefaults.standard.object(forKey: "feature_collaborationFeatures") == nil {
+            collaborationFeatures = true
+        }
 
-    // MARK: - Private Methods
-
-    private func getFlag(_ key: String, defaultValue: Bool) -> Bool {
-        return UserDefaults.standard.bool(forKey: "feature_\(key)")
-    }
-
-    private func setFlag(_ key: String, value: Bool) {
-        UserDefaults.standard.set(value, forKey: "feature_\(key)")
-        UserDefaults.standard.synchronize()
+        daylightVisualization = UserDefaults.standard.bool(forKey: "feature_daylightVisualization")
+        if daylightVisualization == false && UserDefaults.standard.object(forKey: "feature_daylightVisualization") == nil {
+            daylightVisualization = true
+        }
     }
 
     /// Reset all feature flags to defaults
     func resetToDefaults() {
-        let defaults = [
-            "feature_advancedViews": true,
-            "feature_imageIntegration": true,
-            "feature_googleCalendarIntegration": true,
-            "feature_colorThemes": true,
-            "feature_fontSizeCustomization": true,
-            "feature_eventExport": true,
-            "feature_mapIntegration": true,
-            "feature_advancedKeyboardShortcuts": true,
-            "feature_eventReminders": true,
-            "feature_recurringEvents": true,
-            "feature_eventTemplates": true,
-            "feature_weatherIntegration": false,
-            "feature_calendarSharing": false,
-            "feature_naturalLanguageEvents": false,
-            "feature_aiEventSuggestions": false,
-            "feature_collaborationFeatures": false,
-            "feature_daylightVisualization": true
-        ]
+        advancedViews = true
+        imageIntegration = true
+        googleCalendarIntegration = true
+        colorThemes = true
+        fontSizeCustomization = true
+        eventExport = true
+        mapIntegration = true
+        advancedKeyboardShortcuts = true
+        eventReminders = true
+        recurringEvents = true
+        eventTemplates = true
+        weatherIntegration = true
+        calendarSharing = true
+        naturalLanguageEvents = true
+        aiEventSuggestions = true
+        collaborationFeatures = true
+        daylightVisualization = true
 
-        for (key, value) in defaults {
-            UserDefaults.standard.set(value, forKey: key)
-        }
+        saveAll()
+    }
+
+    private func saveAll() {
+        UserDefaults.standard.set(advancedViews, forKey: "feature_advancedViews")
+        UserDefaults.standard.set(imageIntegration, forKey: "feature_imageIntegration")
+        UserDefaults.standard.set(googleCalendarIntegration, forKey: "feature_googleCalendarIntegration")
+        UserDefaults.standard.set(colorThemes, forKey: "feature_colorThemes")
+        UserDefaults.standard.set(fontSizeCustomization, forKey: "feature_fontSizeCustomization")
+        UserDefaults.standard.set(eventExport, forKey: "feature_eventExport")
+        UserDefaults.standard.set(mapIntegration, forKey: "feature_mapIntegration")
+        UserDefaults.standard.set(advancedKeyboardShortcuts, forKey: "feature_advancedKeyboardShortcuts")
+        UserDefaults.standard.set(eventReminders, forKey: "feature_eventReminders")
+        UserDefaults.standard.set(recurringEvents, forKey: "feature_recurringEvents")
+        UserDefaults.standard.set(eventTemplates, forKey: "feature_eventTemplates")
+        UserDefaults.standard.set(weatherIntegration, forKey: "feature_weatherIntegration")
+        UserDefaults.standard.set(calendarSharing, forKey: "feature_calendarSharing")
+        UserDefaults.standard.set(naturalLanguageEvents, forKey: "feature_naturalLanguageEvents")
+        UserDefaults.standard.set(aiEventSuggestions, forKey: "feature_aiEventSuggestions")
+        UserDefaults.standard.set(collaborationFeatures, forKey: "feature_collaborationFeatures")
+        UserDefaults.standard.set(daylightVisualization, forKey: "feature_daylightVisualization")
         UserDefaults.standard.synchronize()
     }
 
-    /// Get all available features for settings UI
+    /// Get all available features for settings UI (deprecated - now using direct toggles)
     func allFeatures() -> [(key: String, name: String, description: String, enabled: Bool, isPlanned: Bool)] {
-        return [
-            ("advancedViews", "Advanced Views", "Agenda view, event templates, and advanced calendar layouts", advancedViews, false),
-            ("imageIntegration", "Image Integration", "Beautiful images from Unsplash for events", imageIntegration, false),
-            ("googleCalendarIntegration", "Google Calendar", "Sync with your Google Calendar account", googleCalendarIntegration, false),
-            ("colorThemes", "Color Themes", "Choose from multiple beautiful color palettes", colorThemes, false),
-            ("fontSizeCustomization", "Font Customization", "Adjust font sizes for better readability", fontSizeCustomization, false),
-            ("eventExport", "Event Export", "Export events to other calendar applications", eventExport, false),
-            ("mapIntegration", "Map Integration", "View event locations on interactive maps", mapIntegration, false),
-            ("advancedKeyboardShortcuts", "Keyboard Shortcuts", "Full keyboard navigation and shortcuts", advancedKeyboardShortcuts, false),
-            ("eventReminders", "Event Reminders", "Get notified about upcoming events", eventReminders, false),
-            ("recurringEvents", "Recurring Events", "Create events that repeat daily, weekly, or monthly", recurringEvents, false),
-            ("eventTemplates", "Event Templates", "Quick event creation with predefined templates", eventTemplates, false),
-            ("weatherIntegration", "Weather Integration", "Weather forecasts for outdoor events", weatherIntegration, true),
-            ("calendarSharing", "Calendar Sharing", "Share calendars with family and friends", calendarSharing, true),
-            ("naturalLanguageEvents", "Natural Language", "Create events using plain English", naturalLanguageEvents, true),
-            ("aiEventSuggestions", "AI Suggestions", "Smart event suggestions based on your habits", aiEventSuggestions, true),
-            ("collaborationFeatures", "Collaboration", "Collaborate on events with others", collaborationFeatures, true),
-            ("daylightVisualization", "Daylight Visualization", "Show daylight cycles on calendar days", daylightVisualization, false)
-        ]
+        return []
     }
 }

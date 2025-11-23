@@ -156,6 +156,7 @@ class UIConfiguration: ObservableObject {
     var monthTitleFont: Font { scaledFont(32, weight: .bold) }
     var yearTitleFont: Font { scaledFont(.title2) }
     var dayNumberFont: Font { scaledFont(14, weight: .medium) }
+    var dayNameFont: Font { scaledFont(12, weight: .semibold) }
     var eventTitleFont: Font { scaledFont(.headline) }
     var eventDetailFont: Font { scaledFont(.subheadline) }
     var buttonFont: Font { scaledFont(17, weight: .medium) }

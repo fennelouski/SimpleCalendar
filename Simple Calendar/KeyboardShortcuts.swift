@@ -100,6 +100,10 @@ class KeyHandlingView: NSView {
             if event.modifierFlags.contains(.command) {
                 NotificationCenter.default.post(name: .ToggleDaylightVisualization, object: nil)
             }
+        case 46: // m
+            calendarViewModel.setViewMode(.month)
+        case 13: // w
+            calendarViewModel.setViewMode(.sevenDays) // Week view
         default:
             break
         }

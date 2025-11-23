@@ -44,8 +44,7 @@ struct SettingsContentView: View {
             }
             .padding()
 
-            ScrollView {
-                Form {
+            Form {
                 Section(header: Text("Calendar Integration")) {
                     Toggle("System Calendar", isOn: .constant(true))
                         .disabled(true)
@@ -183,71 +182,32 @@ struct SettingsContentView: View {
                 }
 
                 Section(header: Text("Experimental Features")) {
-                    DisclosureGroup("Feature Flags", isExpanded: $showFeatureFlags) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            ForEach(featureFlags.allFeatures(), id: \.key) { feature in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Toggle(isOn: Binding(
-                                        get: { feature.enabled },
-                                        set: { _ in
-                                            // Toggle the feature flag
-                                            switch feature.key {
-                                            case "advancedViews": featureFlags.advancedViews.toggle()
-                                            case "imageIntegration": featureFlags.imageIntegration.toggle()
-                                            case "googleCalendarIntegration": featureFlags.googleCalendarIntegration.toggle()
-                                            case "colorThemes": featureFlags.colorThemes.toggle()
-                                            case "fontSizeCustomization": featureFlags.fontSizeCustomization.toggle()
-                                            case "eventExport": featureFlags.eventExport.toggle()
-                                            case "mapIntegration": featureFlags.mapIntegration.toggle()
-                                            case "advancedKeyboardShortcuts": featureFlags.advancedKeyboardShortcuts.toggle()
-                                            case "eventReminders": featureFlags.eventReminders.toggle()
-                                            case "recurringEvents": featureFlags.recurringEvents.toggle()
-                                            case "eventTemplates": featureFlags.eventTemplates.toggle()
-                                            case "weatherIntegration": featureFlags.weatherIntegration.toggle()
-                                            case "calendarSharing": featureFlags.calendarSharing.toggle()
-                                            case "naturalLanguageEvents": featureFlags.naturalLanguageEvents.toggle()
-                                        case "aiEventSuggestions": featureFlags.aiEventSuggestions.toggle()
-                                        case "collaborationFeatures": featureFlags.collaborationFeatures.toggle()
-                                        case "daylightVisualization": featureFlags.daylightVisualization.toggle()
-                                            default: break
-                                            }
-                                        }
-                                    )) {
-                                        HStack {
-                                            VStack(alignment: .leading) {
-                                                Text(feature.name)
-                                                    .font(.body)
-                                                Text(feature.description)
-                                                    .font(.caption)
-                                                    .foregroundColor(.secondary)
-                                            }
-                                            Spacer()
-                                            if feature.isPlanned {
-                                                Text("Planned")
-                                                    .font(.caption2)
-                                                    .foregroundColor(.orange)
-                                                    .padding(.horizontal, 6)
-                                                    .padding(.vertical, 2)
-                                                    .background(Color.orange.opacity(0.1))
-                                                    .cornerRadius(4)
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            Toggle("Advanced Views", isOn: $featureFlags.advancedViews)
+                            Toggle("Image Integration", isOn: $featureFlags.imageIntegration)
+                            Toggle("Google Calendar", isOn: $featureFlags.googleCalendarIntegration)
+                            Toggle("Color Themes", isOn: $featureFlags.colorThemes)
+                            Toggle("Font Customization", isOn: $featureFlags.fontSizeCustomization)
+                            Toggle("Event Export", isOn: $featureFlags.eventExport)
+                            Toggle("Map Integration", isOn: $featureFlags.mapIntegration)
+                            Toggle("Keyboard Shortcuts", isOn: $featureFlags.advancedKeyboardShortcuts)
+                            Toggle("Event Reminders", isOn: $featureFlags.eventReminders)
+                            Toggle("Recurring Events", isOn: $featureFlags.recurringEvents)
+                            Toggle("Event Templates", isOn: $featureFlags.eventTemplates)
+                            Toggle("Weather Integration", isOn: $featureFlags.weatherIntegration)
+                            Toggle("Calendar Sharing", isOn: $featureFlags.calendarSharing)
+                            Toggle("Natural Language", isOn: $featureFlags.naturalLanguageEvents)
+                            Toggle("AI Suggestions", isOn: $featureFlags.aiEventSuggestions)
+                            Toggle("Collaboration", isOn: $featureFlags.collaborationFeatures)
+                            Toggle("Daylight Visualization", isOn: $featureFlags.daylightVisualization)
+                    Divider()
 
-                            Divider()
-
-                            Button(action: {
-                                featureFlags.resetToDefaults()
-                            }) {
-                                Text("Reset to Defaults")
-                                    .foregroundColor(.blue)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                        .padding(.leading, 16)
+                    Button(action: {
+                        featureFlags.resetToDefaults()
+                    }) {
+                        Text("Reset to Defaults")
+                            .foregroundColor(.blue)
                     }
+                    .buttonStyle(.plain)
                 }
 
                 Section(header: Text("About")) {
@@ -260,7 +220,6 @@ struct SettingsContentView: View {
                 }
             }
             .padding(.horizontal)
-            }
         }
         .frame(minWidth: 400, minHeight: 500)
     }
