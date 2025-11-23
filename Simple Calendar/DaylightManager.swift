@@ -141,6 +141,19 @@ class DaylightManager {
         return 23.45 * sin(dayAngle) * Double.pi / 180.0 // Convert to radians
     }
 
+    /// Get sunrise time in hours for a date
+    func sunriseTime(for date: Date, latitude: Double = 40.7128, longitude: Double = -74.0060) -> Double {
+        let dayOfYear = dayOfYear(from: date)
+        let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
+        return calculateSunriseHour(latitude: latitude, solarDeclination: solarDeclination)
+    }
+
+    /// Get sunset time in hours for a date
+    func sunsetTime(for date: Date, latitude: Double = 40.7128, longitude: Double = -74.0060) -> Double {
+        let sunriseHour = sunriseTime(for: date, latitude: latitude, longitude: longitude)
+        return 24.0 - sunriseHour
+    }
+
     /// Approximate sunrise hour calculation
     private func calculateSunriseHour(latitude: Double, solarDeclination: Double) -> Double {
         let latitudeRad = latitude * Double.pi / 180.0

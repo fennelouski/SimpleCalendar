@@ -572,8 +572,11 @@ struct FeatureFlagsSettingsView: View {
                             Toggle("Event Templates", isOn: $featureFlags.eventTemplates)
                                 .help("Quick event creation with predefined templates")
 
-                            Toggle("Daylight Visualization", isOn: $featureFlags.daylightVisualization)
-                                .help("Show daylight cycles on calendar days")
+                            Toggle("Calendar Daylight Visualization", isOn: $featureFlags.daylightVisualizationCalendar)
+                                .help("Show daylight cycles on calendar day squares")
+
+                            Toggle("Day View Daylight Visualization", isOn: $featureFlags.daylightVisualizationDayView)
+                                .help("Show daylight cycles in day detail view with time markers")
 
                             Toggle("On This Day", isOn: $featureFlags.onThisDayEnabled)
                                 .help("Show historical events, holidays, and observances for each day")

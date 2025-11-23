@@ -62,8 +62,12 @@ class FeatureFlags: ObservableObject {
     @Published var collaborationFeatures: Bool = true {
         didSet { UserDefaults.standard.set(collaborationFeatures, forKey: "feature_collaborationFeatures") }
     }
-    @Published var daylightVisualization: Bool = true {
-        didSet { UserDefaults.standard.set(daylightVisualization, forKey: "feature_daylightVisualization") }
+    @Published var daylightVisualizationCalendar: Bool = true {
+        didSet { UserDefaults.standard.set(daylightVisualizationCalendar, forKey: "feature_daylightVisualizationCalendar") }
+    }
+
+    @Published var daylightVisualizationDayView: Bool = true {
+        didSet { UserDefaults.standard.set(daylightVisualizationDayView, forKey: "feature_daylightVisualizationDayView") }
     }
 
     @Published var onThisDayEnabled: Bool = false {
@@ -166,9 +170,14 @@ class FeatureFlags: ObservableObject {
             collaborationFeatures = true
         }
 
-        daylightVisualization = UserDefaults.standard.bool(forKey: "feature_daylightVisualization")
-        if daylightVisualization == false && UserDefaults.standard.object(forKey: "feature_daylightVisualization") == nil {
-            daylightVisualization = true
+        daylightVisualizationCalendar = UserDefaults.standard.bool(forKey: "feature_daylightVisualizationCalendar")
+        if daylightVisualizationCalendar == false && UserDefaults.standard.object(forKey: "feature_daylightVisualizationCalendar") == nil {
+            daylightVisualizationCalendar = true
+        }
+
+        daylightVisualizationDayView = UserDefaults.standard.bool(forKey: "feature_daylightVisualizationDayView")
+        if daylightVisualizationDayView == false && UserDefaults.standard.object(forKey: "feature_daylightVisualizationDayView") == nil {
+            daylightVisualizationDayView = true
         }
 
         onThisDayEnabled = getOnThisDayFlag()
@@ -217,7 +226,8 @@ class FeatureFlags: ObservableObject {
         naturalLanguageEvents = true
         aiEventSuggestions = true
         collaborationFeatures = true
-        daylightVisualization = true
+        daylightVisualizationCalendar = true
+        daylightVisualizationDayView = true
         onThisDayEnabled = false  // Default to off
         weekendTintingEnabled = false  // Default to off
 
@@ -241,7 +251,8 @@ class FeatureFlags: ObservableObject {
         UserDefaults.standard.set(naturalLanguageEvents, forKey: "feature_naturalLanguageEvents")
         UserDefaults.standard.set(aiEventSuggestions, forKey: "feature_aiEventSuggestions")
         UserDefaults.standard.set(collaborationFeatures, forKey: "feature_collaborationFeatures")
-        UserDefaults.standard.set(daylightVisualization, forKey: "feature_daylightVisualization")
+        UserDefaults.standard.set(daylightVisualizationCalendar, forKey: "feature_daylightVisualizationCalendar")
+        UserDefaults.standard.set(daylightVisualizationDayView, forKey: "feature_daylightVisualizationDayView")
         UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
         UserDefaults.standard.set(weekendTintingEnabled, forKey: "feature_weekendTintingEnabled")
         UserDefaults.standard.synchronize()

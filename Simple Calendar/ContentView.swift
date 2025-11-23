@@ -70,7 +70,8 @@ struct ContentView: View {
             calendarViewModel.refresh()
         }
         .onReceive(NotificationCenter.default.publisher(for: .ToggleDaylightVisualization)) { _ in
-            FeatureFlags.shared.daylightVisualization.toggle()
+            FeatureFlags.shared.daylightVisualizationCalendar.toggle()
+            FeatureFlags.shared.daylightVisualizationDayView.toggle()
         }
         .onReceive(NotificationCenter.default.publisher(for: Notification.Name("NewEvent"))) { _ in
             calendarViewModel.showEventCreation = true
@@ -561,7 +562,7 @@ struct DayView: View {
         .roundedCorners(.small)
         .overlay(alignment: .top) {
             // Daylight visualization (only if enabled)
-            if featureFlags.daylightVisualization {
+            if featureFlags.daylightVisualizationCalendar {
                 DaylightVisualizationView(date: day.date, width: geometry.size.width / CGFloat(columnsCount))
                     .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small.value))
             }
@@ -619,7 +620,7 @@ struct DayDetailView: View {
     var body: some View {
         HStack(spacing: 0) {
             // Vertical daylight visualization (left side)
-            if featureFlags.daylightVisualization {
+            if featureFlags.daylightVisualizationCalendar {
                 VerticalDaylightVisualizationView(date: date)
                     .frame(width: 20)
             }

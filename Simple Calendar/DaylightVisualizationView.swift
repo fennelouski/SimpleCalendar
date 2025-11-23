@@ -41,22 +41,124 @@ struct VerticalDaylightVisualizationView: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                ForEach(0..<96) { periodIndex in
+                // Show periods from previous day, current day, and next day for overflow
+                // Total of 288 periods (3 days * 96 periods per day)
+                ForEach(0..<288) { periodIndex in
                     Rectangle()
-                        .fill(colorForPeriod(periodIndex))
-                        .frame(width: width, height: geometry.size.height / 96)
-                        .offset(y: CGFloat(periodIndex) * (geometry.size.height / 96))
+                        .fill(colorForExtendedPeriod(periodIndex))
+                        .frame(width: width, height: geometry.size.height / 288)
+                        .offset(y: CGFloat(periodIndex) * (geometry.size.height / 288))
                 }
+
+                // Time markers overlay
+                timeMarkers(geometry: geometry)
             }
             .frame(width: width, height: geometry.size.height)
         }
         .frame(width: width)
     }
 
-    private func colorForPeriod(_ periodIndex: Int) -> Color {
-        // Each period represents 15 minutes (24 hours * 4 periods per hour = 96 periods)
-        let hour = Double(periodIndex) * 24.0 / 96.0
-        let daylightColor = DaylightManager.shared.colorForHour(hour, date: date)
+    private func colorForExtendedPeriod(_ periodIndex: Int) -> Color {
+        // Map 288 periods (3 days) to the appropriate date and hour
+        let totalPeriods = 288
+        let periodsPerDay = 96
+
+        // Calculate which day and period within that day
+        let dayOffset = periodIndex / periodsPerDay  // 0 = previous day, 1 = current day, 2 = next day
+        let periodWithinDay = periodIndex % periodsPerDay
+
+        // Get the appropriate date
+        let targetDate: Date
+        switch dayOffset {
+        case 0:
+            targetDate = Calendar.current.date(byAdding: .day, value: -1, to: date) ?? date
+        case 1:
+            targetDate = date
+        case 2:
+            targetDate = Calendar.current.date(byAdding: .day, value: 1, to: date) ?? date
+        default:
+            targetDate = date
+        }
+
+        // Each period represents 15 minutes
+        let hour = Double(periodWithinDay) * 24.0 / Double(periodsPerDay)
+        let daylightColor = DaylightManager.shared.colorForHour(hour, date: targetDate)
         return daylightColor.swiftUIColor
+    }
+
+    private func timeMarkers(geometry: GeometryProxy) -> some View {
+        ZStack {
+            let calendar = Calendar.current
+            let sunrise = DaylightManager.shared.sunriseTime(for: date)
+            let sunset = DaylightManager.shared.sunsetTime(for: date)
+
+            // Check if sunrise/sunset are within 2 hours of each other
+            let isNearTwilight = abs(sunrise - sunset) < 2.0
+
+            // Key time markers
+            let keyTimes = getKeyTimes(for: date, isNearTwilight: isNearTwilight)
+
+            ForEach(keyTimes, id: \.hour) { timeMarker in
+                let yPosition = hourToYPosition(timeMarker.hour, geometry: geometry)
+
+                // Time label
+                Text(timeMarker.label)
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundColor(.white.opacity(0.9))
+                    .background(
+                        RoundedRectangle(cornerRadius: 3)
+                            .fill(Color.black.opacity(0.7))
+                            .frame(height: 12)
+                    )
+                    .frame(width: width - 2, height: 12)
+                    .position(x: width/2, y: yPosition)
+            }
+        }
+    }
+
+    private func getKeyTimes(for date: Date, isNearTwilight: Bool) -> [(hour: Double, label: String)] {
+        var times: [(Double, String)] = []
+
+        let calendar = Calendar.current
+        let sunrise = DaylightManager.shared.sunriseTime(for: date)
+        let sunset = DaylightManager.shared.sunsetTime(for: date)
+
+        // Always show sunrise and sunset
+        times.append((sunrise, "☀️"))
+        times.append((sunset, "🌙"))
+
+        // If not within 2 hours of sunrise/sunset, add standard time markers
+        if !isNearTwilight {
+            let standardTimes = [
+                0.0: "12A",   // Midnight
+                3.0: "3A",
+                6.0: "6A",
+                9.0: "9A",
+                12.0: "12P",  // Noon
+                15.0: "3P",
+                18.0: "6P",
+                21.0: "9P"
+            ]
+
+            for (hour, label) in standardTimes {
+                // Only add if not too close to sunrise/sunset (within 2 hours)
+                if abs(hour - sunrise) >= 2.0 && abs(hour - sunset) >= 2.0 {
+                    times.append((hour, label))
+                }
+            }
+        }
+
+        return times.sorted { $0.0 < $1.0 }
+    }
+
+    private func hourToYPosition(_ hour: Double, geometry: GeometryProxy) -> CGFloat {
+        // Map hour (0-24) to Y position in the 3-day visualization
+        // Hours 0-24 should map to the middle third (current day)
+        let totalHeight = geometry.size.height
+        let dayHeight = totalHeight / 3.0
+        let currentDayStartY = dayHeight
+
+        let yInCurrentDay = (hour / 24.0) * dayHeight
+        return currentDayStartY + yInCurrentDay
     }
 }
