@@ -197,114 +197,229 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
             }
 
         case .space:
-            return ColorPalette(
-                name: "Space",
-                primary: Color(hex: "5E35B1"),      // Deep purple
-                secondary: Color(hex: "7C4DFF"),    // Purple
-                accent: Color(hex: "FFD54F"),      // Star yellow
-                background: Color(hex: "F3E5F5"),   // Light purple background
-                surface: Color(hex: "FFFFFF"),     // White
-                textPrimary: Color(hex: "311B92"),  // Dark purple
-                textSecondary: Color(hex: "546E7A"), // Grey
-                border: Color(hex: "CE93D8"),      // Light purple border
-                highlight: Color(hex: "5E35B1"),   // Deep purple highlight
-                gridLine: Color(hex: "CE93D8").opacity(0.8), // Visible grid line
-                eventColors: [
-                    Color(hex: "4527A0"), // Deep purple
-                    Color(hex: "673AB7"), // Purple
-                    Color(hex: "7C4DFF"), // Light purple
-                    Color(hex: "B39DDB")  // Pale purple
-                ],
-                icon: "moon.stars.fill"
-            )
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Space",
+                    primary: Color(hex: "7C4DFF"),      // Light purple (more visible in dark)
+                    secondary: Color(hex: "9575CD"),    // Lighter purple
+                    accent: Color(hex: "FFD54F"),      // Star yellow (same for contrast)
+                    background: Color(hex: "311B92"),   // Dark purple background
+                    surface: Color(hex: "4527A0"),     // Dark surface
+                    textPrimary: Color(hex: "FFFFFF"),  // White text
+                    textSecondary: Color(hex: "CE93D8"), // Light purple text
+                    border: Color(hex: "7C4DFF"),      // Purple border
+                    highlight: Color(hex: "7C4DFF"),   // Light purple highlight
+                    gridLine: Color(hex: "7C4DFF").opacity(0.6), // Visible grid line
+                    eventColors: [
+                        Color(hex: "7C4DFF"), // Light purple
+                        Color(hex: "9575CD"), // Lighter purple
+                        Color(hex: "B39DDB"), // Pale purple
+                        Color(hex: "E1BEE7")  // Very pale purple
+                    ],
+                    icon: "moon.stars.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Space",
+                    primary: Color(hex: "5E35B1"),      // Deep purple
+                    secondary: Color(hex: "7C4DFF"),    // Purple
+                    accent: Color(hex: "FFD54F"),      // Star yellow
+                    background: Color(hex: "F3E5F5"),   // Light purple background
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "311B92"),  // Dark purple
+                    textSecondary: Color(hex: "546E7A"), // Grey
+                    border: Color(hex: "CE93D8"),      // Light purple border
+                    highlight: Color(hex: "5E35B1"),   // Deep purple highlight
+                    gridLine: Color(hex: "CE93D8").opacity(0.8), // Visible grid line
+                    eventColors: [
+                        Color(hex: "4527A0"), // Deep purple
+                        Color(hex: "673AB7"), // Purple
+                        Color(hex: "7C4DFF"), // Light purple
+                        Color(hex: "B39DDB")  // Pale purple
+                    ],
+                    icon: "moon.stars.fill"
+                )
+            }
 
         case .candy:
-            return ColorPalette(
-                name: "Candy",
-                primary: Color(hex: "E91E63"),      // Pink
-                secondary: Color(hex: "FF4081"),    // Light pink
-                accent: Color(hex: "FFD54F"),      // Yellow
-                background: Color(hex: "FCE4EC"),   // Light pink background
-                surface: Color(hex: "FFFFFF"),     // White
-                textPrimary: Color(hex: "880E4F"),  // Dark pink
-                textSecondary: Color(hex: "546E7A"), // Grey
-                border: Color(hex: "F8BBD9"),      // Light pink border
-                highlight: Color(hex: "E91E63"),   // Pink highlight
-                gridLine: Color(hex: "F8BBD9").opacity(0.8), // Visible grid line
-                eventColors: [
-                    Color(hex: "C2185B"), // Deep pink
-                    Color(hex: "E91E63"), // Pink
-                    Color(hex: "F06292"), // Light pink
-                    Color(hex: "F8BBD9")  // Pale pink
-                ],
-                icon: "heart.fill"
-            )
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Candy",
+                    primary: Color(hex: "FF4081"),      // Light pink (more visible in dark)
+                    secondary: Color(hex: "F48FB1"),    // Lighter pink
+                    accent: Color(hex: "FFD54F"),      // Yellow (same for contrast)
+                    background: Color(hex: "880E4F"),   // Dark pink background
+                    surface: Color(hex: "C2185B"),     // Dark surface
+                    textPrimary: Color(hex: "FFFFFF"),  // White text
+                    textSecondary: Color(hex: "F8BBD9"), // Light pink text
+                    border: Color(hex: "FF4081"),      // Pink border
+                    highlight: Color(hex: "FF4081"),   // Light pink highlight
+                    gridLine: Color(hex: "FF4081").opacity(0.6), // Visible grid line
+                    eventColors: [
+                        Color(hex: "FF4081"), // Light pink
+                        Color(hex: "F48FB1"), // Lighter pink
+                        Color(hex: "F8BBD9"), // Pale pink
+                        Color(hex: "FCE4EC")  // Very pale pink
+                    ],
+                    icon: "heart.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Candy",
+                    primary: Color(hex: "E91E63"),      // Pink
+                    secondary: Color(hex: "FF4081"),    // Light pink
+                    accent: Color(hex: "FFD54F"),      // Yellow
+                    background: Color(hex: "FCE4EC"),   // Light pink background
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "880E4F"),  // Dark pink
+                    textSecondary: Color(hex: "546E7A"), // Grey
+                    border: Color(hex: "F8BBD9"),      // Light pink border
+                    highlight: Color(hex: "E91E63"),   // Pink highlight
+                    gridLine: Color(hex: "F8BBD9").opacity(0.8), // Visible grid line
+                    eventColors: [
+                        Color(hex: "C2185B"), // Deep pink
+                        Color(hex: "E91E63"), // Pink
+                        Color(hex: "F06292"), // Light pink
+                        Color(hex: "F8BBD9")  // Pale pink
+                    ],
+                    icon: "heart.fill"
+                )
+            }
 
         case .autumn:
-            return ColorPalette(
-                name: "Autumn",
-                primary: Color(hex: "E65100"),      // Orange
-                secondary: Color(hex: "EF6C00"),     // Light orange
-                accent: Color(hex: "FFD54F"),      // Yellow
-                background: Color(hex: "FFF3E0"),   // Light orange background
-                surface: Color(hex: "FFFFFF"),     // White
-                textPrimary: Color(hex: "BF360C"),  // Dark orange
-                textSecondary: Color(hex: "546E7A"), // Grey
-                border: Color(hex: "FFCCBC"),      // Light orange border
-                highlight: Color(hex: "E65100"),   // Orange highlight
-                gridLine: Color(hex: "FFCCBC").opacity(0.8), // Visible grid line
-                eventColors: [
-                    Color(hex: "D84315"), // Deep orange
-                    Color(hex: "E65100"), // Orange
-                    Color(hex: "EF6C00"), // Light orange
-                    Color(hex: "F57C00")  // Pale orange
-                ],
-                icon: "flame.fill"
-            )
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Autumn",
+                    primary: Color(hex: "EF6C00"),      // Light orange (more visible in dark)
+                    secondary: Color(hex: "F57C00"),    // Lighter orange
+                    accent: Color(hex: "FFD54F"),      // Yellow (same for contrast)
+                    background: Color(hex: "BF360C"),   // Dark orange background
+                    surface: Color(hex: "D84315"),     // Dark surface
+                    textPrimary: Color(hex: "FFFFFF"),  // White text
+                    textSecondary: Color(hex: "FFCCBC"), // Light orange text
+                    border: Color(hex: "EF6C00"),      // Orange border
+                    highlight: Color(hex: "EF6C00"),   // Light orange highlight
+                    gridLine: Color(hex: "EF6C00").opacity(0.6), // Visible grid line
+                    eventColors: [
+                        Color(hex: "EF6C00"), // Light orange
+                        Color(hex: "F57C00"), // Lighter orange
+                        Color(hex: "FFCCBC"), // Pale orange
+                        Color(hex: "FFF3E0")  // Very pale orange
+                    ],
+                    icon: "flame.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Autumn",
+                    primary: Color(hex: "E65100"),      // Orange
+                    secondary: Color(hex: "EF6C00"),     // Light orange
+                    accent: Color(hex: "FFD54F"),      // Yellow
+                    background: Color(hex: "FFF3E0"),   // Light orange background
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "BF360C"),  // Dark orange
+                    textSecondary: Color(hex: "546E7A"), // Grey
+                    border: Color(hex: "FFCCBC"),      // Light orange border
+                    highlight: Color(hex: "E65100"),   // Orange highlight
+                    gridLine: Color(hex: "FFCCBC").opacity(0.8), // Visible grid line
+                    eventColors: [
+                        Color(hex: "D84315"), // Deep orange
+                        Color(hex: "E65100"), // Orange
+                        Color(hex: "EF6C00"), // Light orange
+                        Color(hex: "F57C00")  // Pale orange
+                    ],
+                    icon: "flame.fill"
+                )
+            }
 
         case .winter:
-            return ColorPalette(
-                name: "Winter",
-                primary: Color(hex: "1976D2"),      // Blue
-                secondary: Color(hex: "42A5F5"),    // Light blue
-                accent: Color(hex: "E3F2FD"),      // Very light blue
-                background: Color(hex: "E3F2FD"),   // Light blue background
-                surface: Color(hex: "FFFFFF"),     // White
-                textPrimary: Color(hex: "0D47A1"),  // Dark blue
-                textSecondary: Color(hex: "546E7A"), // Grey
-                border: Color(hex: "B3E5FC"),      // Light blue border
-                highlight: Color(hex: "1976D2"),   // Blue highlight
-                gridLine: Color(hex: "B3E5FC").opacity(0.8), // Visible grid line
-                eventColors: [
-                    Color(hex: "0D47A1"), // Deep blue
-                    Color(hex: "1976D2"), // Blue
-                    Color(hex: "42A5F5"), // Light blue
-                    Color(hex: "B3E5FC")  // Pale blue
-                ],
-                icon: "snowflake"
-            )
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Winter",
+                    primary: Color(hex: "42A5F5"),      // Light blue (more visible in dark)
+                    secondary: Color(hex: "64B5F6"),    // Lighter blue
+                    accent: Color(hex: "E3F2FD"),      // Very light blue (same for contrast)
+                    background: Color(hex: "0D47A1"),   // Dark blue background
+                    surface: Color(hex: "1976D2"),     // Dark surface
+                    textPrimary: Color(hex: "FFFFFF"),  // White text
+                    textSecondary: Color(hex: "B3E5FC"), // Light blue text
+                    border: Color(hex: "42A5F5"),      // Blue border
+                    highlight: Color(hex: "42A5F5"),   // Light blue highlight
+                    gridLine: Color(hex: "42A5F5").opacity(0.6), // Visible grid line
+                    eventColors: [
+                        Color(hex: "42A5F5"), // Light blue
+                        Color(hex: "64B5F6"), // Lighter blue
+                        Color(hex: "B3E5FC"), // Pale blue
+                        Color(hex: "E3F2FD")  // Very pale blue
+                    ],
+                    icon: "snowflake"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Winter",
+                    primary: Color(hex: "1976D2"),      // Blue
+                    secondary: Color(hex: "42A5F5"),    // Light blue
+                    accent: Color(hex: "E3F2FD"),      // Very light blue
+                    background: Color(hex: "E3F2FD"),   // Light blue background
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "0D47A1"),  // Dark blue
+                    textSecondary: Color(hex: "546E7A"), // Grey
+                    border: Color(hex: "B3E5FC"),      // Light blue border
+                    highlight: Color(hex: "1976D2"),   // Blue highlight
+                    gridLine: Color(hex: "B3E5FC").opacity(0.8), // Visible grid line
+                    eventColors: [
+                        Color(hex: "0D47A1"), // Deep blue
+                        Color(hex: "1976D2"), // Blue
+                        Color(hex: "42A5F5"), // Light blue
+                        Color(hex: "B3E5FC")  // Pale blue
+                    ],
+                    icon: "snowflake"
+                )
+            }
 
         case .rainbow:
-            return ColorPalette(
-                name: "Rainbow",
-                primary: Color(hex: "FF4081"),      // Pink
-                secondary: Color(hex: "FF9800"),    // Orange
-                accent: Color(hex: "FFD54F"),      // Yellow
-                background: Color(hex: "FFFDE7"),   // Light yellow background
-                surface: Color(hex: "FFFFFF"),     // White
-                textPrimary: Color(hex: "F57C00"),  // Dark orange
-                textSecondary: Color(hex: "546E7A"), // Grey
-                border: Color(hex: "FFF9C4"),      // Light yellow border
-                highlight: Color(hex: "FF4081"),   // Pink highlight
-                gridLine: Color(hex: "FFF9C4").opacity(0.8), // Visible grid line
-                eventColors: [
-                    Color(hex: "E91E63"), // Pink
-                    Color(hex: "FF9800"), // Orange
-                    Color(hex: "FFEB3B"), // Yellow
-                    Color(hex: "4CAF50")  // Green
-                ],
-                icon: "rainbow"
-            )
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Rainbow",
+                    primary: Color(hex: "FF6B9D"),      // Light pink (more visible in dark)
+                    secondary: Color(hex: "FFB74D"),    // Light orange
+                    accent: Color(hex: "FFD54F"),      // Yellow (same for contrast)
+                    background: Color(hex: "F57C00"),   // Dark orange background
+                    surface: Color(hex: "E65100"),     // Dark surface
+                    textPrimary: Color(hex: "FFFFFF"),  // White text
+                    textSecondary: Color(hex: "FFF9C4"), // Light yellow text
+                    border: Color(hex: "FF6B9D"),      // Pink border
+                    highlight: Color(hex: "FF6B9D"),   // Light pink highlight
+                    gridLine: Color(hex: "FF6B9D").opacity(0.6), // Visible grid line
+                    eventColors: [
+                        Color(hex: "FF6B9D"), // Light pink
+                        Color(hex: "FFB74D"), // Light orange
+                        Color(hex: "FFF176"), // Light yellow
+                        Color(hex: "81C784")  // Light green
+                    ],
+                    icon: "rainbow"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Rainbow",
+                    primary: Color(hex: "FF4081"),      // Pink
+                    secondary: Color(hex: "FF9800"),    // Orange
+                    accent: Color(hex: "FFD54F"),      // Yellow
+                    background: Color(hex: "FFFDE7"),   // Light yellow background
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "F57C00"),  // Dark orange
+                    textSecondary: Color(hex: "546E7A"), // Grey
+                    border: Color(hex: "FFF9C4"),      // Light yellow border
+                    highlight: Color(hex: "FF4081"),   // Pink highlight
+                    gridLine: Color(hex: "FFF9C4").opacity(0.8), // Visible grid line
+                    eventColors: [
+                        Color(hex: "E91E63"), // Pink
+                        Color(hex: "FF9800"), // Orange
+                        Color(hex: "FFEB3B"), // Yellow
+                        Color(hex: "4CAF50")  // Green
+                    ],
+                    icon: "rainbow"
+                )
+            }
         case .system:
             // System theme that uses appropriate colors for the current color scheme
             if colorScheme == .dark {

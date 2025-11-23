@@ -341,6 +341,31 @@ struct SettingsRow: View {
 
 struct ColorThemeSettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.colorScheme) var colorScheme
+
+    private func themePalette(_ theme: ColorTheme) -> ColorPalette {
+        theme.palette(for: colorScheme)
+    }
+
+    private func currentPalette() -> ColorPalette {
+        themeManager.currentPalette
+    }
+
+    private func strokeColor(for theme: ColorTheme) -> Color {
+        if themeManager.currentTheme == theme {
+            return themePalette(theme).primary
+        } else {
+            return currentPalette().border.opacity(0.3)
+        }
+    }
+
+    private func strokeWidth(for theme: ColorTheme) -> CGFloat {
+        if themeManager.currentTheme == theme {
+            return 2
+        } else {
+            return 0.5
+        }
+    }
 
     var body: some View {
         ScrollView {
@@ -350,7 +375,7 @@ struct ColorThemeSettingsView: View {
                     Text("Color Theme")
                         .font(.title2)
                         .fontWeight(.bold)
-                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                        .foregroundColor(currentPalette().textPrimary)
                     Spacer()
                 }
                 .padding(.horizontal)
@@ -364,36 +389,36 @@ struct ColorThemeSettingsView: View {
                         }) {
                             HStack(spacing: 16) {
                                 // Theme Icon
-                                Image(systemName: theme.palette.icon)
-                                    .foregroundColor(theme.palette.primary)
+                                Image(systemName: themePalette(theme).icon)
+                                    .foregroundColor(themePalette(theme).primary)
                                     .frame(width: 24, height: 24)
 
                                 // Theme Info
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(theme.palette.name)
+                                    Text(themePalette(theme).name)
                                         .font(.headline)
-                                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                                        .foregroundColor(currentPalette().textPrimary)
 
                                     // Color Preview
                                     HStack(spacing: 6) {
                                         RoundedRectangle(cornerRadius: 3)
-                                            .fill(theme.palette.primary)
+                                            .fill(themePalette(theme).primary)
                                             .frame(width: 14, height: 14)
 
                                         RoundedRectangle(cornerRadius: 3)
-                                            .fill(theme.palette.secondary)
+                                            .fill(themePalette(theme).secondary)
                                             .frame(width: 14, height: 14)
 
                                         RoundedRectangle(cornerRadius: 3)
-                                            .fill(theme.palette.accent)
+                                            .fill(themePalette(theme).accent)
                                             .frame(width: 14, height: 14)
 
                                         RoundedRectangle(cornerRadius: 3)
-                                            .fill(theme.palette.background)
+                                            .fill(themePalette(theme).background)
                                             .frame(width: 14, height: 14)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 3)
-                                                    .stroke(theme.palette.border, lineWidth: 0.5)
+                                                    .stroke(themePalette(theme).border, lineWidth: 0.5)
                                             )
                                     }
                                 }
@@ -403,16 +428,16 @@ struct ColorThemeSettingsView: View {
                                 // Selection Indicator
                                 if themeManager.currentTheme == theme {
                                     Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(theme.palette.primary)
+                                        .foregroundColor(themePalette(theme).primary)
                                         .font(.title3)
                                 }
                             }
                             .padding(16)
-                            .background(themeManager.currentPalette.surface.opacity(0.6))
+                            .background(currentPalette().surface.opacity(0.6))
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(themeManager.currentTheme == theme ? theme.palette.primary : themeManager.currentPalette.border.opacity(0.3), lineWidth: themeManager.currentTheme == theme ? 2 : 0.5)
+                                    .stroke(strokeColor(for: theme), lineWidth: strokeWidth(for: theme))
                             )
                         }
                         .buttonStyle(.plain)
