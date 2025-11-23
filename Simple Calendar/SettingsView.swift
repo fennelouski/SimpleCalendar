@@ -205,8 +205,9 @@ struct SettingsContentView: View {
                                             case "weatherIntegration": featureFlags.weatherIntegration.toggle()
                                             case "calendarSharing": featureFlags.calendarSharing.toggle()
                                             case "naturalLanguageEvents": featureFlags.naturalLanguageEvents.toggle()
-                                            case "aiEventSuggestions": featureFlags.aiEventSuggestions.toggle()
-                                            case "collaborationFeatures": featureFlags.collaborationFeatures.toggle()
+                                        case "aiEventSuggestions": featureFlags.aiEventSuggestions.toggle()
+                                        case "collaborationFeatures": featureFlags.collaborationFeatures.toggle()
+                                        case "daylightVisualization": featureFlags.daylightVisualization.toggle()
                                             default: break
                                             }
                                         }

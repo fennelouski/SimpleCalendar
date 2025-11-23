@@ -10,6 +10,9 @@ import SwiftUI
 import AppKit
 #endif
 
+// Import for daylight visualization
+import Foundation
+
 struct ContentView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
     @EnvironmentObject var themeManager: ThemeManager
@@ -63,6 +66,9 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .RefreshCalendar)) { _ in
             calendarViewModel.refresh()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .ToggleDaylightVisualization)) { _ in
+            FeatureFlags.shared.daylightVisualization.toggle()
         }
         .onReceive(NotificationCenter.default.publisher(for: .init("ShowQuickAdd"))) { _ in
             showQuickAdd = true
@@ -367,6 +373,7 @@ struct DayView: View {
     let geometry: GeometryProxy
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
+    @StateObject private var featureFlags = FeatureFlags.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -394,6 +401,13 @@ struct DayView: View {
         .frame(height: geometry.size.width / 7 - 16)
         .background(dayBackgroundColor)
         .roundedCorners(.small)
+        .overlay(alignment: .top) {
+            // Daylight visualization (only if enabled)
+            if featureFlags.daylightVisualization {
+                DaylightVisualizationView(date: day.date, width: geometry.size.width)
+                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small.value))
+            }
+        }
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
                 .stroke(themeManager.currentTheme.palette.gridLine, lineWidth: 0.5)

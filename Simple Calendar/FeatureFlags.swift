@@ -110,6 +110,12 @@ class FeatureFlags: ObservableObject {
         set { setFlag("collaborationFeatures", value: newValue) }
     }
 
+    /// Enable daylight visualization on calendar days
+    var daylightVisualization: Bool {
+        get { getFlag("daylightVisualization", defaultValue: true) }
+        set { setFlag("daylightVisualization", value: newValue) }
+    }
+
     // MARK: - Private Methods
 
     private func getFlag(_ key: String, defaultValue: Bool) -> Bool {
@@ -139,7 +145,8 @@ class FeatureFlags: ObservableObject {
             "feature_calendarSharing": false,
             "feature_naturalLanguageEvents": false,
             "feature_aiEventSuggestions": false,
-            "feature_collaborationFeatures": false
+            "feature_collaborationFeatures": false,
+            "feature_daylightVisualization": true
         ]
 
         for (key, value) in defaults {
@@ -166,7 +173,8 @@ class FeatureFlags: ObservableObject {
             ("calendarSharing", "Calendar Sharing", "Share calendars with family and friends", calendarSharing, true),
             ("naturalLanguageEvents", "Natural Language", "Create events using plain English", naturalLanguageEvents, true),
             ("aiEventSuggestions", "AI Suggestions", "Smart event suggestions based on your habits", aiEventSuggestions, true),
-            ("collaborationFeatures", "Collaboration", "Collaborate on events with others", collaborationFeatures, true)
+            ("collaborationFeatures", "Collaboration", "Collaborate on events with others", collaborationFeatures, true),
+            ("daylightVisualization", "Daylight Visualization", "Show daylight cycles on calendar days", daylightVisualization, false)
         ]
     }
 }

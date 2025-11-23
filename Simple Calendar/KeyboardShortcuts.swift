@@ -13,6 +13,7 @@ extension Notification.Name {
     static let ToggleSearch = Notification.Name("ToggleSearch")
     static let ToggleKeyCommands = Notification.Name("ToggleKeyCommands")
     static let RefreshCalendar = Notification.Name("RefreshCalendar")
+    static let ToggleDaylightVisualization = Notification.Name("ToggleDaylightVisualization")
 }
 
 #if os(macOS)
@@ -94,6 +95,10 @@ class KeyHandlingView: NSView {
         case 15: // r (with command modifier)
             if event.modifierFlags.contains(.command) {
                 calendarViewModel.refresh()
+            }
+        case 37: // l (with command modifier)
+            if event.modifierFlags.contains(.command) {
+                NotificationCenter.default.post(name: .ToggleDaylightVisualization, object: nil)
             }
         default:
             break
