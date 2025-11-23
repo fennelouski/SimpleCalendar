@@ -305,6 +305,8 @@ struct ContentView: View {
             days = generateMonthDays(for: currentMonth)
         case .year:
             days = generateYearDays(for: currentMonth)
+        case .sevenDays:
+            days = generateWeekDays(for: currentMonth)
         case .twoWeeks:
             days = generateTwoWeekDays(for: currentMonth)
         default:
@@ -414,6 +416,31 @@ struct ContentView: View {
         }
 
         return days
+    }
+
+    private func generateWeekDays(for date: Date) -> [CalendarDay] {
+        let calendar = Calendar.current
+        let referenceDate = calendarViewModel.selectedDate ?? date
+
+        // Find the start of the week containing the reference date
+        // Use the localized first weekday (1 = Sunday in US, 2 = Monday in most other locales)
+        let weekday = calendar.component(.weekday, from: referenceDate)
+        let firstWeekday = calendar.firstWeekday
+        let daysToSubtract = (weekday - firstWeekday + 7) % 7
+
+        guard let weekStart = calendar.date(byAdding: .day, value: -daysToSubtract, to: referenceDate) else {
+            return []
+        }
+
+        var calendarDays: [CalendarDay] = []
+        for i in 0..<7 {
+            guard let date = calendar.date(byAdding: .day, value: i, to: weekStart) else {
+                continue
+            }
+            calendarDays.append(createCalendarDay(for: date, isCurrentMonth: true))
+        }
+
+        return calendarDays
     }
 
     private func generateDayRangeDays(for date: Date, days: Int) -> [CalendarDay] {
