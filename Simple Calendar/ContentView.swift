@@ -373,13 +373,16 @@ struct ContentView: View {
         // Next month days to fill the last week
         let remainingCells = (7 - (days.count % 7)) % 7
 
-        guard let nextMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth) else {
-            return days
-        }
+        // Only add next month days if we need to fill the week
+        if remainingCells > 0 {
+            guard let nextMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth) else {
+                return days
+            }
 
-        for day in 1...remainingCells {
-            if let date = calendar.date(bySetting: .day, value: day, of: nextMonth) {
-                days.append(createCalendarDay(for: date, isCurrentMonth: false))
+            for day in 1...remainingCells {
+                if let date = calendar.date(bySetting: .day, value: day, of: nextMonth) {
+                    days.append(createCalendarDay(for: date, isCurrentMonth: false))
+                }
             }
         }
 
@@ -388,11 +391,15 @@ struct ContentView: View {
 
     private func generateTwoWeekDays(for date: Date) -> [CalendarDay] {
         let calendar = Calendar.current
-        let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date))!
+        guard let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)) else {
+            return []
+        }
 
         var days: [CalendarDay] = []
         for i in 0..<14 {
-            let date = calendar.date(byAdding: .day, value: i, to: startOfWeek)!
+            guard let date = calendar.date(byAdding: .day, value: i, to: startOfWeek) else {
+                continue
+            }
             days.append(createCalendarDay(for: date, isCurrentMonth: true))
         }
 
@@ -405,7 +412,9 @@ struct ContentView: View {
 
         var calendarDays: [CalendarDay] = []
         for i in 0..<days {
-            let date = calendar.date(byAdding: .day, value: i, to: startDate)!
+            guard let date = calendar.date(byAdding: .day, value: i, to: startDate) else {
+                continue
+            }
             calendarDays.append(createCalendarDay(for: date, isCurrentMonth: true))
         }
 

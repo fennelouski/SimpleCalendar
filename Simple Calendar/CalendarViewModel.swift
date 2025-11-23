@@ -133,8 +133,10 @@ class CalendarViewModel: ObservableObject {
         if viewMode == .year {
             navigateToNextYear()
         } else {
-            currentDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate)!
-            loadAllEvents()
+            if let newDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate) {
+                currentDate = newDate
+                loadAllEvents()
+            }
         }
     }
 
@@ -142,19 +144,25 @@ class CalendarViewModel: ObservableObject {
         if viewMode == .year {
             navigateToPreviousYear()
         } else {
-            currentDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
-            loadAllEvents()
+            if let newDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate) {
+                currentDate = newDate
+                loadAllEvents()
+            }
         }
     }
 
     func navigateToNextYear() {
-        currentDate = Calendar.current.date(byAdding: .year, value: 1, to: currentDate)!
-        loadAllEvents()
+        if let newDate = Calendar.current.date(byAdding: .year, value: 1, to: currentDate) {
+            currentDate = newDate
+            loadAllEvents()
+        }
     }
 
     func navigateToPreviousYear() {
-        currentDate = Calendar.current.date(byAdding: .year, value: -1, to: currentDate)!
-        loadAllEvents()
+        if let newDate = Calendar.current.date(byAdding: .year, value: -1, to: currentDate) {
+            currentDate = newDate
+            loadAllEvents()
+        }
     }
 
     func navigateToToday() {
