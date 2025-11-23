@@ -590,6 +590,10 @@ struct DayDetailView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var featureFlags = FeatureFlags.shared
+    @StateObject private var onThisDayService = OnThisDayService.shared
+    @State private var onThisDayData: OnThisDayData?
+    @State private var isLoadingOnThisDay = false
+    @State private var onThisDayError: Error?
 
     var body: some View {
         HStack(spacing: 0) {
@@ -612,24 +616,172 @@ struct DayDetailView: View {
                 }
                 .standardPadding()
 
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
-                        let dayEvents = calendarViewModel.events.filter { event in
-                            Calendar.current.isDate(event.startDate, inSameDayAs: date)
-                        }
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    let dayEvents = calendarViewModel.events.filter { event in
+                        Calendar.current.isDate(event.startDate, inSameDayAs: date)
+                    }
 
-                        if dayEvents.isEmpty {
-                            Text("No events for this day")
-                                .foregroundColor(themeManager.currentPalette.textSecondary)
-                                .font(uiConfig.eventDetailFont)
-                                .standardPadding()
-                        } else {
-                            ForEach(dayEvents) { event in
-                                EventDetailView(event: event)
-                            }
+                    if dayEvents.isEmpty {
+                        Text("No events for this day")
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                            .font(uiConfig.eventDetailFont)
+                            .standardPadding()
+                    } else {
+                        ForEach(dayEvents) { event in
+                            EventDetailView(event: event)
                         }
                     }
+
+                    // On This Day section
+                    if featureFlags.onThisDayEnabled {
+                        OnThisDaySection(
+                            date: date,
+                            data: onThisDayData,
+                            isLoading: isLoadingOnThisDay,
+                            error: onThisDayError
+                        )
+                    }
                 }
+            }
+            .task {
+                if featureFlags.onThisDayEnabled {
+                    await loadOnThisDayData()
+                }
+            }
+            }
+        }
+    }
+
+    private func loadOnThisDayData() async {
+        guard featureFlags.onThisDayEnabled else { return }
+
+        isLoadingOnThisDay = true
+        defer { isLoadingOnThisDay = false }
+
+        do {
+            onThisDayData = try await onThisDayService.fetchData(for: date)
+        } catch {
+            onThisDayError = error
+            print("Failed to load On This Day data: \(error.localizedDescription)")
+        }
+    }
+}
+
+struct OnThisDaySection: View {
+    let date: Date
+    let data: OnThisDayData?
+    let isLoading: Bool
+    let error: Error?
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var uiConfig: UIConfiguration
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("On This Day")
+                    .font(uiConfig.eventTitleFont)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                Spacer()
+
+                Text("Data from Wikipedia")
+                    .font(uiConfig.captionFont)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
+            }
+
+            if isLoading {
+                ProgressView()
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 20)
+            } else if let error = error {
+                Text("Unable to load historical data")
+                    .foregroundColor(.red)
+                    .font(uiConfig.eventDetailFont)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 20)
+            } else if let data = data, data.hasContent {
+                VStack(alignment: .leading, spacing: 16) {
+                    if !data.holidays.isEmpty {
+                        OnThisDayCategoryView(
+                            title: "Holidays & Observances",
+                            icon: "calendar",
+                            items: data.holidays.map { $0.text },
+                            color: .orange
+                        )
+                    }
+
+                    if !data.events.isEmpty {
+                        OnThisDayCategoryView(
+                            title: "Historical Events",
+                            icon: "clock",
+                            items: data.events.map { $0.text },
+                            color: .blue
+                        )
+                    }
+
+                    if !data.births.isEmpty {
+                        OnThisDayCategoryView(
+                            title: "Notable Births",
+                            icon: "person",
+                            items: data.births.map { $0.text },
+                            color: .green
+                        )
+                    }
+
+                    if !data.deaths.isEmpty {
+                        OnThisDayCategoryView(
+                            title: "Notable Deaths",
+                            icon: "person.crop.circle.badge.xmark",
+                            items: data.deaths.map { $0.text },
+                            color: .gray
+                        )
+                    }
+                }
+            } else {
+                Text("No historical data available for this date")
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                    .font(uiConfig.eventDetailFont)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 20)
+            }
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(themeManager.currentPalette.surface.opacity(0.5))
+        .cornerRadius(CornerRadius.medium.value)
+        .padding(.horizontal)
+    }
+}
+
+struct OnThisDayCategoryView: View {
+    let title: String
+    let icon: String
+    let items: [String]
+    let color: Color
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var uiConfig: UIConfiguration
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .foregroundColor(color)
+                    .font(.system(size: 14))
+                Text(title)
+                    .font(uiConfig.eventDetailFont)
+                    .foregroundColor(color)
+                    .fontWeight(.semibold)
+            }
+
+            ForEach(items, id: \.self) { item in
+                Text("• \(item)")
+                    .font(uiConfig.eventDetailFont)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .lineLimit(3)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
     }

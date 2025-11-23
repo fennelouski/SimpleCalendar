@@ -66,6 +66,15 @@ class FeatureFlags: ObservableObject {
         didSet { UserDefaults.standard.set(daylightVisualization, forKey: "feature_daylightVisualization") }
     }
 
+    @Published var onThisDayEnabled: Bool = false {
+        didSet {
+            UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
+            // Also sync to iCloud
+            NSUbiquitousKeyValueStore.default.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
+            NSUbiquitousKeyValueStore.default.synchronize()
+        }
+    }
+
     private init() {
         // Load initial values from UserDefaults
         advancedViews = UserDefaults.standard.bool(forKey: "feature_advancedViews")
@@ -152,6 +161,20 @@ class FeatureFlags: ObservableObject {
         if daylightVisualization == false && UserDefaults.standard.object(forKey: "feature_daylightVisualization") == nil {
             daylightVisualization = true
         }
+
+        onThisDayEnabled = getOnThisDayFlag()
+    }
+
+    /// Get On This Day flag with iCloud sync support
+    private func getOnThisDayFlag() -> Bool {
+        // Try iCloud first, then local defaults
+        let iCloudValue = NSUbiquitousKeyValueStore.default.bool(forKey: "feature_onThisDayEnabled")
+        if NSUbiquitousKeyValueStore.default.object(forKey: "feature_onThisDayEnabled") != nil {
+            return iCloudValue
+        }
+
+        // Fall back to local UserDefaults, defaulting to false
+        return UserDefaults.standard.bool(forKey: "feature_onThisDayEnabled")
     }
 
     /// Reset all feature flags to defaults
@@ -173,6 +196,7 @@ class FeatureFlags: ObservableObject {
         aiEventSuggestions = true
         collaborationFeatures = true
         daylightVisualization = true
+        onThisDayEnabled = false  // Default to off
 
         saveAll()
     }
@@ -195,6 +219,7 @@ class FeatureFlags: ObservableObject {
         UserDefaults.standard.set(aiEventSuggestions, forKey: "feature_aiEventSuggestions")
         UserDefaults.standard.set(collaborationFeatures, forKey: "feature_collaborationFeatures")
         UserDefaults.standard.set(daylightVisualization, forKey: "feature_daylightVisualization")
+        UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
         UserDefaults.standard.synchronize()
     }
 

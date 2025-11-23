@@ -584,6 +584,9 @@ struct FeatureFlagsSettingsView: View {
 
                             Toggle("Daylight Visualization", isOn: $featureFlags.daylightVisualization)
                                 .help("Show daylight cycles on calendar days")
+
+                            Toggle("On This Day", isOn: $featureFlags.onThisDayEnabled)
+                                .help("Show historical events, holidays, and observances for each day")
                         }
                     }
 
