@@ -14,7 +14,8 @@ A beautiful, multi-platform calendar application for iOS, iPadOS, and macOS desi
 - **Beautiful Interface**: Clean, child-friendly design with intuitive navigation
 - **Grid Lines**: Subtle grid lines enhance calendar readability
 - **Daylight Visualization**: Color-coded daylight cycles on calendar days
-- **Multiple View Modes**: Day, 2-day, 3-day, up to 9-day views, 2-week view, and full month view
+- **Multiple View Modes**: Day, 2-day, 3-day, up to 9-day views, 2-week view, full month view, and full year overview
+- **Year View**: Click month name to toggle full year calendar showing all 12 months at once
 - **System Calendar Integration**: Sync with macOS Calendar app
 - **Google Calendar Integration**: Connect and sync with Google Calendar
 
@@ -80,6 +81,7 @@ open "Simple Calendar.xcodeproj"
 - **Toggle Daylight Visualization**: `Command+L`
 - **Settings**: `Command+,`
 - **New Event**: `Command+N`
+- **Year View**: `Y`
 - **Help**: `Command+?`
 - **Quick Add Event**: `Command+N`
 - **Search Events**: `Command+F`
