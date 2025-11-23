@@ -20,11 +20,12 @@ A beautiful, multi-platform calendar application for iOS, iPadOS, and macOS desi
 - **Google Calendar Integration**: Connect and sync with Google Calendar
 
 ### Advanced Features
-- **🎨 8 Color Themes**: Choose from Ocean, Forest, Sunset, Space, Candy, Autumn, Winter, and Rainbow themes
+- **🎨 9 Color Themes**: Choose from Ocean, Forest, Sunset, Space, Candy, Autumn, Winter, Rainbow, and System themes (adapts to light/dark mode)
 - **🔤 Font Customization**: 5 font size levels for accessibility
 - **🖼️ Image Integration**: Beautiful Unsplash images for events with smart caching
 - **🌤️ Weather Integration**: Weather forecasts for events with locations
 - **🗺️ Map Integration**: Interactive maps for events with location data
+- **🔗 Google Calendar**: Sync with your Google Calendar account
 - **⚡ Quick Add**: Rapid event creation with Command+N
 - **📤 Event Export**: Export events to other calendar applications
 - **🔄 Refresh**: Command+R to refresh calendar data
