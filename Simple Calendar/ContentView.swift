@@ -143,9 +143,14 @@ struct ContentView: View {
             VStack(spacing: 8) {
                 // Headers (only for non-year views)
                 if calendarViewModel.viewMode != .year {
+                    let totalSpacing = CGFloat(daysPerRow - 1) * 8 // Spacing between columns
+                    let horizontalPadding: CGFloat = 16 // Approximate horizontal padding
+                    let availableWidth = geometry.size.width - horizontalPadding * 2 - totalSpacing
+                    let widthPerColumn = max(availableWidth / CGFloat(daysPerRow), 30) // Minimum 30pt width
+
                     LazyVGrid(columns: columns, spacing: 8) {
                         ForEach(0..<daysPerRow, id: \.self) { index in
-                            Text(dayName(for: index))
+                            Text(dayName(for: index, availableWidth: widthPerColumn))
                                 .font(uiConfig.dayNameFont)
                                 .foregroundColor(themeManager.currentPalette.dayNameText)
                                 .frame(height: 24)
@@ -878,15 +883,41 @@ struct MonthMiniView: View {
     }
 }
 
-private func dayName(for columnIndex: Int) -> String {
+private func dayName(for columnIndex: Int, availableWidth: CGFloat? = nil) -> String {
     let calendar = Calendar.current
-    let weekdaySymbols = calendar.veryShortWeekdaySymbols
 
     // Adjust for calendar's first weekday (usually Sunday = 0 or Monday = 0)
     let firstWeekday = calendar.firstWeekday - 1 // Convert to 0-based
     let adjustedIndex = (columnIndex + firstWeekday) % 7
 
-    return weekdaySymbols[adjustedIndex]
+    // Create a date for this weekday (using a reference date)
+    let referenceDate = Date()
+    let weekday = (adjustedIndex + 1) % 7 + 1 // Convert back to 1-based for Calendar
+    var dateComponents = calendar.dateComponents([.year, .month, .day], from: referenceDate)
+    dateComponents.weekday = weekday
+    let weekdayDate = calendar.date(from: dateComponents) ?? referenceDate
+
+    // Use DateFormatter for proper localization
+    let formatter = DateFormatter()
+
+    // Determine format based on available width
+    if let width = availableWidth {
+        if width > 80 {
+            // Full name for wide columns
+            formatter.dateFormat = "EEEE" // Full weekday name
+        } else if width > 50 {
+            // Abbreviated for medium columns
+            formatter.dateFormat = "EEE" // Abbreviated weekday name (Mon, Tue, etc.)
+        } else {
+            // Short for narrow columns
+            formatter.dateFormat = "EEEEE" // Very short (M, T, W, etc.)
+        }
+    } else {
+        // Default to abbreviated if no width provided
+        formatter.dateFormat = "EEE"
+    }
+
+    return formatter.string(from: weekdayDate)
 }
 
 struct KeyCommandsView: View {
