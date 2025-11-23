@@ -29,64 +29,123 @@ struct SettingsContentView: View {
     @Binding var showSettings: Bool
     @State private var isGoogleCalendarEnabled = false
     @ObservedObject var googleOAuthManager: GoogleOAuthManager
+
     @State private var showColorTheme = false
     @State private var showTypography = false
     @State private var showFeatureFlags = false
 
     var body: some View {
+        #if os(iOS)
+        NavigationView {
+            mainSettingsContent
+                .navigationBarHidden(true)
+        }
+        .sheet(isPresented: $showColorTheme) {
+            ColorThemeSettingsView()
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showTypography) {
+            TypographySettingsView()
+                .environmentObject(uiConfig)
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showFeatureFlags) {
+            FeatureFlagsSettingsView()
+                .environmentObject(featureFlags)
+                .environmentObject(themeManager)
+        }
+        #else
+        // On macOS, use sheets for all sub-views since NavigationView doesn't work well
+        mainSettingsContent
+        .sheet(isPresented: $showColorTheme) {
+            ColorThemeSettingsView()
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showTypography) {
+            TypographySettingsView()
+                .environmentObject(uiConfig)
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showFeatureFlags) {
+            FeatureFlagsSettingsView()
+                .environmentObject(featureFlags)
+                .environmentObject(themeManager)
+        }
+        #endif
+    }
+
+    private var mainSettingsContent: some View {
         ScrollView {
-            VStack(spacing: 20) {
+            VStack(spacing: 0) {
                 // Header
                 HStack {
                     Text("Settings")
                         .font(.title)
                         .fontWeight(.bold)
+                        .foregroundColor(themeManager.currentTheme.palette.textPrimary)
                     Spacer()
                     Button("Done") {
                         showSettings = false
                     }
+                    .foregroundColor(themeManager.currentTheme.palette.primary)
                 }
-                .padding(.horizontal)
-                .padding(.top)
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
 
                 // Settings Sections
-                VStack(spacing: 0) {
+                VStack(spacing: 16) {
                     // Calendar Integration
                     SettingsSection(title: "Calendar Integration") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Toggle("System Calendar", isOn: .constant(true))
-                                .disabled(true)
+                        VStack(spacing: 12) {
+                            SettingsRow(
+                                title: "System Calendar",
+                                subtitle: "Sync with macOS Calendar",
+                                trailingContent: AnyView(
+                                    Toggle("", isOn: .constant(true))
+                                        .disabled(true)
+                                        .labelsHidden()
+                                )
+                            )
 
-                            Toggle("Google Calendar", isOn: $isGoogleCalendarEnabled)
+                            SettingsRow(
+                                title: "Google Calendar",
+                                subtitle: googleOAuthManager.isAuthenticated ?
+                                    "Signed in as \(googleOAuthManager.userEmail ?? "Unknown")" :
+                                    "Connect your Google Calendar",
+                                trailingContent: AnyView(
+                                    Toggle("", isOn: $isGoogleCalendarEnabled)
+                                        .labelsHidden()
+                                )
+                            )
 
                             if isGoogleCalendarEnabled {
                                 if !googleOAuthManager.isAuthenticated {
                                     Button("Sign in to Google") {
                                         googleOAuthManager.signIn()
                                     }
-                                    .foregroundColor(.blue)
-                                    .padding(.vertical, 4)
+                                    .foregroundColor(themeManager.currentTheme.palette.primary)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 12)
+                                    .background(themeManager.currentTheme.palette.surface.opacity(0.8))
+                                    .cornerRadius(8)
 
                                     if let error = googleOAuthManager.authenticationError {
                                         Text(error)
                                             .foregroundColor(.red)
                                             .font(.caption)
+                                            .padding(.vertical, 4)
                                     }
                                 } else {
-                                    HStack {
-                                        Text("Signed in as:")
-                                            .foregroundColor(.secondary)
-                                        Spacer()
-                                        Text(googleOAuthManager.userEmail ?? "Unknown")
-                                            .foregroundColor(.secondary)
-                                    }
-
                                     Button("Sign Out") {
                                         googleOAuthManager.signOut()
                                         isGoogleCalendarEnabled = false
                                     }
                                     .foregroundColor(.red)
-                                    .padding(.vertical, 4)
+                                    .padding(.vertical, 8)
+                                    .padding(.horizontal, 12)
+                                    .background(Color.red.opacity(0.1))
+                                    .cornerRadius(8)
                                 }
                             }
                         }
@@ -94,82 +153,90 @@ struct SettingsContentView: View {
 
                     // Appearance
                     SettingsSection(title: "Appearance") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Toggle("Light/Dark Mode", isOn: .constant(true))
-                                .disabled(true)
+                        VStack(spacing: 12) {
+                            SettingsRow(
+                                title: "Light/Dark Mode",
+                                subtitle: "Follows system appearance",
+                                trailingContent: AnyView(
+                                    Toggle("", isOn: .constant(true))
+                                        .disabled(true)
+                                        .labelsHidden()
+                                )
+                            )
+
+                            Button(action: {
+                                showColorTheme = true
+                            }) {
+                                SettingsRow(
+                                    title: "Color Theme",
+                                    subtitle: themeManager.currentTheme.palette.name,
+                                    showChevron: true
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
 
-                    // Color Theme - Button to show sheet
-                    SettingsSection(title: "Color Theme") {
-                        Button(action: {
-                            showColorTheme = true
-                        }) {
-                            SettingsRow(title: "Theme", subtitle: themeManager.currentTheme.palette.name, showChevron: true)
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    // Typography - Button to show sheet
+                    // Typography
                     SettingsSection(title: "Typography") {
                         Button(action: {
                             showTypography = true
                         }) {
-                            SettingsRow(title: "Font Size", subtitle: "Adjust text size and style", showChevron: true)
+                            SettingsRow(
+                                title: "Font Size",
+                                subtitle: "Adjust text size and style",
+                                showChevron: true
+                            )
                         }
                         .buttonStyle(.plain)
                     }
 
                     // Images
                     SettingsSection(title: "Images") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Toggle("Show Unsplash Attribution", isOn: Binding(
-                                get: { UserDefaults.standard.bool(forKey: "showUnsplashAttribution") },
-                                set: { UserDefaults.standard.set($0, forKey: "showUnsplashAttribution") }
-                            ))
-                            Text("Display photo credits on images from Unsplash")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                        VStack(spacing: 12) {
+                            SettingsRow(
+                                title: "Unsplash Attribution",
+                                subtitle: "Show photo credits on images",
+                                trailingContent: AnyView(
+                                    Toggle("", isOn: Binding(
+                                        get: { UserDefaults.standard.bool(forKey: "showUnsplashAttribution") },
+                                        set: { UserDefaults.standard.set($0, forKey: "showUnsplashAttribution") }
+                                    ))
+                                    .labelsHidden()
+                                )
+                            )
                         }
                     }
 
-                    // Feature Flags - Button to show sheet
+                    // Experimental Features
                     SettingsSection(title: "Experimental Features") {
                         Button(action: {
                             showFeatureFlags = true
                         }) {
-                            SettingsRow(title: "Advanced Options", subtitle: "Enable experimental features", showChevron: true)
+                            SettingsRow(
+                                title: "Advanced Options",
+                                subtitle: "Enable experimental features",
+                                showChevron: true
+                            )
                         }
                         .buttonStyle(.plain)
                     }
 
                     // About
                     SettingsSection(title: "About") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            HStack {
-                                Text("Version")
-                                Spacer()
-                                Text("1.0.0")
-                                    .foregroundColor(.secondary)
-                            }
+                        VStack(spacing: 12) {
+                            SettingsRow(
+                                title: "Version",
+                                subtitle: "Simple Calendar 1.0.0",
+                                trailingContent: AnyView(EmptyView())
+                            )
                         }
                     }
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 16)
             }
             .padding(.bottom, 20)
-        }
-        .sheet(isPresented: $showColorTheme) {
-            ColorThemeSettingsView(showSettings: $showColorTheme)
-                .environmentObject(themeManager)
-        }
-        .sheet(isPresented: $showTypography) {
-            TypographySettingsView(showSettings: $showTypography)
-                .environmentObject(uiConfig)
-        }
-        .sheet(isPresented: $showFeatureFlags) {
-            FeatureFlagsSettingsView(showSettings: $showFeatureFlags)
-                .environmentObject(featureFlags)
+            .background(themeManager.currentTheme.palette.calendarBackground)
         }
     }
 }
@@ -177,6 +244,7 @@ struct SettingsContentView: View {
 // MARK: - Helper Views
 
 struct SettingsSection<Content: View>: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let content: Content
 
@@ -189,9 +257,9 @@ struct SettingsSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 12) {
             Text(title)
                 .font(.headline)
-                .foregroundColor(.primary)
+                .foregroundColor(themeManager.currentTheme.palette.textPrimary)
                 .padding(.horizontal, 16)
-                .padding(.top, 8)
+                .padding(.top, 12)
 
             VStack(alignment: .leading, spacing: 12) {
                 content
@@ -199,37 +267,56 @@ struct SettingsSection<Content: View>: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 16)
         }
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(10)
-        .padding(.horizontal, 16)
+        .background(themeManager.currentTheme.palette.surface.opacity(0.6))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(themeManager.currentTheme.palette.border.opacity(0.3), lineWidth: 0.5)
+        )
     }
 }
 
 struct SettingsRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
     let title: String
     let subtitle: String?
     let showChevron: Bool
+    let trailingContent: AnyView?
+
+    init(title: String, subtitle: String? = nil, showChevron: Bool = false, trailingContent: AnyView? = nil) {
+        self.title = title
+        self.subtitle = subtitle
+        self.showChevron = showChevron
+        self.trailingContent = trailingContent
+    }
 
     var body: some View {
-        HStack {
+        HStack(alignment: .center, spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
                     .font(.body)
-                    .foregroundColor(.primary)
+                    .foregroundColor(themeManager.currentTheme.palette.textPrimary)
                 if let subtitle = subtitle {
                     Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+                        .font(.subheadline)
+                        .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                        .lineLimit(1)
                 }
             }
-            Spacer()
+            Spacer(minLength: 8)
+
+            if let trailingContent = trailingContent {
+                trailingContent
+            }
+
             if showChevron {
                 Image(systemName: "chevron.right")
-                    .foregroundColor(.secondary)
-                    .font(.caption)
+                    .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                    .font(.body)
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 4)
         .contentShape(Rectangle())
     }
 }
@@ -238,7 +325,6 @@ struct SettingsRow: View {
 
 struct ColorThemeSettingsView: View {
     @EnvironmentObject var themeManager: ThemeManager
-    @Binding var showSettings: Bool
 
     var body: some View {
         ScrollView {
@@ -246,12 +332,10 @@ struct ColorThemeSettingsView: View {
                 // Header
                 HStack {
                     Text("Color Theme")
-                        .font(.title)
+                        .font(.title2)
                         .fontWeight(.bold)
+                        .foregroundColor(themeManager.currentTheme.palette.textPrimary)
                     Spacer()
-                    Button("Done") {
-                        showSettings = false
-                    }
                 }
                 .padding(.horizontal)
                 .padding(.top)
@@ -272,28 +356,28 @@ struct ColorThemeSettingsView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(theme.palette.name)
                                         .font(.headline)
-                                        .foregroundColor(.primary)
+                                        .foregroundColor(themeManager.currentTheme.palette.textPrimary)
 
                                     // Color Preview
-                                    HStack(spacing: 8) {
+                                    HStack(spacing: 6) {
                                         RoundedRectangle(cornerRadius: 3)
                                             .fill(theme.palette.primary)
-                                            .frame(width: 16, height: 16)
+                                            .frame(width: 14, height: 14)
 
                                         RoundedRectangle(cornerRadius: 3)
                                             .fill(theme.palette.secondary)
-                                            .frame(width: 16, height: 16)
+                                            .frame(width: 14, height: 14)
 
                                         RoundedRectangle(cornerRadius: 3)
                                             .fill(theme.palette.accent)
-                                            .frame(width: 16, height: 16)
+                                            .frame(width: 14, height: 14)
 
                                         RoundedRectangle(cornerRadius: 3)
                                             .fill(theme.palette.background)
-                                            .frame(width: 16, height: 16)
+                                            .frame(width: 14, height: 14)
                                             .overlay(
                                                 RoundedRectangle(cornerRadius: 3)
-                                                    .stroke(theme.palette.border, lineWidth: 1)
+                                                    .stroke(theme.palette.border, lineWidth: 0.5)
                                             )
                                     }
                                 }
@@ -302,17 +386,17 @@ struct ColorThemeSettingsView: View {
 
                                 // Selection Indicator
                                 if themeManager.currentTheme == theme {
-                                    Image(systemName: "checkmark")
+                                    Image(systemName: "checkmark.circle.fill")
                                         .foregroundColor(theme.palette.primary)
                                         .font(.title3)
                                 }
                             }
                             .padding(16)
-                            .background(Color.gray.opacity(0.1))
-                            .cornerRadius(10)
+                            .background(themeManager.currentTheme.palette.surface.opacity(0.6))
+                            .cornerRadius(12)
                             .overlay(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(themeManager.currentTheme == theme ? theme.palette.primary : Color.clear, lineWidth: 2)
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(themeManager.currentTheme == theme ? theme.palette.primary : themeManager.currentTheme.palette.border.opacity(0.3), lineWidth: themeManager.currentTheme == theme ? 2 : 0.5)
                             )
                         }
                         .buttonStyle(.plain)
@@ -327,7 +411,7 @@ struct ColorThemeSettingsView: View {
 
 struct TypographySettingsView: View {
     @EnvironmentObject var uiConfig: UIConfiguration
-    @Binding var showSettings: Bool
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         ScrollView {
@@ -335,12 +419,10 @@ struct TypographySettingsView: View {
                 // Header
                 HStack {
                     Text("Typography")
-                        .font(.title)
+                        .font(.title2)
                         .fontWeight(.bold)
+                        .foregroundColor(themeManager.currentTheme.palette.textPrimary)
                     Spacer()
-                    Button("Done") {
-                        showSettings = false
-                    }
                 }
                 .padding(.horizontal)
                 .padding(.top)
@@ -405,7 +487,7 @@ struct TypographySettingsView: View {
 
 struct FeatureFlagsSettingsView: View {
     @EnvironmentObject var featureFlags: FeatureFlags
-    @Binding var showSettings: Bool
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         ScrollView {
@@ -413,12 +495,10 @@ struct FeatureFlagsSettingsView: View {
                 // Header
                 HStack {
                     Text("Experimental Features")
-                        .font(.title)
+                        .font(.title2)
                         .fontWeight(.bold)
+                        .foregroundColor(themeManager.currentTheme.palette.textPrimary)
                     Spacer()
-                    Button("Done") {
-                        showSettings = false
-                    }
                 }
                 .padding(.horizontal)
                 .padding(.top)
@@ -511,3 +591,4 @@ struct FeatureFlagsSettingsView: View {
 extension Notification.Name {
     static let ShowSettings = Notification.Name("ShowSettings")
 }
+
