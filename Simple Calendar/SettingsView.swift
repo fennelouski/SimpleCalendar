@@ -174,6 +174,22 @@ struct SettingsContentView: View {
                                 )
                             }
                             .buttonStyle(.plain)
+
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Grid Line Contrast")
+                                    .font(.subheadline)
+                                    .foregroundColor(themeManager.currentTheme.palette.textPrimary)
+
+                                HStack {
+                                    Slider(value: $uiConfig.gridLineOpacity, in: 0.0...1.0, step: 0.05)
+                                        .accentColor(themeManager.currentTheme.palette.primary)
+
+                                    Text("\(Int(uiConfig.gridLineOpacity * 100))%")
+                                        .font(.caption)
+                                        .foregroundColor(themeManager.currentTheme.palette.textSecondary)
+                                        .frame(width: 40, alignment: .trailing)
+                                }
+                            }
                         }
                     }
 

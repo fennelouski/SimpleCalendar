@@ -100,11 +100,26 @@ class UIConfiguration: ObservableObject {
         }
     }
 
+    @Published var gridLineOpacity: Double {
+        didSet {
+            saveSettings()
+        }
+    }
+
     private let fontSizeKey = "fontSizeCategory"
+    private let gridLineOpacityKey = "gridLineOpacity"
 
     init() {
         let savedFontSize = UserDefaults.standard.integer(forKey: fontSizeKey)
         self.fontSizeCategory = FontSizeCategory(rawValue: savedFontSize) ?? .normal
+
+        // Load grid line opacity, default to 0.8 (80%)
+        self.gridLineOpacity = UserDefaults.standard.double(forKey: gridLineOpacityKey)
+        if self.gridLineOpacity == 0.0 && !UserDefaults.standard.bool(forKey: "gridLineOpacitySet") {
+            // First time setup, use default value
+            self.gridLineOpacity = 0.8
+            UserDefaults.standard.set(true, forKey: "gridLineOpacitySet")
+        }
     }
 
     func increaseFontSize() {
@@ -123,6 +138,7 @@ class UIConfiguration: ObservableObject {
 
     private func saveSettings() {
         UserDefaults.standard.set(fontSizeCategory.rawValue, forKey: fontSizeKey)
+        UserDefaults.standard.set(gridLineOpacity, forKey: gridLineOpacityKey)
         UserDefaults.standard.synchronize()
     }
 

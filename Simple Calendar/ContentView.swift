@@ -504,7 +504,7 @@ struct DayView: View {
         }
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
-                .stroke(themeManager.currentTheme.palette.gridLine, lineWidth: 0.5)
+                .stroke(themeManager.currentTheme.palette.gridLine.opacity(uiConfig.gridLineOpacity), lineWidth: 0.5)
         )
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
