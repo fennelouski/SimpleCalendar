@@ -119,6 +119,7 @@ struct ContentView: View {
             }
         }
         .frame(height: 60)
+        .animation(.easeInOut(duration: 0.35), value: calendarViewModel.viewMode)
     }
 
     private var monthDisplay: some View {
@@ -237,6 +238,8 @@ struct ContentView: View {
                 }
                 .padding(.horizontal)
             }
+            .animation(.easeInOut(duration: 0.35), value: calendarViewModel.viewMode)
+            .animation(.easeInOut(duration: 0.35), value: calendarViewModel.currentDate)
         }
     }
 
