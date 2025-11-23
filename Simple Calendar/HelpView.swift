@@ -73,7 +73,7 @@ struct HelpView: View {
                     }
                 }
                 .frame(width: 200)
-                .background(Color(.controlBackgroundColor))
+                .background(Color(.secondarySystemBackground))
 
                 Divider()
 

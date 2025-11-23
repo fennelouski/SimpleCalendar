@@ -6,9 +6,10 @@
 //
 
 import Foundation
+import Combine
 
 /// Feature flag system for enabling/disabling experimental features
-class FeatureFlags {
+class FeatureFlags: ObservableObject {
     static let shared = FeatureFlags()
 
     // MARK: - Feature Flags

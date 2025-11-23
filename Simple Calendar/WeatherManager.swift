@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreLocation
+import Combine
 
 struct WeatherInfo: Codable, Identifiable {
     let id = UUID()

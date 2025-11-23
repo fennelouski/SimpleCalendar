@@ -24,6 +24,7 @@ struct KeyboardShortcutsViewModifier: ViewModifier {
     }
 }
 
+#if os(macOS)
 struct KeyEventHandler: NSViewRepresentable {
     let calendarViewModel: CalendarViewModel
 
@@ -36,7 +37,9 @@ struct KeyEventHandler: NSViewRepresentable {
         // No updates needed
     }
 }
+#endif
 
+#if os(macOS)
 class KeyHandlingView: NSView {
     let calendarViewModel: CalendarViewModel
 
@@ -112,9 +115,12 @@ class KeyHandlingView: NSView {
         return true
     }
 }
+#endif
 
+#if os(macOS)
 extension View {
     func addKeyboardShortcuts() -> some View {
         modifier(KeyboardShortcutsViewModifier())
     }
 }
+#endif

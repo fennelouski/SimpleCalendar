@@ -32,7 +32,9 @@ struct ContentView: View {
             }
         }
         .background(themeManager.currentTheme.palette.calendarBackground)
+        #if os(macOS)
         .addKeyboardShortcuts()
+        #endif
         .overlay(SettingsView())
         .sheet(isPresented: $calendarViewModel.showEventCreation) {
             EventCreationView()
@@ -192,7 +194,7 @@ struct ContentView: View {
             if calendarViewModel.showSearch {
                 SearchView(searchText: $searchText)
                     .frame(width: 400, height: 60)
-                    .background(Color(.windowBackgroundColor))
+                    .background(Color(.systemBackground))
                     .cornerRadius(8)
                     .shadow(radius: 10)
             }
@@ -204,7 +206,7 @@ struct ContentView: View {
             if calendarViewModel.showKeyCommands {
                 KeyCommandsView()
                     .frame(width: 400, height: 500)
-                    .background(Color(.windowBackgroundColor))
+                    .background(Color(.systemBackground))
                     .cornerRadius(8)
                     .shadow(radius: 10)
             }
@@ -471,7 +473,7 @@ struct EventDetailView: View {
             // Event Image
             if let image = eventImage {
                 ZStack(alignment: .bottomTrailing) {
-                    Image(nsImage: image)
+                    Image(uiImage: image)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
                         .frame(height: 120)
@@ -666,7 +668,7 @@ struct SearchResultRow: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
-        .background(Color(.controlBackgroundColor))
+        .background(Color(.secondarySystemBackground))
         .cornerRadius(6)
         .padding(.horizontal)
     }
@@ -726,7 +728,7 @@ struct KeyCommandRow: View {
                 .font(.system(.body, design: .monospaced))
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Color(.controlBackgroundColor))
+                .background(Color(.secondarySystemBackground))
                 .cornerRadius(4)
             Text(description)
                 .foregroundColor(.secondary)

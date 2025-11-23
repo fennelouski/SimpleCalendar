@@ -39,7 +39,7 @@ struct AgendaView: View {
                 .keyboardShortcut("t", modifiers: [.command])
             }
             .padding()
-            .background(Color(.windowBackgroundColor))
+            .background(Color(.systemBackground))
 
             Divider()
 
