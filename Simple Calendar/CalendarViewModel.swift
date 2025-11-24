@@ -33,6 +33,7 @@ class CalendarViewModel: ObservableObject {
     private let googleCalendarAPI: GoogleCalendarAPI
     private let imageManager = ImageManager.shared
     private var cancellables = Set<AnyCancellable>()
+    private var syncTimer: Timer?
 
     init() {
         googleCalendarAPI = GoogleCalendarAPI(oauthManager: googleOAuthManager)
@@ -52,6 +53,7 @@ class CalendarViewModel: ObservableObject {
         }
 
         setupKeyboardShortcuts()
+        setupSyncTimer()
         loadAllEvents() // This will load Google events
     }
 
@@ -315,5 +317,24 @@ class CalendarViewModel: ObservableObject {
 
     func fetchImageForEvent(_ event: CalendarEvent, completion: @escaping (String?) -> Void) {
         imageManager.findOrFetchImage(for: event, completion: completion)
+    }
+
+    private func setupSyncTimer() {
+        // Set up a timer to sync every 15 minutes (900 seconds)
+        syncTimer = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { [weak self] _ in
+            print("⏰ Auto-syncing calendar data (15-minute interval)")
+            self?.syncCalendars()
+        }
+        // Make sure the timer doesn't prevent the app from sleeping
+        syncTimer?.tolerance = 60 // Allow 1 minute tolerance
+    }
+
+    private func syncCalendars() {
+        // Force a reload of all calendar data
+        loadAllEvents()
+    }
+
+    deinit {
+        syncTimer?.invalidate()
     }
 }

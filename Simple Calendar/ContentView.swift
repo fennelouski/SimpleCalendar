@@ -22,7 +22,7 @@ struct ContentView: View {
     @State private var searchText = ""
     @State private var showQuickAdd = false
 
-    var body: some View {
+    private var mainContentView: some View {
         ZStack {
             if calendarViewModel.viewMode == .agenda {
                 AgendaView()
@@ -36,10 +36,6 @@ struct ContentView: View {
                     .overlay(keyCommandsOverlay, alignment: .center)
             }
         }
-        .background(themeManager.currentPalette.calendarBackground)
-        #if os(macOS)
-        .addKeyboardShortcuts()
-        #endif
         .overlay(SettingsView())
         .sheet(isPresented: $calendarViewModel.showEventCreation) {
             EventCreationView()
@@ -51,6 +47,23 @@ struct ContentView: View {
             QuickAddView(isPresented: $showQuickAdd)
         }
         .roundedCorners(.small)
+    }
+
+    var body: some View {
+        #if os(iOS)
+        // On iOS, background extends edge to edge, content respects safe areas
+        ZStack {
+            // Full screen background that ignores safe areas
+            themeManager.currentPalette.calendarBackground
+                .ignoresSafeArea()
+
+            // Content that respects safe areas
+            mainContentView
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .ToggleDaylightVisualization)) { _ in
+            FeatureFlags.shared.daylightVisualizationCalendar.toggle()
+            FeatureFlags.shared.daylightVisualizationDayView.toggle()
+        }
         .onAppear {
             calendarViewModel.navigateToToday()
         }
@@ -69,16 +82,33 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: .RefreshCalendar)) { _ in
             calendarViewModel.refresh()
         }
+        #else
+        // On macOS, use the original structure
+        mainContentView
+        .addKeyboardShortcuts()
         .onReceive(NotificationCenter.default.publisher(for: .ToggleDaylightVisualization)) { _ in
             FeatureFlags.shared.daylightVisualizationCalendar.toggle()
             FeatureFlags.shared.daylightVisualizationDayView.toggle()
         }
-        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("NewEvent"))) { _ in
-            calendarViewModel.showEventCreation = true
+        .onAppear {
+            calendarViewModel.navigateToToday()
         }
-        .onReceive(NotificationCenter.default.publisher(for: .init("ShowQuickAdd"))) { _ in
-            showQuickAdd = true
+        .onReceive(NotificationCenter.default.publisher(for: .init("ToggleFullscreen"))) { _ in
+            calendarViewModel.toggleFullscreen()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .init("ToggleSearch"))) { _ in
+            calendarViewModel.toggleSearch()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .init("ToggleKeyCommands"))) { _ in
+            calendarViewModel.toggleKeyCommands()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .init("ShowSettings"))) { _ in
+            // Settings view handles this via its own state
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .RefreshCalendar)) { _ in
+            calendarViewModel.refresh()
+        }
+        #endif
     }
 
     private var mainCalendarView: some View {
@@ -541,24 +571,40 @@ struct DayView: View {
         return monthlyTheme.palette(for: themeManager.currentColorScheme)
     }
 
+    private var isCompactLayout: Bool {
+        #if os(iOS)
+        // Consider compact if cell height is less than 60 or columns > 7
+        return cellHeight < 60 || columnsCount > 7
+        #else
+        return false
+        #endif
+    }
+
+    private var maxEventsToShow: Int {
+        return isCompactLayout ? 1 : 3
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: isCompactLayout ? 1 : 2) {
             Text(day.date.formatted(.dateTime.day()))
-                .font(uiConfig.dayNumberFont)
+                .font(isCompactLayout ? uiConfig.scaledFont(14, weight: .semibold) : uiConfig.dayNumberFont)
                 .foregroundColor(dayTextColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            ForEach(day.events.prefix(3)) { event in
-                Text(event.title)
-                    .font(uiConfig.captionFont)
-                    .lineLimit(1)
-                    .foregroundColor(monthlyPalette.textSecondary)
-            }
+            // Only show event details if not in compact layout
+            if !isCompactLayout {
+                ForEach(day.events.prefix(maxEventsToShow)) { event in
+                    Text(event.title)
+                        .font(uiConfig.captionFont)
+                        .lineLimit(1)
+                        .foregroundColor(monthlyPalette.textSecondary)
+                }
 
-            if day.events.count > 3 {
-                Text("+\(day.events.count - 3) more")
-                    .font(uiConfig.smallCaptionFont)
-                    .foregroundColor(monthlyPalette.textSecondary)
+                if day.events.count > maxEventsToShow {
+                    Text("+\(day.events.count - maxEventsToShow) more")
+                        .font(uiConfig.smallCaptionFont)
+                        .foregroundColor(monthlyPalette.textSecondary)
+                }
             }
 
             Spacer()
@@ -1129,8 +1175,15 @@ struct MonthMiniView: View {
 }
 
     private func gridLineWidth(for opacity: Double) -> CGFloat {
-        // Scale from 1pt at 0% opacity to 5pt at 100% opacity
-        return 1.0 + (opacity * 4.0)
+        // Scale from 1pt at 0% opacity to 5pt at 100% opacity, but cap at 3pt on iOS
+        let maxWidth: CGFloat = {
+            #if os(iOS)
+            return 3.0
+            #else
+            return 5.0
+            #endif
+        }()
+        return min(1.0 + (opacity * 4.0), maxWidth)
     }
 
     private func dayName(for columnIndex: Int, availableWidth: CGFloat? = nil) -> String {
