@@ -177,24 +177,40 @@ struct ContentView: View {
     }
 
     private var calendarHeader: some View {
-        HStack {
-            #if os(iOS)
-            // Settings gear button next to month name
+        #if os(iOS)
+        // Custom iOS layout: gear | month | year
+        HStack(spacing: 0) {
+            // Settings gear button with specific positioning
             Button(action: {
                 calendarViewModel.showSettings = true
             }) {
                 Image(systemName: "gear")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 18, weight: .medium))  // Slightly larger
                     .foregroundColor(themeManager.currentPalette.textSecondary)
             }
-            .padding(.trailing, 8)
-            #endif
+            .frame(width: 44, height: 44)  // Fixed size for consistent centering
 
+            Spacer()
+
+            // Month display with smaller font
+            monthDisplaySmall
+
+            Spacer()
+
+            // Year display
+            yearDisplay
+                .frame(width: 44, alignment: .trailing)  // Match gear button width for symmetric spacing
+        }
+        .padding(.bottom, 20)
+        #else
+        // macOS layout: centered month/year display
+        HStack {
             Spacer()
             monthYearDisplay
             Spacer()
         }
         .padding(.bottom, 20)
+        #endif
     }
 
     private var monthYearDisplay: some View {
@@ -233,6 +249,19 @@ struct ContentView: View {
                 #else
                 calendarViewModel.toggleYearView()
                 #endif
+            }
+    }
+
+    private var monthDisplaySmall: some View {
+        let monthName = calendarViewModel.currentDate.formatted(.dateTime.month(.wide))
+        let font = monthFont(for: calendarViewModel.currentDate)
+
+        return Text(monthName)
+            .font(.custom(font, size: 24 * uiConfig.fontSizeCategory.scaleFactor))  // Smaller font for iOS header
+            .fontWeight(.bold)
+            .foregroundColor(themeManager.currentPalette.monthText)
+            .onTapGesture {
+                calendarViewModel.showViewModeSelector = true
             }
     }
 
