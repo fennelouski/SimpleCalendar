@@ -22,7 +22,7 @@ struct AgendaView: View {
 
                 DatePicker("", selection: $selectedDate, displayedComponents: [.date])
                     .labelsHidden()
-                    .onChange(of: selectedDate) { _ in
+                    .onChange(of: selectedDate) { newDate in
                         scrollToDate()
                     }
 
@@ -63,7 +63,7 @@ struct AgendaView: View {
                 .onAppear {
                     scrollToDate(scrollView)
                 }
-                .onChange(of: selectedDate) { _ in
+                .onChange(of: selectedDate) { newDate in
                     scrollToDate(scrollView)
                 }
             }

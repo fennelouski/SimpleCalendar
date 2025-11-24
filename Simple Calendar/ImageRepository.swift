@@ -48,7 +48,7 @@ class ImageRepository {
     // MARK: - Public Methods
 
     func getImage(for id: String) -> PlatformImage? {
-        guard let metadata = imageMetadata[id] else { return nil }
+        guard imageMetadata[id] != nil else { return nil }
 
         let imagePath = cacheDirectory.appendingPathComponent("\(id).jpg")
         return PlatformImage(contentsOfFile: imagePath.path)

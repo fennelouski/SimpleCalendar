@@ -101,7 +101,7 @@ class CalendarViewModel: ObservableObject {
     }
 
     func requestCalendarAccess() {
-        eventStore.requestAccess(to: .event) { [weak self] granted, error in
+        eventStore.requestFullAccessToEvents { [weak self] granted, error in
             DispatchQueue.main.async {
                 if granted {
                     print("📅 Calendar access granted")

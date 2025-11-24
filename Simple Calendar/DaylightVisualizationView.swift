@@ -60,7 +60,7 @@ struct VerticalDaylightVisualizationView: View {
 
     private func colorForExtendedPeriod(_ periodIndex: Int) -> Color {
         // Map 288 periods (3 days) to the appropriate date and hour
-        let totalPeriods = 288
+        _ = 288
         let periodsPerDay = 96
 
         // Calculate which day and period within that day
@@ -88,7 +88,7 @@ struct VerticalDaylightVisualizationView: View {
 
     private func timeMarkers(geometry: GeometryProxy) -> some View {
         ZStack {
-            let calendar = Calendar.current
+            _ = Calendar.current
             let sunrise = DaylightManager.shared.sunriseTime(for: date)
             let sunset = DaylightManager.shared.sunsetTime(for: date)
 
@@ -119,7 +119,7 @@ struct VerticalDaylightVisualizationView: View {
     private func getKeyTimes(for date: Date, isNearTwilight: Bool) -> [(hour: Double, label: String)] {
         var times: [(Double, String)] = []
 
-        let calendar = Calendar.current
+        _ = Calendar.current
         let sunrise = DaylightManager.shared.sunriseTime(for: date)
         let sunset = DaylightManager.shared.sunsetTime(for: date)
 

@@ -37,7 +37,7 @@ class GoogleOAuthManager: NSObject, ObservableObject, ASWebAuthenticationPresent
     }
 
     private func checkExistingAuthentication() {
-        if let accessToken = userDefaults.string(forKey: accessTokenKey),
+        if userDefaults.string(forKey: accessTokenKey) != nil,
            let expiryDate = userDefaults.object(forKey: tokenExpiryKey) as? Date,
            expiryDate > Date() {
             isAuthenticated = true

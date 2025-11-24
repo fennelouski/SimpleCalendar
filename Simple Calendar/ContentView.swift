@@ -266,9 +266,12 @@ struct ContentView: View {
     }
 
     private var yearDisplay: some View {
-        Text(calendarViewModel.currentDate.formatted(.dateTime.year()))
+        let year = Calendar.current.component(.year, from: calendarViewModel.currentDate)
+        let clampedYear = max(-6000, min(9999, year))
+        return Text(String(clampedYear))
             .font(uiConfig.yearTitleFont)
             .foregroundColor(themeManager.currentPalette.yearText)
+            .lineLimit(1) // Ensure it never wraps to multiple lines
     }
 
     private var calendarGrid: some View {
@@ -430,7 +433,6 @@ struct ContentView: View {
     }
 
     private func generateCalendarDays() -> [CalendarDay] {
-        let calendar = Calendar.current
         let currentMonth = calendarViewModel.currentDate
 
         var days: [CalendarDay] = []
@@ -673,7 +675,7 @@ struct DayView: View {
     }
 
     private var isCompactLayout: Bool {
-        #if os(iOS)
+#if os(iOS)
         // Consider compact if cell height is less than 60 or columns > 7
         return cellHeight < 60 || columnsCount > 7
         #else
@@ -925,7 +927,7 @@ struct OnThisDaySection: View {
                 ProgressView()
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
-            } else if let error = error {
+            } else if error != nil {
                 Text("Unable to load historical data")
                     .foregroundColor(.red)
                     .font(uiConfig.eventDetailFont)
@@ -1364,7 +1366,7 @@ struct MonthMiniView: View {
             return 3.0
             #else
             return 5.0
-            #endif
+#endif
         }()
         return min(1.0 + (opacity * 4.0), maxWidth)
     }
@@ -1655,7 +1657,6 @@ struct EventIconManager {
         "evening": "🌆",
         "night": "🌙",
         "weekend": "🏖️",
-        "vacation": "🏖️",
 
         // Generic
         "event": "📅",

@@ -126,7 +126,7 @@ struct InteractiveMapView: View {
                                 }
                                 .onEnded { value in
                                     let translation = value.translation.height
-                                    let velocity = value.predictedEndTranslation.height
+                                    _ = value.predictedEndTranslation.height
 
                                     withAnimation(.spring()) {
                                         if !isFullScreen && dragOffset < -fullScreenThreshold {

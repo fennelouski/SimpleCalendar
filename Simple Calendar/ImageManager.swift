@@ -27,7 +27,7 @@ class ImageManager {
 
         // Check if event has a repository image ID and the image exists
         if let repositoryId = event.imageRepositoryId {
-            if let image = imageRepository.getImage(for: repositoryId) {
+            if imageRepository.getImage(for: repositoryId) != nil {
                 completion(repositoryId)
                 return
             } else {
@@ -210,7 +210,7 @@ class ImageManager {
     }
 
     func cancelImageRequest(for eventId: String) {
-        let requestIdPattern = "fetch_\(eventId)_"
+        _ = "fetch_\(eventId)_"
         // Note: In a more sophisticated implementation, we'd track request IDs
         // For now, this is a placeholder for future enhancement
     }

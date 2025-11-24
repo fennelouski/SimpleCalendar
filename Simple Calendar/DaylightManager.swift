@@ -71,7 +71,7 @@ class DaylightManager {
         // In a real app, you'd use astronomical calculations or an API
 
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.month, .day], from: date)
+        _ = calendar.dateComponents([.month, .day], from: date)
         let dayOfYear = dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
 
