@@ -886,6 +886,7 @@ struct DayDetailView: View {
             if featureFlags.daylightVisualizationDayView {
                 VerticalDaylightVisualizationView(date: date)
                     .frame(width: 30)
+                    .frame(maxHeight: .infinity)
             }
 
             // Main content (right side)
