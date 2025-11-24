@@ -8,6 +8,12 @@
 import SwiftUI
 import MapKit
 
+struct MapLocation: Identifiable {
+    let id = UUID()
+    let coordinate: CLLocationCoordinate2D
+    let title: String
+}
+
 struct EventMapView: View {
     let location: String
     @State private var region = MKCoordinateRegion(
@@ -15,13 +21,19 @@ struct EventMapView: View {
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
     )
     @State private var isLoading = true
+    @State private var showFullMap = false
 
     var body: some View {
         ZStack {
-            Map(coordinateRegion: $region, showsUserLocation: true)
+            Map(coordinateRegion: .constant(region), showsUserLocation: false, annotationItems: [MapLocation(coordinate: region.center, title: location)]) { location in
+                MapPin(coordinate: location.coordinate, tint: .red)
+            }
                 .cornerRadius(8)
                 .onAppear {
                     geocodeLocation()
+                }
+                .onTapGesture {
+                    showFullMap = true
                 }
 
             if isLoading {
@@ -29,7 +41,10 @@ struct EventMapView: View {
                     .scaleEffect(1.5)
             }
         }
-        .frame(height: 200)
+        .frame(height: 100) // Match the specified height
+        .sheet(isPresented: $showFullMap) {
+            FullMapView(location: location, region: region)
+        }
     }
 
     private func geocodeLocation() {
@@ -52,5 +67,72 @@ struct EventMapView: View {
                 self.isLoading = false
             }
         }
+    }
+}
+
+struct FullMapView: View {
+    let location: String
+    let region: MKCoordinateRegion
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        #if os(iOS)
+        // iOS: Full screen modal with map at top and address at bottom
+        VStack(spacing: 0) {
+            ZStack {
+                Map(coordinateRegion: .constant(region), annotationItems: [MapLocation(coordinate: region.center, title: location)]) { location in
+                    MapPin(coordinate: location.coordinate, tint: .red)
+                }
+                .frame(height: UIScreen.main.bounds.height * 0.7)
+
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button(action: { dismiss() }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.title)
+                                .foregroundColor(.gray)
+                                .padding()
+                        }
+                    }
+                    Spacer()
+                }
+            }
+
+            VStack(spacing: 8) {
+                Text("Location")
+                    .font(.headline)
+                Text(location)
+                    .font(.body)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+            .padding()
+            .background(Color(.systemBackground))
+        }
+        .edgesIgnoringSafeArea(.top)
+        #else
+        // macOS: Popup window
+        VStack(spacing: 0) {
+            HStack {
+                Text("Location: \(location)")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                Spacer()
+                Button(action: { dismiss() }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title)
+                        .foregroundColor(.gray)
+                }
+            }
+            .padding()
+
+            Map(coordinateRegion: .constant(region), annotationItems: [MapLocation(coordinate: region.center, title: location)]) { location in
+                MapPin(coordinate: location.coordinate, tint: .red)
+            }
+            .frame(minHeight: 400)
+        }
+        .frame(minWidth: 600, minHeight: 500)
+        #endif
     }
 }

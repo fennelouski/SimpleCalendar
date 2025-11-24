@@ -591,7 +591,7 @@ struct DayView: View {
                 .foregroundColor(dayTextColor)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
-            // Only show event details if not in compact layout
+            // Show event details with compact representation for narrow cells
             if !isCompactLayout {
                 ForEach(day.events.prefix(maxEventsToShow)) { event in
                     Text(event.title)
@@ -604,6 +604,21 @@ struct DayView: View {
                     Text("+\(day.events.count - maxEventsToShow) more")
                         .font(uiConfig.smallCaptionFont)
                         .foregroundColor(monthlyPalette.textSecondary)
+                }
+            } else {
+                // In compact layout, show compact representations
+                HStack(spacing: 2) {
+                    ForEach(day.events.prefix(min(3, day.events.count))) { event in
+                        Text(EventIconManager.compactRepresentation(for: event.title, cellWidth: geometry.size.width / CGFloat(columnsCount)))
+                            .font(.system(size: 10))
+                            .foregroundColor(monthlyPalette.textSecondary)
+                    }
+
+                    if day.events.count > 3 {
+                        Text("…")
+                            .font(.system(size: 10))
+                            .foregroundColor(monthlyPalette.textSecondary)
+                    }
                 }
             }
 
@@ -670,6 +685,27 @@ struct DayDetailView: View {
     @State private var isLoadingOnThisDay = false
     @State private var onThisDayError: Error?
 
+    private func groupDuplicateEvents(_ events: [CalendarEvent]) -> [[CalendarEvent]] {
+        var groupedEvents: [[CalendarEvent]] = []
+        var processedEvents = Set<String>()
+
+        for event in events {
+            let eventKey = "\(event.title)_\(event.startDate.timeIntervalSince1970)_\(event.endDate.timeIntervalSince1970)"
+
+            if !processedEvents.contains(eventKey) {
+                let duplicates = events.filter { otherEvent in
+                    otherEvent.title == event.title &&
+                    otherEvent.startDate == event.startDate &&
+                    otherEvent.endDate == event.endDate
+                }
+                groupedEvents.append(duplicates)
+                processedEvents.insert(eventKey)
+            }
+        }
+
+        return groupedEvents.sorted { $0.first!.startDate < $1.first!.startDate }
+    }
+
     var body: some View {
         HStack(spacing: 0) {
             // Vertical daylight visualization (left side)
@@ -697,14 +733,27 @@ struct DayDetailView: View {
                         Calendar.current.isDate(event.startDate, inSameDayAs: date)
                     }
 
+                    let groupedEvents = groupDuplicateEvents(dayEvents)
+
                     if dayEvents.isEmpty {
                         Text("No events for this day")
                             .foregroundColor(themeManager.currentPalette.textSecondary)
                             .font(uiConfig.eventDetailFont)
                             .standardPadding()
                     } else {
-                        ForEach(dayEvents) { event in
-                            EventDetailView(event: event)
+                        ForEach(Array(groupedEvents.enumerated()), id: \.offset) { index, eventGroup in
+                            if eventGroup.count > 1 {
+                                // Multiple instances of the same event
+                                VStack(alignment: .leading, spacing: 4) {
+                                    EventDetailView(event: eventGroup.first!)
+                                    Text("+\(eventGroup.count - 1) more occurrence\(eventGroup.count > 2 ? "s" : "")")
+                                        .font(uiConfig.captionFont)
+                                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                                        .padding(.leading, 16)
+                                }
+                            } else {
+                                EventDetailView(event: eventGroup.first!)
+                            }
                         }
                     }
 
@@ -870,6 +919,12 @@ struct EventDetailView: View {
     @State private var eventImage: PlatformImage?
     @State private var weatherInfo: WeatherInfo?
 
+    private var isAllDayEvent: Bool {
+        let duration = event.endDate.timeIntervalSince(event.startDate)
+        let hours = duration / 3600
+        return hours >= 20 || event.isAllDay
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // Event Image
@@ -901,8 +956,28 @@ struct EventDetailView: View {
 
             HStack {
                 Image(systemName: "clock")
-                Text("\(event.startDate.formatted(.dateTime.hour().minute())) - \(event.endDate.formatted(.dateTime.hour().minute()))")
-                    .font(uiConfig.eventDetailFont)
+                if isAllDayEvent {
+                    Text("All Day")
+                        .font(uiConfig.eventDetailFont)
+                        .fontWeight(.medium)
+                } else {
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 4) {
+                            Text("Starts:")
+                                .font(uiConfig.captionFont)
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                            Text(event.startDate.formatted(.dateTime.hour().minute()))
+                                .font(uiConfig.eventDetailFont)
+                        }
+                        HStack(spacing: 4) {
+                            Text("Ends:")
+                                .font(uiConfig.captionFont)
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                            Text(event.endDate.formatted(.dateTime.hour().minute()))
+                                .font(uiConfig.eventDetailFont)
+                        }
+                    }
+                }
             }
 
             if let location = event.location {
@@ -942,13 +1017,14 @@ struct EventDetailView: View {
                         .foregroundColor(themeManager.currentPalette.textSecondary)
                     }
                     .padding(12)
-                    .background(Color.gray.opacity(0.1))
+                    .frame(maxWidth: .infinity) // Match map view width
+                    .background(themeManager.currentPalette.surface.opacity(0.5))
                     .roundedCorners(.small)
                 }
             }
 
             if let notes = event.notes {
-                Text(notes)
+                URLTextView(text: notes)
                     .font(uiConfig.scaledFont(.body))
                     .foregroundColor(themeManager.currentPalette.textSecondary)
             }
@@ -1286,6 +1362,198 @@ struct KeyCommandRow: View {
                 .foregroundColor(.secondary)
             Spacer()
         }
+    }
+}
+
+// MARK: - URL Text View
+struct URLTextView: View {
+    let text: String
+    @Environment(\.openURL) var openURL
+    @State private var tappedURL: URL? = nil
+
+    private var processedText: String {
+        // Find URLs in the text and replace them with domain links
+        let urlPattern = #"https?://[^\s]+"#
+        let regex = try? NSRegularExpression(pattern: urlPattern, options: [])
+
+        if let regex = regex {
+            let nsString = text as NSString
+            let matches = regex.matches(in: text, options: [], range: NSRange(location: 0, length: nsString.length))
+
+            if let firstMatch = matches.first {
+                let urlString = nsString.substring(with: firstMatch.range)
+                if let url = URL(string: urlString) {
+                    let domain = extractDomain(from: url)
+                    let beforeURL = nsString.substring(to: firstMatch.range.location)
+                    let afterURL = nsString.substring(from: firstMatch.range.location + firstMatch.range.length)
+
+                    tappedURL = url
+                    return beforeURL + "[\(domain)]" + afterURL
+                }
+            }
+        }
+
+        return text
+    }
+
+    var body: some View {
+        Text(processedText)
+            .foregroundColor(tappedURL != nil ? .blue : .primary)
+            .underline(tappedURL != nil)
+            .onTapGesture {
+                if let url = tappedURL {
+                    openURL(url)
+                }
+            }
+    }
+
+    private func extractDomain(from url: URL) -> String {
+        return url.host ?? url.absoluteString
+    }
+}
+
+// MARK: - Event Icon Mapping
+struct EventIconManager {
+    static let wordToEmoji: [String: String] = [
+        // Birthdays & Personal
+        "birthday": "🎂",
+        "birth": "👶",
+        "anniversary": "💍",
+        "wedding": "💒",
+        "party": "🎉",
+        "celebration": "🎊",
+
+        // Holidays
+        "christmas": "🎄",
+        "holiday": "🎁",
+        "halloween": "🎃",
+        "thanksgiving": "🦃",
+        "easter": "🐰",
+        "valentine": "💝",
+        "new year": "🎆",
+        "independence": "🇺🇸",
+        "labor": "👷",
+
+        // Work & School
+        "meeting": "👥",
+        "conference": "🎤",
+        "presentation": "📊",
+        "interview": "💼",
+        "deadline": "⏰",
+        "school": "🎓",
+        "class": "📚",
+        "exam": "📝",
+        "homework": "✏️",
+        "lecture": "👨‍🏫",
+        "seminar": "📖",
+
+        // Health & Medical
+        "doctor": "👨‍⚕️",
+        "dentist": "🦷",
+        "appointment": "📅",
+        "checkup": "🏥",
+        "therapy": "🧠",
+        "gym": "💪",
+        "workout": "🏋️‍♂️",
+        "yoga": "🧘‍♀️",
+
+        // Travel & Transportation
+        "flight": "✈️",
+        "train": "🚂",
+        "bus": "🚌",
+        "car": "🚗",
+        "taxi": "🚕",
+        "uber": "🚗",
+        "vacation": "🏖️",
+        "trip": "🗺️",
+        "hotel": "🏨",
+
+        // Food & Dining
+        "dinner": "🍽️",
+        "lunch": "🥗",
+        "breakfast": "🥞",
+        "coffee": "☕",
+        "restaurant": "🍽️",
+        "bar": "🍸",
+        "date": "💑",
+
+        // Sports & Activities
+        "game": "⚽",
+        "match": "🏆",
+        "practice": "🏃‍♂️",
+        "concert": "🎵",
+        "movie": "🎬",
+        "theater": "🎭",
+        "museum": "🏛️",
+        "park": "🌳",
+
+        // Family & Social
+        "family": "👨‍👩‍👧‍👦",
+        "kids": "👶",
+        "parent": "👨‍👩‍👧",
+        "friend": "👫",
+        "call": "📞",
+        "video": "📹",
+
+        // Time-based
+        "morning": "🌅",
+        "afternoon": "☀️",
+        "evening": "🌆",
+        "night": "🌙",
+        "weekend": "🏖️",
+        "holiday": "🎄",
+
+        // Generic
+        "event": "📅",
+        "reminder": "🔔",
+        "important": "⚠️",
+        "urgent": "🚨"
+    ]
+
+    static func emojiForEvent(_ title: String) -> String? {
+        let lowercasedTitle = title.lowercased()
+
+        // Check for exact matches first
+        for (word, emoji) in wordToEmoji {
+            if lowercasedTitle.contains(word) {
+                return emoji
+            }
+        }
+
+        return nil
+    }
+
+    static func initialsForEvent(_ title: String) -> String {
+        let words = title.components(separatedBy: .whitespacesAndNewlines)
+            .filter { !$0.isEmpty }
+
+        if words.count == 1 {
+            // Single word - take first 2 letters
+            return String(words[0].prefix(2)).uppercased()
+        } else if words.count <= 8 {
+            // Multiple words - take first letter of first 2-3 words
+            let initials = words.prefix(3).compactMap { $0.first }.map { String($0) }
+            return initials.joined().uppercased()
+        } else {
+            // Too many words - just show generic event
+            return "📅"
+        }
+    }
+
+    static func compactRepresentation(for title: String, maxLength: Int = 8, cellWidth: CGFloat) -> String {
+        #if os(iOS)
+        if title.count > maxLength && cellWidth < 40 {
+            // Use emoji if available, otherwise use initials
+            if let emoji = emojiForEvent(title) {
+                return emoji
+            } else {
+                return initialsForEvent(title)
+            }
+        }
+        #endif
+
+        // Default: return the title (potentially truncated)
+        return title.count > maxLength ? String(title.prefix(maxLength)) + "..." : title
     }
 }
 
