@@ -762,15 +762,19 @@ struct DayView: View {
         }
         .compactPadding()
         .frame(height: cellHeight)
-        .background(dayBackgroundColor)
-        .roundedCorners(.small)
-        .overlay(alignment: .top) {
-            // Daylight visualization (only if enabled)
-            if featureFlags.daylightVisualizationCalendar {
-                DaylightVisualizationView(date: day.date, width: geometry.size.width / CGFloat(columnsCount))
-                    .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small.value))
+        .background(
+            ZStack {
+                dayBackgroundColor
+                // Daylight visualization at the top (only if enabled)
+                if featureFlags.daylightVisualizationCalendar {
+                    VStack(spacing: 0) {
+                        DaylightVisualizationView(date: day.date, width: geometry.size.width / CGFloat(columnsCount))
+                        Spacer()
+                    }
+                }
             }
-        }
+        )
+        .roundedCorners(.small)
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
                 .stroke(monthlyPalette.gridLine.opacity(uiConfig.gridLineOpacity),
@@ -848,7 +852,7 @@ struct DayDetailView: View {
             // Vertical daylight visualization (left side)
             if featureFlags.daylightVisualizationDayView {
                 VerticalDaylightVisualizationView(date: date)
-                    .frame(width: 20)
+                    .frame(width: 30)
             }
 
             // Main content (right side)

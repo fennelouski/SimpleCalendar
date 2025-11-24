@@ -22,6 +22,9 @@ struct KeyEventHandler: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSView {
         let view = KeyHandlingView(calendarViewModel: calendarViewModel)
+        DispatchQueue.main.async {
+            view.window?.makeFirstResponder(view)
+        }
         return view
     }
 
@@ -106,6 +109,30 @@ class KeyHandlingView: NSView {
             calendarViewModel.setViewMode(.month)
         case 13: // w
             calendarViewModel.setViewMode(.sevenDays) // Week view
+        case 43: // ,
+            if event.modifierFlags.contains(.command) {
+                calendarViewModel.showSettings = true
+            }
+        case 1: // s
+            if event.modifierFlags.contains(.command) {
+                calendarViewModel.showSearch = true
+            }
+        case 40: // k
+            if event.modifierFlags.contains(.command) {
+                if event.modifierFlags.contains(.shift) {
+                    calendarViewModel.showKeyCommands = true
+                } else {
+                    calendarViewModel.showKeyCommands = true
+                }
+            }
+        case 5: // g
+            if event.modifierFlags.contains(.command) {
+                calendarViewModel.showSearch = true
+            }
+        case 31: // o
+            if event.modifierFlags.contains(.command) {
+                calendarViewModel.showSearch = true
+            }
         case 16: // y
             calendarViewModel.setViewMode(.year) // Year view
         default:

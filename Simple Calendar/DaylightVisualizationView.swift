@@ -36,7 +36,7 @@ struct DaylightVisualizationView: View {
 /// Vertical daylight visualization for day detail view
 struct VerticalDaylightVisualizationView: View {
     let date: Date
-    private let width: CGFloat = 20.0
+    private let width: CGFloat = 30.0
 
     var body: some View {
         GeometryReader { geometry in
@@ -102,14 +102,14 @@ struct VerticalDaylightVisualizationView: View {
 
                 // Time label
                 Text(timeMarker.label)
-                    .font(.system(size: 8, weight: .semibold))
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundColor(.white.opacity(0.9))
                     .background(
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Color.black.opacity(0.7))
-                            .frame(height: 12)
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.black.opacity(0.8))
+                            .frame(height: 16)
                     )
-                    .frame(width: width - 2, height: 12)
+                    .frame(width: width - 4, height: 16)
                     .position(x: width/2, y: yPosition)
             }
         }

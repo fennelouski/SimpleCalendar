@@ -85,7 +85,17 @@ class HolidayManager: ObservableObject {
 
     /// Get holidays that occur on a specific date
     func holidaysOn(_ date: Date) -> [CalendarHoliday] {
-        holidays.filter { $0.occursOn(date) }
+        let matchingHolidays = holidays.filter { $0.occursOn(date) }
+        // Remove duplicates by name to avoid showing the same holiday twice
+        var seenNames = Set<String>()
+        return matchingHolidays.filter { holiday in
+            if seenNames.contains(holiday.name) {
+                return false
+            } else {
+                seenNames.insert(holiday.name)
+                return true
+            }
+        }
     }
 
     /// Get all holidays in a specific month and year
