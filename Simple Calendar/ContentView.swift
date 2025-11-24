@@ -49,6 +49,9 @@ struct ContentView: View {
         .sheet(isPresented: $calendarViewModel.showViewModeSelector) {
             ViewModeSelectorView()
         }
+        .sheet(isPresented: $calendarViewModel.showSettings) {
+            SettingsView()
+        }
         .roundedCorners(.small)
     }
 
@@ -116,12 +119,31 @@ struct ContentView: View {
 
     private var mainCalendarView: some View {
         GeometryReader { geometry in
-            VStack(spacing: 0) {
-                calendarHeader
-                calendarGrid
+            ZStack(alignment: .topLeading) {
+                VStack(spacing: 0) {
+                    calendarHeader
+                    calendarGrid
+                }
+                .adaptivePadding(for: geometry)
+                .background(themeManager.currentPalette.calendarBackground)
+
+                #if os(iOS)
+                // Settings gear button in top left
+                Button(action: {
+                    calendarViewModel.showSettings = true
+                }) {
+                    Image(systemName: "gear")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                        .padding(12)
+                        .background(themeManager.currentPalette.surface.opacity(0.8))
+                        .clipShape(Circle())
+                        .shadow(radius: 4)
+                }
+                .padding(.top, geometry.safeAreaInsets.top + 8)
+                .padding(.leading, 16)
+                #endif
             }
-            .adaptivePadding(for: geometry)
-            .background(themeManager.currentPalette.calendarBackground)
             #if os(iOS)
             .ignoresSafeArea(.keyboard) // Only ignore keyboard safe area, keep top/bottom safe areas
             #endif
@@ -343,12 +365,7 @@ struct ContentView: View {
     private var dayDetailSlideOut: some View {
         Group {
             if calendarViewModel.showDayDetail, let selectedDate = calendarViewModel.selectedDate {
-                DayDetailView(date: selectedDate)
-                    .frame(width: 300)
-                    .background(themeManager.currentPalette.calendarSurface)
-                    .roundedCorners(.medium)
-                    .shadow(radius: 10)
-                    .transition(.move(edge: .trailing))
+                DayDetailSlideOut(date: selectedDate)
             }
         }
     }
@@ -1919,6 +1936,107 @@ struct ViewModeSelectorView: View {
         .padding()
         .background(themeManager.currentPalette.calendarBackground)
         #endif
+    }
+}
+
+// MARK: - Enhanced Day Detail Slide Out
+struct DayDetailSlideOut: View {
+    let date: Date
+    @EnvironmentObject var calendarViewModel: CalendarViewModel
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var uiConfig: UIConfiguration
+
+    @State private var slideOffset: CGFloat = 0
+    @State private var isFullScreen = false
+    @State private var dragStartOffset: CGFloat = 0
+
+    private let slideWidth: CGFloat = 300
+    private let fullScreenThreshold: CGFloat = 150 // How far to pull to go full screen
+    private let dismissThreshold: CGFloat = 100 // How far to drag to dismiss
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .trailing) {
+                // Background overlay for full screen mode
+                if isFullScreen {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            withAnimation(.spring()) {
+                                calendarViewModel.showDayDetail = false
+                            }
+                        }
+                }
+
+                // Slide-out content
+                DayDetailView(date: date)
+                    .frame(width: isFullScreen ? geometry.size.width : slideWidth)
+                    .frame(maxHeight: isFullScreen ? .infinity : .infinity)
+                    .background(themeManager.currentPalette.calendarSurface)
+                    .roundedCorners(isFullScreen ? .none : .medium)
+                    .shadow(radius: isFullScreen ? 0 : 10)
+                    .offset(x: slideOffset)
+                    .gesture(
+                        DragGesture()
+                            .onChanged { value in
+                                let translation = value.translation.width
+
+                                if isFullScreen {
+                                    // In full screen mode, only allow edge pan from left edge
+                                    if value.startLocation.x < 50 {
+                                        slideOffset = max(0, translation)
+                                    }
+                                } else {
+                                    // In normal mode, allow pulling to full screen or dragging to close
+                                    if translation < 0 {
+                                        // Pulling to the left (towards full screen)
+                                        slideOffset = min(0, translation)
+                                    } else {
+                                        // Dragging to the right (towards close)
+                                        slideOffset = max(0, translation)
+                                    }
+                                }
+                            }
+                            .onEnded { value in
+                                let translation = value.translation.width
+                                let velocity = value.predictedEndTranslation.width
+
+                                withAnimation(.spring()) {
+                                    if isFullScreen {
+                                        // Full screen mode: edge pan to dismiss
+                                        if slideOffset > dismissThreshold || velocity > 300 {
+                                            calendarViewModel.showDayDetail = false
+                                        }
+                                        slideOffset = 0
+                                    } else {
+                                        // Normal mode
+                                        if translation < -fullScreenThreshold || velocity < -300 {
+                                            // Pulled far enough left - go full screen
+                                            isFullScreen = true
+                                            slideOffset = 0
+                                        } else if translation > dismissThreshold || velocity > 300 {
+                                            // Dragged far enough right - close
+                                            calendarViewModel.showDayDetail = false
+                                        } else {
+                                            // Return to original position
+                                            slideOffset = 0
+                                        }
+                                    }
+                                }
+                            }
+                    )
+                    .transition(.move(edge: .trailing))
+            }
+            .ignoresSafeArea(isFullScreen ? .all : [])
+        }
+        .onChange(of: calendarViewModel.showDayDetail) { newValue in
+            if !newValue {
+                withAnimation(.spring()) {
+                    isFullScreen = false
+                    slideOffset = 0
+                }
+            }
+        }
     }
 }
 

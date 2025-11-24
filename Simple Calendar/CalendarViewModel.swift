@@ -24,6 +24,7 @@ class CalendarViewModel: ObservableObject {
     }
     @Published var previousViewMode: CalendarViewMode? = nil
     @Published var showViewModeSelector = false // For iOS popup
+    @Published var showSettings = false // For iOS settings
 
     enum NavigationDirection {
         case forward, backward
