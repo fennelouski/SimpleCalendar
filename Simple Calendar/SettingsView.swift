@@ -33,6 +33,7 @@ struct SettingsContentView: View {
     @State private var showColorTheme = false
     @State private var showTypography = false
     @State private var showFeatureFlags = false
+    @State private var showMonthlyThemes = false
 
     var body: some View {
         #if os(iOS)
@@ -54,6 +55,10 @@ struct SettingsContentView: View {
                 .environmentObject(featureFlags)
                 .environmentObject(themeManager)
         }
+        .sheet(isPresented: $showMonthlyThemes) {
+            MonthlyThemesSettingsView()
+                .environmentObject(themeManager)
+        }
         #else
         // On macOS, use sheets for all sub-views since NavigationView doesn't work well
         mainSettingsContent
@@ -69,6 +74,10 @@ struct SettingsContentView: View {
         .sheet(isPresented: $showFeatureFlags) {
             FeatureFlagsSettingsView()
                 .environmentObject(featureFlags)
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showMonthlyThemes) {
+            MonthlyThemesSettingsView()
                 .environmentObject(themeManager)
         }
         #endif
@@ -212,6 +221,20 @@ struct SettingsContentView: View {
                                 )
                             )
                         }
+                    }
+
+                    // Monthly Themes
+                    SettingsSection(title: "Monthly Themes") {
+                        Button(action: {
+                            showMonthlyThemes = true
+                        }) {
+                            SettingsRow(
+                                title: "Monthly Themes",
+                                subtitle: "Customize themes and fonts for each month",
+                                showChevron: true
+                            )
+                        }
+                        .buttonStyle(.plain)
                     }
 
                     // Experimental Features
@@ -627,6 +650,401 @@ struct FeatureFlagsSettingsView: View {
         }
     }
 }
+
+// MARK: - Monthly Themes Settings View
+struct MonthlyThemesSettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+    @Environment(\.dismiss) var dismiss // For iOS dismissal
+    @State private var showSettings: Bool = false // For macOS sheet dismissal
+
+    private let months = [
+        (1, "January"), (2, "February"), (3, "March"), (4, "April"),
+        (5, "May"), (6, "June"), (7, "July"), (8, "August"),
+        (9, "September"), (10, "October"), (11, "November"), (12, "December")
+    ]
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                #if os(macOS)
+                // Header for macOS sheet
+                HStack {
+                    Text("Monthly Themes")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Spacer()
+                    Button("Done") {
+                        showSettings = false
+                    }
+                    .foregroundColor(themeManager.currentPalette.primary)
+                }
+                .padding(.horizontal)
+                .padding(.top)
+                #else
+                // iOS uses NavigationView title
+                Text("Monthly Themes")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .padding(.top)
+                #endif
+
+                VStack(spacing: 16) {
+                    ForEach(months, id: \.0) { (monthNumber, monthName) in
+                        MonthThemeRow(monthNumber: monthNumber, monthName: monthName)
+                    }
+                }
+                .padding(.horizontal)
+
+                // Reset button
+                Button(action: {
+                    monthlyThemeManager.resetToDefaults()
+                }) {
+                    Text("Reset All to Defaults")
+                        .foregroundColor(themeManager.currentPalette.primary)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .background(themeManager.currentPalette.surface.opacity(0.8))
+                        .cornerRadius(8)
+                }
+                .padding(.top, 8)
+
+                Spacer()
+            }
+        }
+        .background(themeManager.currentPalette.calendarBackground)
+        #if os(iOS)
+        .navigationTitle("Monthly Themes")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Done") {
+                    dismiss()
+                }
+            }
+        }
+        #else
+        .frame(minWidth: 500, minHeight: 600)
+        #endif
+    }
+}
+
+struct MonthThemeRow: View {
+    let monthNumber: Int
+    let monthName: String
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+
+    @State private var showThemePicker = false
+    @State private var showFontPicker = false
+
+    private var currentTheme: ColorTheme {
+        monthlyThemeManager.theme(for: monthNumber)
+    }
+
+    private var currentFont: String {
+        monthlyThemeManager.font(for: monthNumber)
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text(monthName)
+                    .font(.headline)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                Spacer()
+            }
+
+            HStack(spacing: 12) {
+                // Theme Button
+                Button(action: {
+                    showThemePicker = true
+                }) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Theme")
+                            .font(.caption)
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+
+                        HStack(spacing: 8) {
+                            Image(systemName: currentTheme.palette(for: themeManager.currentColorScheme).icon)
+                                .foregroundColor(currentTheme.palette(for: themeManager.currentColorScheme).primary)
+                                .frame(width: 20, height: 20)
+
+                            Text(currentTheme.palette(for: themeManager.currentColorScheme).name)
+                                .font(.subheadline)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                                .font(.caption)
+                        }
+                        .padding(8)
+                        .background(themeManager.currentPalette.surface.opacity(0.6))
+                        .cornerRadius(8)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                // Font Button
+                Button(action: {
+                    showFontPicker = true
+                }) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Font")
+                            .font(.caption)
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+
+                        HStack(spacing: 8) {
+                            Text("Aa")
+                                .font(.custom(currentFont, size: 16))
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                            Text(currentFont)
+                                .font(.subheadline)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                                .font(.caption)
+                        }
+                        .padding(8)
+                        .background(themeManager.currentPalette.surface.opacity(0.6))
+                        .cornerRadius(8)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(12)
+        .background(themeManager.currentPalette.surface.opacity(0.3))
+        .cornerRadius(12)
+        .sheet(isPresented: $showThemePicker) {
+            ThemePickerView(monthNumber: monthNumber, monthName: monthName, currentTheme: currentTheme)
+        }
+        .sheet(isPresented: $showFontPicker) {
+            FontPickerView(monthNumber: monthNumber, monthName: monthName, currentFont: currentFont)
+        }
+    }
+}
+
+struct ThemePickerView: View {
+    let monthNumber: Int
+    let monthName: String
+    let currentTheme: ColorTheme
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        #if os(iOS)
+        NavigationView {
+            pickerContent
+                .navigationBarItems(trailing: Button("Cancel") { dismiss() })
+        }
+        #else
+        VStack(spacing: 0) {
+            // macOS header
+            HStack {
+                Text("Choose Theme for \(monthName)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                Spacer()
+                Button("Cancel") {
+                    dismiss()
+                }
+                .foregroundColor(themeManager.currentPalette.primary)
+            }
+            .padding(.horizontal)
+            .padding(.top)
+            .padding(.bottom, 8)
+            .background(themeManager.currentPalette.calendarBackground)
+
+            pickerContent
+        }
+        .background(themeManager.currentPalette.calendarBackground)
+        #endif
+    }
+
+    private var pickerContent: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                #if os(iOS)
+                Text("Choose Theme for \(monthName)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .padding(.top)
+                #endif
+
+                VStack(spacing: 16) {
+                    ForEach(ColorTheme.allCases.filter { $0 != .system }, id: \.self) { theme in
+                        let themePalette = theme.palette(for: themeManager.currentColorScheme)
+
+                        Button(action: {
+                            monthlyThemeManager.setTheme(theme, for: monthNumber)
+                            dismiss()
+                        }) {
+                            HStack(spacing: 16) {
+                                Image(systemName: themePalette.icon)
+                                    .foregroundColor(themePalette.primary)
+                                    .frame(width: 24, height: 24)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(themePalette.name)
+                                        .font(.headline)
+                                        .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                                    HStack(spacing: 6) {
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette.primary)
+                                            .frame(width: 14, height: 14)
+
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette.secondary)
+                                            .frame(width: 14, height: 14)
+
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette.accent)
+                                            .frame(width: 14, height: 14)
+
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette.background)
+                                            .frame(width: 14, height: 14)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 3)
+                                                    .stroke(themePalette.border, lineWidth: 0.5)
+                                            )
+                                    }
+                                }
+
+                                Spacer()
+
+                                if theme == currentTheme {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(themePalette.primary)
+                                        .font(.title3)
+                                }
+                            }
+                            .padding(16)
+                            .background(themeManager.currentPalette.surface.opacity(0.6))
+                            .cornerRadius(12)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+            }
+        }
+        .background(themeManager.currentPalette.calendarBackground)
+    }
+}
+
+struct FontPickerView: View {
+    let monthNumber: Int
+    let monthName: String
+    let currentFont: String
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        #if os(iOS)
+        NavigationView {
+            pickerContent
+                .navigationBarItems(trailing: Button("Cancel") { dismiss() })
+        }
+        #else
+        VStack(spacing: 0) {
+            // macOS header
+            HStack {
+                Text("Choose Font for \(monthName)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                Spacer()
+                Button("Cancel") {
+                    dismiss()
+                }
+                .foregroundColor(themeManager.currentPalette.primary)
+            }
+            .padding(.horizontal)
+            .padding(.top)
+            .padding(.bottom, 8)
+            .background(themeManager.currentPalette.calendarBackground)
+
+            pickerContent
+        }
+        .background(themeManager.currentPalette.calendarBackground)
+        #endif
+    }
+
+    private var pickerContent: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                #if os(iOS)
+                Text("Choose Font for \(monthName)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .padding(.top)
+                #endif
+
+                VStack(spacing: 16) {
+                    ForEach(MonthlyThemeManager.availableFonts, id: \.self) { fontName in
+                        Button(action: {
+                            monthlyThemeManager.setFont(fontName, for: monthNumber)
+                            dismiss()
+                        }) {
+                            HStack(spacing: 16) {
+                                Text("AaBbCc")
+                                    .font(.custom(fontName, size: 20))
+                                    .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(fontName)
+                                        .font(.headline)
+                                        .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                                    Text("The quick brown fox jumps over the lazy dog")
+                                        .font(.custom(fontName, size: 14))
+                                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                                        .lineLimit(1)
+                                }
+
+                                Spacer()
+
+                                if fontName == currentFont {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(themeManager.currentPalette.primary)
+                                        .font(.title3)
+                                }
+                            }
+                            .padding(16)
+                            .background(themeManager.currentPalette.surface.opacity(0.6))
+                            .cornerRadius(12)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+            }
+        }
+        .background(themeManager.currentPalette.calendarBackground)
+    }
+}
+
 // Extension to add settings notification
 extension Notification.Name {
     static let ShowSettings = Notification.Name("ShowSettings")

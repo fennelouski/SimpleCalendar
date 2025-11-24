@@ -533,6 +533,13 @@ struct DayView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var featureFlags = FeatureFlags.shared
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+
+    private var monthlyPalette: ColorPalette {
+        let month = Calendar.current.component(.month, from: day.date)
+        let monthlyTheme = monthlyThemeManager.theme(for: month)
+        return monthlyTheme.palette(for: themeManager.currentColorScheme)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -545,13 +552,13 @@ struct DayView: View {
                 Text(event.title)
                     .font(uiConfig.captionFont)
                     .lineLimit(1)
-                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                    .foregroundColor(monthlyPalette.textSecondary)
             }
 
             if day.events.count > 3 {
                 Text("+\(day.events.count - 3) more")
                     .font(uiConfig.smallCaptionFont)
-                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                    .foregroundColor(monthlyPalette.textSecondary)
             }
 
             Spacer()
@@ -569,31 +576,31 @@ struct DayView: View {
         }
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
-                .stroke(themeManager.currentPalette.gridLine.opacity(uiConfig.gridLineOpacity),
+                .stroke(monthlyPalette.gridLine.opacity(uiConfig.gridLineOpacity),
                        lineWidth: gridLineWidth(for: uiConfig.gridLineOpacity))
         )
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
-                .stroke(day.isToday ? themeManager.currentPalette.todayHighlight : Color.clear, lineWidth: 2)
+                .stroke(day.isToday ? monthlyPalette.todayHighlight : Color.clear, lineWidth: 2)
         )
     }
 
     private var dayTextColor: Color {
         if day.isSelected {
-            return themeManager.currentPalette.calendarSurface
+            return monthlyPalette.calendarSurface
         } else if day.isCurrentMonth {
-            return themeManager.currentPalette.textPrimary
+            return monthlyPalette.textPrimary
         } else {
-            return themeManager.currentPalette.textSecondary
+            return monthlyPalette.textSecondary
         }
     }
 
     private var dayBackgroundColor: Color {
         if day.isSelected {
-            return themeManager.currentPalette.selectedDay
+            return monthlyPalette.selectedDay
         } else if featureFlags.weekendTintingEnabled && isWeekend {
             // Apply subtle weekend tinting
-            return themeManager.currentPalette.surface.opacity(0.3)
+            return monthlyPalette.surface.opacity(0.3)
         } else {
             return .clear
         }
@@ -1030,6 +1037,13 @@ struct MonthMiniView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+
+    private var monthlyPalette: ColorPalette {
+        let month = Calendar.current.component(.month, from: monthDate)
+        let monthlyTheme = monthlyThemeManager.theme(for: month)
+        return monthlyTheme.palette(for: themeManager.currentColorScheme)
+    }
 
     var body: some View {
         VStack(spacing: 4) {
@@ -1037,7 +1051,7 @@ struct MonthMiniView: View {
             Text(monthDate.formatted(.dateTime.month(.wide)))
                 .font(uiConfig.captionFont)
                 .fontWeight(.semibold)
-                .foregroundColor(themeManager.currentPalette.textPrimary)
+                .foregroundColor(monthlyPalette.textPrimary)
 
             // Mini calendar grid
             let monthDays = generateMiniMonthDays(for: monthDate)
@@ -1048,20 +1062,20 @@ struct MonthMiniView: View {
                     Text(day.date.formatted(.dateTime.day()))
                         .font(.system(size: 8))
                         .foregroundColor(day.isCurrentMonth ?
-                            (day.isToday ? themeManager.currentPalette.accent : themeManager.currentPalette.textPrimary) :
-                            themeManager.currentPalette.textSecondary.opacity(0.5))
+                            (day.isToday ? monthlyPalette.accent : monthlyPalette.textPrimary) :
+                            monthlyPalette.textSecondary.opacity(0.5))
                         .frame(width: 12, height: 12)
-                        .background(day.isToday ? themeManager.currentPalette.accent.opacity(0.2) : Color.clear)
+                        .background(day.isToday ? monthlyPalette.accent.opacity(0.2) : Color.clear)
                         .cornerRadius(2)
                 }
             }
         }
         .padding(6)
-        .background(themeManager.currentPalette.surface)
+        .background(monthlyPalette.surface)
         .clipShape(RoundedRectangle(cornerRadius: CornerRadius.small.value))
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
-                .stroke(themeManager.currentPalette.gridLine, lineWidth: 0.5)
+                .stroke(monthlyPalette.gridLine, lineWidth: 0.5)
         )
     }
 
