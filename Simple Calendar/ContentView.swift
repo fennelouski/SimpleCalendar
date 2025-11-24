@@ -27,12 +27,30 @@ struct ContentView: View {
         ZStack {
             if calendarViewModel.viewMode == .agenda {
                 AgendaView()
-                    .overlay(dayDetailSlideOut, alignment: .trailing)
+                    .overlay(
+                        Group {
+                            if calendarViewModel.showDayDetail, let selectedDate = calendarViewModel.selectedDate {
+                                DayDetailSlideOut(date: selectedDate)
+                                    .animation(.easeInOut(duration: 0.3), value: selectedDate)
+                            }
+                        }
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: calendarViewModel.showDayDetail),
+                        alignment: .trailing
+                    )
                     .overlay(searchOverlay, alignment: .center)
                     .overlay(keyCommandsOverlay, alignment: .center)
             } else {
                 mainCalendarView
-                    .overlay(dayDetailSlideOut, alignment: .trailing)
+                    .overlay(
+                        Group {
+                            if calendarViewModel.showDayDetail, let selectedDate = calendarViewModel.selectedDate {
+                                DayDetailSlideOut(date: selectedDate)
+                                    .animation(.easeInOut(duration: 0.3), value: selectedDate)
+                            }
+                        }
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: calendarViewModel.showDayDetail),
+                        alignment: .trailing
+                    )
                     .overlay(searchOverlay, alignment: .center)
                     .overlay(keyCommandsOverlay, alignment: .center)
             }
@@ -389,14 +407,6 @@ struct ContentView: View {
 
     private func calculateRowsCount(for itemCount: Int, columns: Int) -> Int {
         return (itemCount + columns - 1) / columns // Ceiling division
-    }
-
-    private var dayDetailSlideOut: some View {
-        Group {
-            if calendarViewModel.showDayDetail, let selectedDate = calendarViewModel.selectedDate {
-                DayDetailSlideOut(date: selectedDate)
-            }
-        }
     }
 
     private var searchOverlay: some View {
@@ -2090,6 +2100,7 @@ struct DayDetailSlideOut: View {
             }
             .ignoresSafeArea(isFullScreen ? .all : [])
         }
+        .animation(.easeInOut(duration: 0.3), value: date)
         .onChange(of: calendarViewModel.showDayDetail) { newValue in
             if !newValue {
                 withAnimation(.spring()) {
