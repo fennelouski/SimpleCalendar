@@ -26,7 +26,6 @@ struct SettingsContentView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @Binding var showSettings: Bool
     @ObservedObject var googleOAuthManager: GoogleOAuthManager
-    @State private var showHolidayGuide = false
 
     var body: some View {
         ZStack {
@@ -185,34 +184,29 @@ struct SettingsContentView: View {
 
                                 Divider()
 
-                                // Holiday Guide Button
-                                Button(action: {
-                                    // Navigate to holiday guide
-                                    showHolidayGuide = true
-                                }) {
-                                    HStack(spacing: 12) {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Holiday Guide")
-                                                .font(.body)
-                                                .fontWeight(.medium)
-                                                .foregroundColor(themeManager.currentPalette.textPrimary)
-                                                .lineLimit(nil)
+                                // Holiday Guide Button - Coming Soon
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Holiday Guide")
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(themeManager.currentPalette.textSecondary.opacity(0.6))
+                                            .lineLimit(nil)
 
-                                            Text("Learn about holidays and their meanings")
-                                                .font(.subheadline)
-                                                .foregroundColor(themeManager.currentPalette.textSecondary)
-                                                .lineLimit(nil)
-                                        }
-
-                                        Spacer()
-
-                                        Image(systemName: "chevron.right")
-                                            .foregroundColor(themeManager.currentPalette.textSecondary)
-                                            .font(.system(size: 14, weight: .semibold))
+                                        Text("Learn about holidays and their meanings (Coming Soon)")
+                                            .font(.subheadline)
+                                            .foregroundColor(themeManager.currentPalette.textSecondary.opacity(0.5))
+                                            .lineLimit(nil)
                                     }
-                                    .padding(.vertical, 12)
-                                    .padding(.horizontal, 16)
+
+                                    Spacer()
+
+                                    Image(systemName: "chevron.right")
+                                        .foregroundColor(themeManager.currentPalette.textSecondary.opacity(0.3))
+                                        .font(.system(size: 14, weight: .semibold))
                                 }
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 16)
                             }
                             .background(themeManager.currentPalette.surface.opacity(0.5))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -294,9 +288,6 @@ struct SettingsContentView: View {
                     .padding(.vertical, 8)
                 }
             }
-        }
-        .sheet(isPresented: $showHolidayGuide) {
-            HolidayDetailView()
         }
     }
 
