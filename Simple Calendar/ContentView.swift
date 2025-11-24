@@ -412,11 +412,22 @@ struct ContentView: View {
     private var searchOverlay: some View {
         Group {
             if calendarViewModel.showSearch {
-                SearchView(searchText: $searchText)
-                    .frame(width: 400, height: 60)
-                    .background(themeManager.currentPalette.calendarSurface)
-                    .cornerRadius(8)
-                    .shadow(radius: 10)
+                ZStack {
+                    // Blurred background
+                    Color.black.opacity(0.3)
+                        .blur(radius: 10)
+                        .ignoresSafeArea()
+
+                    SearchView(searchText: $searchText)
+                        .frame(width: 400, height: 60)
+                        .background(themeManager.currentPalette.calendarSurface.opacity(0.95))
+                        .cornerRadius(12)
+                        .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
+                }
             }
         }
     }
@@ -424,11 +435,22 @@ struct ContentView: View {
     private var keyCommandsOverlay: some View {
         Group {
             if calendarViewModel.showKeyCommands {
-                KeyCommandsView()
-                    .frame(width: 400, height: 500)
-                    .background(themeManager.currentPalette.calendarSurface)
-                    .cornerRadius(8)
-                    .shadow(radius: 10)
+                ZStack {
+                    // Blurred background
+                    Color.black.opacity(0.3)
+                        .blur(radius: 10)
+                        .ignoresSafeArea()
+
+                    KeyCommandsView()
+                        .frame(width: 400, height: 500)
+                        .background(themeManager.currentPalette.calendarSurface.opacity(0.95))
+                        .cornerRadius(12)
+                        .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
+                }
             }
         }
     }
@@ -1965,47 +1987,60 @@ struct ViewModeSelectorView: View {
             .navigationViewStyle(.stack)
         }
         #else
-        // macOS version - use a simple sheet
-        VStack(spacing: 20) {
-            Text("Select View")
-                .font(.title2)
-                .fontWeight(.bold)
+        // macOS version - use a simple sheet with blur background
+        ZStack {
+            // Blurred background
+            Color.black.opacity(0.3)
+                .blur(radius: 20)
+                .ignoresSafeArea()
 
-            VStack(spacing: 0) {
-                ForEach(CalendarViewMode.userSelectableCases, id: \.self) { mode in
-                    Button(action: {
-                        calendarViewModel.setViewMode(mode)
-                        calendarViewModel.showViewModeSelector = false
-                    }) {
-                        HStack {
-                            Text(mode.displayName)
-                                .foregroundColor(themeManager.currentPalette.textPrimary)
-                            Spacer()
-                            if calendarViewModel.viewMode == mode {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(themeManager.currentPalette.primary)
+            VStack(spacing: 20) {
+                Text("Select View")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                VStack(spacing: 0) {
+                    ForEach(CalendarViewMode.userSelectableCases, id: \.self) { mode in
+                        Button(action: {
+                            calendarViewModel.setViewMode(mode)
+                            calendarViewModel.showViewModeSelector = false
+                        }) {
+                            HStack {
+                                Text(mode.displayName)
+                                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                                Spacer()
+                                if calendarViewModel.viewMode == mode {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(themeManager.currentPalette.primary)
+                                }
                             }
+                            .padding()
                         }
-                        .padding()
-                    }
-                    .buttonStyle(.plain)
-                    .background(themeManager.currentPalette.surface.opacity(0.5))
+                        .buttonStyle(.plain)
+                        .background(themeManager.currentPalette.surface.opacity(0.5))
 
-                    if mode != CalendarViewMode.userSelectableCases.last {
-                        Divider()
+                        if mode != CalendarViewMode.userSelectableCases.last {
+                            Divider()
+                        }
                     }
                 }
-            }
-            .background(themeManager.currentPalette.surface.opacity(0.3))
-            .cornerRadius(10)
+                .background(themeManager.currentPalette.surface.opacity(0.95))
+                .cornerRadius(12)
+                .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                )
 
-            Button("Cancel") {
-                calendarViewModel.showViewModeSelector = false
+                Button("Cancel") {
+                    calendarViewModel.showViewModeSelector = false
+                }
+                .foregroundColor(.secondary)
             }
-            .foregroundColor(.secondary)
+            .padding(40)
         }
-        .padding()
-        .background(themeManager.currentPalette.calendarBackground)
+        .frame(minWidth: 300, minHeight: 400)
         #endif
     }
 }
