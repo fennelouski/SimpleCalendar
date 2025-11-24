@@ -50,7 +50,7 @@ struct ContentView: View {
             ViewModeSelectorView()
         }
         .sheet(isPresented: $calendarViewModel.showSettings) {
-            SettingsView()
+            SettingsContentView(showSettings: $calendarViewModel.showSettings, googleOAuthManager: calendarViewModel.googleOAuthManager)
         }
         .roundedCorners(.small)
     }
@@ -119,31 +119,12 @@ struct ContentView: View {
 
     private var mainCalendarView: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .topLeading) {
-                VStack(spacing: 0) {
-                    calendarHeader
-                    calendarGrid
-                }
-                .adaptivePadding(for: geometry)
-                .background(themeManager.currentPalette.calendarBackground)
-
-                #if os(iOS)
-                // Settings gear button in top left
-                Button(action: {
-                    calendarViewModel.showSettings = true
-                }) {
-                    Image(systemName: "gear")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(themeManager.currentPalette.textPrimary)
-                        .padding(12)
-                        .background(themeManager.currentPalette.surface.opacity(0.8))
-                        .clipShape(Circle())
-                        .shadow(radius: 4)
-                }
-                .padding(.top, geometry.safeAreaInsets.top + 8)
-                .padding(.leading, 16)
-                #endif
+            VStack(spacing: 0) {
+                calendarHeader
+                calendarGrid
             }
+            .adaptivePadding(for: geometry)
+            .background(themeManager.currentPalette.calendarBackground)
             #if os(iOS)
             .ignoresSafeArea(.keyboard) // Only ignore keyboard safe area, keep top/bottom safe areas
             #endif
@@ -197,6 +178,18 @@ struct ContentView: View {
 
     private var calendarHeader: some View {
         HStack {
+            #if os(iOS)
+            // Settings gear button next to month name
+            Button(action: {
+                calendarViewModel.showSettings = true
+            }) {
+                Image(systemName: "gear")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
+            }
+            .padding(.trailing, 8)
+            #endif
+
             Spacer()
             monthYearDisplay
             Spacer()
