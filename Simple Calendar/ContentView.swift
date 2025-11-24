@@ -46,6 +46,9 @@ struct ContentView: View {
         .sheet(isPresented: $showQuickAdd) {
             QuickAddView(isPresented: $showQuickAdd)
         }
+        .sheet(isPresented: $calendarViewModel.showViewModeSelector) {
+            ViewModeSelectorView()
+        }
         .roundedCorners(.small)
     }
 
@@ -125,6 +128,46 @@ struct ContentView: View {
         }
         #if os(iOS)
         .ignoresSafeArea(.container, edges: []) // Respect safe areas for calendar content
+        .gesture(
+            DragGesture()
+                .onEnded { value in
+                    let horizontalAmount = value.translation.width
+                    let verticalAmount = value.translation.height
+                    let threshold: CGFloat = 50
+
+                    if abs(horizontalAmount) > abs(verticalAmount) {
+                        // Horizontal swipe - navigate by day
+                        if horizontalAmount > threshold {
+                            // Swipe right - go to previous day
+                            calendarViewModel.navigateDate(by: .day, direction: .backward)
+                        } else if horizontalAmount < -threshold {
+                            // Swipe left - go to next day
+                            calendarViewModel.navigateDate(by: .day, direction: .forward)
+                        }
+                    } else {
+                        // Vertical swipe - navigate by week or month
+                        if calendarViewModel.viewMode == .month {
+                            // In month view, vertical swipe navigates by month
+                            if verticalAmount > threshold {
+                                // Swipe down - go to previous month
+                                calendarViewModel.navigateDate(by: .month, direction: .backward)
+                            } else if verticalAmount < -threshold {
+                                // Swipe up - go to next month
+                                calendarViewModel.navigateDate(by: .month, direction: .forward)
+                            }
+                        } else {
+                            // In other views, vertical swipe navigates by week
+                            if verticalAmount > threshold {
+                                // Swipe down - go to previous week
+                                calendarViewModel.navigateDate(by: .week, direction: .backward)
+                            } else if verticalAmount < -threshold {
+                                // Swipe up - go to next week
+                                calendarViewModel.navigateDate(by: .week, direction: .forward)
+                            }
+                        }
+                    }
+                }
+        )
         #else
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         #endif
@@ -170,7 +213,11 @@ struct ContentView: View {
             .fontWeight(.bold)
             .foregroundColor(themeManager.currentPalette.monthText)
             .onTapGesture {
+                #if os(iOS)
+                calendarViewModel.showViewModeSelector = true
+                #else
                 calendarViewModel.toggleYearView()
+                #endif
             }
     }
 
@@ -1473,7 +1520,7 @@ struct URLTextView: View {
             switch self {
             case .text(let string):
                 return "text_\(string.hash)"
-            case .url(let url, let domain):
+            case .url(let url, _):
                 return "url_\(url.absoluteString.hash)"
             }
         }
@@ -1569,7 +1616,7 @@ struct EventIconManager {
         "evening": "🌆",
         "night": "🌙",
         "weekend": "🏖️",
-        "holiday": "🎄",
+        "vacation": "🏖️",
 
         // Generic
         "event": "📅",
@@ -1720,13 +1767,13 @@ struct BrowserSelectionView: View {
                 Spacer()
             }
             .padding()
+            #if os(iOS)
             .navigationBarItems(trailing: Button("Cancel") {
                 isPresented = false
             })
+            .navigationViewStyle(.stack)
+            #endif
         }
-        #if os(iOS)
-        .navigationViewStyle(.stack)
-        #endif
     }
 
     #if os(macOS)
@@ -1790,6 +1837,88 @@ struct ScrollViewWithFade<Content: View>: View {
                 }
             )
         }
+    }
+}
+
+// MARK: - View Mode Selector (iOS)
+struct ViewModeSelectorView: View {
+    @EnvironmentObject var calendarViewModel: CalendarViewModel
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var uiConfig: UIConfiguration
+
+    var body: some View {
+        #if os(iOS)
+        NavigationView {
+            List {
+                ForEach(CalendarViewMode.userSelectableCases, id: \.self) { mode in
+                    Button(action: {
+                        calendarViewModel.setViewMode(mode)
+                        calendarViewModel.showViewModeSelector = false
+                    }) {
+                        HStack {
+                            Text(mode.displayName)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+                            Spacer()
+                            if calendarViewModel.viewMode == mode {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(themeManager.currentPalette.primary)
+                            }
+                        }
+                    }
+                    .listRowBackground(themeManager.currentPalette.surface.opacity(0.5))
+                }
+            }
+            .navigationTitle("Select View")
+            .navigationBarItems(trailing: Button("Done") {
+                calendarViewModel.showViewModeSelector = false
+            })
+            .listStyle(.insetGrouped)
+            .background(themeManager.currentPalette.calendarBackground)
+            .navigationViewStyle(.stack)
+        }
+        #else
+        // macOS version - use a simple sheet
+        VStack(spacing: 20) {
+            Text("Select View")
+                .font(.title2)
+                .fontWeight(.bold)
+
+            VStack(spacing: 0) {
+                ForEach(CalendarViewMode.userSelectableCases, id: \.self) { mode in
+                    Button(action: {
+                        calendarViewModel.setViewMode(mode)
+                        calendarViewModel.showViewModeSelector = false
+                    }) {
+                        HStack {
+                            Text(mode.displayName)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+                            Spacer()
+                            if calendarViewModel.viewMode == mode {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(themeManager.currentPalette.primary)
+                            }
+                        }
+                        .padding()
+                    }
+                    .buttonStyle(.plain)
+                    .background(themeManager.currentPalette.surface.opacity(0.5))
+
+                    if mode != CalendarViewMode.userSelectableCases.last {
+                        Divider()
+                    }
+                }
+            }
+            .background(themeManager.currentPalette.surface.opacity(0.3))
+            .cornerRadius(10)
+
+            Button("Cancel") {
+                calendarViewModel.showViewModeSelector = false
+            }
+            .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(themeManager.currentPalette.calendarBackground)
+        #endif
     }
 }
 

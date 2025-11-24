@@ -35,51 +35,44 @@ final class CalendarEvent {
     }
 }
 
-enum CalendarViewMode {
-    case singleDay
-    case twoDays
-    case threeDays
-    case fourDays
-    case fiveDays
-    case sixDays
-    case sevenDays
-    case week // Standard week view
-    case twoWeeks
-    case month // Approximate for month view
-    case year // Full year view
-    case agenda // List view of upcoming events
+enum CalendarViewMode: String {
+    case singleDay = "singleDay"
+    case threeDays = "threeDays" // Default
+    case fiveDays = "fiveDays"
+    case sevenDays = "sevenDays"
+    case twoWeeks = "twoWeeks"
+    case month = "month"
+    case year = "year" // Keep for existing functionality
+    case agenda = "agenda" // Keep for existing functionality
+
+    // Only expose the 6 view modes requested by user in iOS popup
+    static var userSelectableCases: [CalendarViewMode] {
+        [.singleDay, .threeDays, .fiveDays, .sevenDays, .twoWeeks, .month]
+    }
 
     var dayCount: Int {
         switch self {
         case .singleDay: return 1
-        case .twoDays: return 2
         case .threeDays: return 3
-        case .fourDays: return 4
         case .fiveDays: return 5
-        case .sixDays: return 6
         case .sevenDays: return 7
-        case .week: return 7
         case .twoWeeks: return 14
         case .month: return 31
-        case .year: return 365 // Approximate for year view
-        case .agenda: return 0 // Not applicable for agenda view
+        case .year: return 365
+        case .agenda: return 0
         }
     }
 
     var displayName: String {
         switch self {
-        case .singleDay: return "1 Day"
-        case .twoDays: return "2 Days"
-        case .threeDays: return "3 Days"
-        case .fourDays: return "4 Days"
-        case .fiveDays: return "5 Days"
-        case .sixDays: return "6 Days"
-        case .sevenDays: return "7 Days"
-        case .week: return "Week"
-        case .twoWeeks: return "2 Weeks"
-        case .month: return "Month"
-        case .year: return "Year"
-        case .agenda: return "Agenda"
+        case .singleDay: return "One Day View"
+        case .threeDays: return "Three Day View"
+        case .fiveDays: return "Five Day View"
+        case .sevenDays: return "7 Day View"
+        case .twoWeeks: return "2 Week View"
+        case .month: return "Month View"
+        case .year: return "Year View"
+        case .agenda: return "Agenda View"
         }
     }
 }

@@ -62,16 +62,16 @@ class KeyHandlingView: NSView {
             calendarViewModel.navigateToToday()
         case 18: // 1
             calendarViewModel.setViewMode(.singleDay)
-        case 19: // 2
-            calendarViewModel.setViewMode(.twoDays)
+        case 19: // 2 - Map to 3-day view (not available in popup)
+            calendarViewModel.setViewMode(.threeDays)
         case 20: // 3
             calendarViewModel.setViewMode(.threeDays)
-        case 21: // 4
-            calendarViewModel.setViewMode(.fourDays)
+        case 21: // 4 - Map to 5-day view (not available in popup)
+            calendarViewModel.setViewMode(.fiveDays)
         case 23: // 5
             calendarViewModel.setViewMode(.fiveDays)
-        case 22: // 6
-            calendarViewModel.setViewMode(.sixDays)
+        case 22: // 6 - Map to 7-day view (not available in popup)
+            calendarViewModel.setViewMode(.sevenDays)
         case 26: // 7
             calendarViewModel.setViewMode(.sevenDays)
         case 29: // 0

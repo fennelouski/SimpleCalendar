@@ -16,8 +16,42 @@ import AppKit
 class CalendarViewModel: ObservableObject {
     @Published var currentDate: Date = Date()
     @Published var selectedDate: Date?
-    @Published var viewMode: CalendarViewMode = .month
+    @Published var viewMode: CalendarViewMode {
+        didSet {
+            // Save to UserDefaults when view mode changes
+            UserDefaults.standard.set(viewMode.rawValue, forKey: "selectedViewMode")
+        }
+    }
     @Published var previousViewMode: CalendarViewMode? = nil
+    @Published var showViewModeSelector = false // For iOS popup
+
+    enum NavigationDirection {
+        case forward, backward
+    }
+
+    enum NavigationUnit {
+        case day, week, month
+    }
+
+    func navigateDate(by unit: NavigationUnit, direction: NavigationDirection) {
+        let calendar = Calendar.current
+        let multiplier = direction == .forward ? 1 : -1
+
+        switch unit {
+        case .day:
+            if let newDate = calendar.date(byAdding: .day, value: multiplier, to: currentDate) {
+                currentDate = newDate
+            }
+        case .week:
+            if let newDate = calendar.date(byAdding: .weekOfYear, value: multiplier, to: currentDate) {
+                currentDate = newDate
+            }
+        case .month:
+            if let newDate = calendar.date(byAdding: .month, value: multiplier, to: currentDate) {
+                currentDate = newDate
+            }
+        }
+    }
     @Published var events: [CalendarEvent] = []
     @Published var showDayDetail: Bool = false
     @Published var showSearch: Bool = false
@@ -37,6 +71,14 @@ class CalendarViewModel: ObservableObject {
 
     init() {
         googleCalendarAPI = GoogleCalendarAPI(oauthManager: googleOAuthManager)
+
+        // Load saved view mode or default to threeDays
+        if let savedModeString = UserDefaults.standard.string(forKey: "selectedViewMode"),
+           let savedMode = CalendarViewMode(rawValue: savedModeString) {
+            self.viewMode = savedMode
+        } else {
+            self.viewMode = .threeDays // Default
+        }
 
         // Check calendar authorization status
         let status = EKEventStore.authorizationStatus(for: .event)
