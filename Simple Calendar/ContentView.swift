@@ -717,8 +717,13 @@ struct DayDetailView: View {
             // Main content (right side)
             VStack(alignment: .leading) {
                 HStack {
-                    Text(date.formatted(.dateTime.month(.wide).day().year()))
-                        .font(uiConfig.scaledFont(28, weight: .bold))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(date.formatted(.dateTime.weekday(.wide)))
+                            .font(uiConfig.scaledFont(16, weight: .semibold))
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                        Text(date.formatted(.dateTime.month(.wide).day().year()))
+                            .font(uiConfig.scaledFont(28, weight: .bold))
+                    }
                     Spacer()
                     Button(action: { calendarViewModel.toggleDayDetail() }) {
                         Image(systemName: "xmark")
@@ -953,6 +958,7 @@ struct EventDetailView: View {
 
             Text(event.title)
                 .font(uiConfig.eventTitleFont)
+                .fontWeight(.bold)
 
             HStack {
                 Image(systemName: "clock")
@@ -1368,7 +1374,8 @@ struct KeyCommandRow: View {
 // MARK: - URL Text View
 struct URLTextView: View {
     let text: String
-    @Environment(\.openURL) var openURL
+    @State private var showBrowserSelection = false
+    @State private var selectedURL: URL? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -1376,15 +1383,21 @@ struct URLTextView: View {
                 switch component {
                 case .text(let string):
                     Text(string)
-                case .url(let url, let domain):
-                    Text(domain)
+                case .url(let url, let displayText):
+                    Text(displayText)
                         .foregroundColor(.blue.opacity(0.8))
                         .bold()
                         .underline()
                         .onTapGesture {
-                            openURL(url)
+                            selectedURL = url
+                            showBrowserSelection = true
                         }
                 }
+            }
+        }
+        .sheet(isPresented: $showBrowserSelection) {
+            if let url = selectedURL {
+                BrowserSelectionView(url: url, isPresented: $showBrowserSelection)
             }
         }
     }
@@ -1413,8 +1426,7 @@ struct URLTextView: View {
                 // Add the URL
                 let urlString = nsString.substring(with: match.range)
                 if let url = URL(string: urlString) {
-                    let domain = extractDomain(from: url)
-                    components.append(.url(url, domain))
+                    components.append(.url(url, urlString))
                 }
 
                 lastEnd = match.range.location + match.range.length
@@ -1596,6 +1608,127 @@ struct EventIconManager {
         // Default: return the title (potentially truncated)
         return title.count > maxLength ? String(title.prefix(maxLength)) + "..." : title
     }
+}
+
+// MARK: - Browser Selection View
+struct BrowserSelectionView: View {
+    let url: URL
+    @Binding var isPresented: Bool
+    @Environment(\.openURL) var openURL
+
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 20) {
+                Text("Open Link")
+                    .font(.title2)
+                    .fontWeight(.bold)
+
+                Text("Choose how to open this link:")
+                    .foregroundColor(.secondary)
+
+                Text(url.absoluteString)
+                    .font(.system(.body, design: .monospaced))
+                    .padding()
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                    .multilineTextAlignment(.center)
+
+                VStack(spacing: 12) {
+                    Button(action: {
+                        openURL(url)
+                        isPresented = false
+                    }) {
+                        HStack {
+                            Image(systemName: "safari")
+                            Text("Open in Safari")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+
+                    #if os(macOS)
+                    Button(action: {
+                        // On macOS, we can try to open in other browsers
+                        openInBrowser("com.google.Chrome", url: url)
+                        isPresented = false
+                    }) {
+                        HStack {
+                            Image(systemName: "globe")
+                            Text("Open in Chrome")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(10)
+                    }
+
+                    Button(action: {
+                        openInBrowser("com.microsoft.edgemac", url: url)
+                        isPresented = false
+                    }) {
+                        HStack {
+                            Image(systemName: "globe")
+                            Text("Open in Edge")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(10)
+                    }
+
+                    Button(action: {
+                        openInBrowser("org.mozilla.firefox", url: url)
+                        isPresented = false
+                    }) {
+                        HStack {
+                            Image(systemName: "globe")
+                            Text("Open in Firefox")
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(10)
+                    }
+                    #endif
+                }
+                .padding(.horizontal)
+
+                Button("Cancel") {
+                    isPresented = false
+                }
+                .foregroundColor(.red)
+                .padding(.top, 10)
+
+                Spacer()
+            }
+            .padding()
+            .navigationBarItems(trailing: Button("Cancel") {
+                isPresented = false
+            })
+        }
+        #if os(iOS)
+        .navigationViewStyle(.stack)
+        #endif
+    }
+
+    #if os(macOS)
+    private func openInBrowser(_ bundleIdentifier: String, url: URL) {
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.createsNewApplicationInstance = false
+
+        NSWorkspace.shared.open([url], withApplicationAt: URL(fileURLWithPath: "/Applications/\(bundleIdentifier).app"),
+                               configuration: configuration) { _, error in
+            if let error = error {
+                print("Failed to open URL in browser: \(error)")
+                // Fallback to default browser
+                openURL(url)
+            }
+        }
+    }
+    #endif
 }
 
 #Preview {
