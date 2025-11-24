@@ -377,6 +377,9 @@ struct ContentView: View {
                     }
                 }
                 .padding(.horizontal)
+                #if os(iOS)
+                .animation(.easeInOut(duration: 0.3), value: calendarViewModel.selectedDate)
+                #endif
             }
             .animation(.easeInOut(duration: 0.35), value: calendarViewModel.viewMode)
             .animation(.easeInOut(duration: 0.35), value: calendarViewModel.currentDate)
@@ -747,6 +750,7 @@ struct DayView: View {
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
                 .stroke(day.isToday ? monthlyPalette.todayHighlight : Color.clear, lineWidth: 2)
         )
+        .animation(.easeInOut(duration: 0.2), value: day.isSelected)
     }
 
     private var dayTextColor: Color {
@@ -2048,7 +2052,7 @@ struct DayDetailSlideOut: View {
                                 }
                             }
                     )
-                    .transition(.move(edge: .trailing))
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
             }
             .ignoresSafeArea(isFullScreen ? .all : [])
         }
