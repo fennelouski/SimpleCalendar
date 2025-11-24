@@ -15,9 +15,18 @@ class GoogleOAuthManager: NSObject, ObservableObject, ASWebAuthenticationPresent
     @Published var userEmail: String?
     @Published var authenticationError: String?
 
-    // Replace these with your actual Google OAuth credentials
-    private let clientID = "YOUR_GOOGLE_CLIENT_ID_HERE"
-    private let clientSecret = "YOUR_GOOGLE_CLIENT_SECRET_HERE"
+    // Google OAuth credentials for different platforms
+    private var clientID: String {
+        #if os(iOS)
+        return "248767312104-dut5ib3gdfob8r77m2n5fbfo3cf188lv.apps.googleusercontent.com"
+        #elseif os(macOS)
+        return "248767312104-8dmmmvvjc8g72pu2ptcs45ng6p6cuqht.apps.googleusercontent.com"
+        #else
+        return "248767312104-8dmmmvvjc8g72pu2ptcs45ng6p6cuqht.apps.googleusercontent.com" // Default to macOS
+        #endif
+    }
+
+    private let clientSecret = "YOUR_GOOGLE_CLIENT_SECRET_HERE" // Not needed for installed apps
     private let redirectURI = "com.nathanfennel.simplecalendar:/oauth2redirect"
 
     private let scope = "https://www.googleapis.com/auth/calendar.readonly"
