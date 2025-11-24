@@ -88,7 +88,6 @@ struct VerticalDaylightVisualizationView: View {
 
     private func timeMarkers(geometry: GeometryProxy) -> some View {
         ZStack {
-            _ = Calendar.current
             let sunrise = DaylightManager.shared.sunriseTime(for: date)
             let sunset = DaylightManager.shared.sunsetTime(for: date)
 
@@ -119,7 +118,6 @@ struct VerticalDaylightVisualizationView: View {
     private func getKeyTimes(for date: Date, isNearTwilight: Bool) -> [(hour: Double, label: String)] {
         var times: [(Double, String)] = []
 
-        _ = Calendar.current
         let sunrise = DaylightManager.shared.sunriseTime(for: date)
         let sunset = DaylightManager.shared.sunsetTime(for: date)
 
