@@ -119,7 +119,15 @@ struct ContentView: View {
             }
             .adaptivePadding(for: geometry)
             .background(themeManager.currentPalette.calendarBackground)
+            #if os(iOS)
+            .ignoresSafeArea(.keyboard) // Only ignore keyboard safe area, keep top/bottom safe areas
+            #endif
         }
+        #if os(iOS)
+        .ignoresSafeArea(.container, edges: []) // Respect safe areas for calendar content
+        #else
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #endif
     }
 
     private var calendarHeader: some View {
@@ -179,7 +187,14 @@ struct ContentView: View {
 
             // Calculate available height for calendar content
             let headerHeight: CGFloat = calendarViewModel.viewMode == .year ? 0 : 32 // Header height + spacing
+            #if os(iOS)
+            // On iOS, use safe area insets to ensure calendar fits within safe area
+            let topSafeArea = geometry.safeAreaInsets.top
+            let bottomSafeArea = geometry.safeAreaInsets.bottom
+            let availableHeight = geometry.size.height - headerHeight - 32 - topSafeArea - bottomSafeArea
+            #else
             let availableHeight = geometry.size.height - headerHeight - 32 // Subtract padding
+            #endif
             let rowsCount = calculateRowsCount(for: days.count, columns: daysPerRow)
             let cellHeight = max(availableHeight / CGFloat(rowsCount), 60) // Minimum height of 60
 
@@ -732,7 +747,7 @@ struct DayDetailView: View {
                 }
                 .standardPadding()
 
-            ScrollView {
+            ScrollViewWithFade {
                 VStack(alignment: .leading, spacing: 16) {
                     let dayEvents = calendarViewModel.events.filter { event in
                         Calendar.current.isDate(event.startDate, inSameDayAs: date)
@@ -1100,7 +1115,7 @@ struct SearchView: View {
             .padding()
 
             if !searchText.isEmpty {
-                ScrollView {
+                ScrollViewWithFade {
                     VStack(alignment: .leading, spacing: 8) {
                         if searchResults.isEmpty {
                             Text("No events found")
@@ -1324,7 +1339,7 @@ struct KeyCommandsView: View {
             }
             .padding()
 
-            ScrollView {
+            ScrollViewWithFade {
                 VStack(alignment: .leading, spacing: 12) {
                     KeyCommandRow(key: "N", description: "Next month")
                     KeyCommandRow(key: "P", description: "Previous month")
@@ -1729,6 +1744,53 @@ struct BrowserSelectionView: View {
         }
     }
     #endif
+}
+
+// MARK: - ScrollView with Fade Gradients
+struct ScrollViewWithFade<Content: View>: View {
+    let content: Content
+    let fadeHeight: CGFloat = 8
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        ZStack {
+            ScrollView {
+                VStack(spacing: 0) {
+                    // Top fade area
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(height: fadeHeight)
+                    content
+                    // Bottom fade area
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(height: fadeHeight)
+                }
+            }
+            .mask(
+                VStack(spacing: 0) {
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.black.opacity(0), Color.black]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: fadeHeight)
+
+                    Rectangle().fill(Color.black)
+
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color.black, Color.black.opacity(0)]),
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: fadeHeight)
+                }
+            )
+        }
+    }
 }
 
 #Preview {
