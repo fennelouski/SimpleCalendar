@@ -26,6 +26,7 @@ struct SettingsContentView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @Binding var showSettings: Bool
     @ObservedObject var googleOAuthManager: GoogleOAuthManager
+    @State private var showHolidayGuide = false
 
     var body: some View {
         ZStack {
@@ -138,6 +139,86 @@ struct SettingsContentView: View {
                             .padding(.horizontal, 16)
                         }
 
+                        // Holiday Display Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Holiday Display")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+                                .padding(.horizontal, 16)
+
+                            VStack(spacing: 0) {
+                                // Holiday Display Toggle
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Show Holidays")
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                                            .lineLimit(nil)
+
+                                        Text("Display holidays on the calendar with educational information")
+                                            .font(.subheadline)
+                                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                                            .lineLimit(nil)
+                                    }
+
+                                    Spacer()
+
+                                    // Info button
+                                    Button(action: {
+                                        // Could show info popover here
+                                    }) {
+                                        Image(systemName: "info.circle")
+                                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                                            .font(.system(size: 16))
+                                    }
+
+                                    Toggle("", isOn: Binding(
+                                        get: { FeatureFlags.shared.holidayDisplayEnabled },
+                                        set: { FeatureFlags.shared.holidayDisplayEnabled = $0 }
+                                    ))
+                                    .labelsHidden()
+                                }
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 16)
+
+                                Divider()
+
+                                // Holiday Guide Button
+                                Button(action: {
+                                    // Navigate to holiday guide
+                                    showHolidayGuide = true
+                                }) {
+                                    HStack(spacing: 12) {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Holiday Guide")
+                                                .font(.body)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(themeManager.currentPalette.textPrimary)
+                                                .lineLimit(nil)
+
+                                            Text("Learn about holidays and their meanings")
+                                                .font(.subheadline)
+                                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                                                .lineLimit(nil)
+                                        }
+
+                                        Spacer()
+
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                                            .font(.system(size: 14, weight: .semibold))
+                                    }
+                                    .padding(.vertical, 12)
+                                    .padding(.horizontal, 16)
+                                }
+                            }
+                            .background(themeManager.currentPalette.surface.opacity(0.5))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding(.horizontal, 16)
+                        }
+
                         // About Section
                         VStack(alignment: .leading, spacing: 12) {
                             Text("About")
@@ -213,6 +294,9 @@ struct SettingsContentView: View {
                     .padding(.vertical, 8)
                 }
             }
+        }
+        .sheet(isPresented: $showHolidayGuide) {
+            HolidayDetailView()
         }
     }
 

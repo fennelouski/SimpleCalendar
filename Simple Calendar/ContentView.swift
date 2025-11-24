@@ -18,6 +18,7 @@ struct ContentView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var featureFlags = FeatureFlags.shared
+    @StateObject private var holidayManager = HolidayManager.shared
     @Environment(\.colorScheme) var colorScheme
     @State private var searchText = ""
     @State private var showQuickAdd = false
@@ -670,6 +671,7 @@ struct DayView: View {
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var featureFlags = FeatureFlags.shared
     @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+    @StateObject private var holidayManager = HolidayManager.shared
 
     private var monthlyPalette: ColorPalette {
         let month = Calendar.current.component(.month, from: day.date)
@@ -688,6 +690,10 @@ struct DayView: View {
 
     private var maxEventsToShow: Int {
         return isCompactLayout ? 1 : 3
+    }
+
+    private var holidaysOnThisDay: [CalendarHoliday] {
+        return holidayManager.holidaysOn(day.date)
     }
 
     var body: some View {
@@ -711,6 +717,20 @@ struct DayView: View {
                         .font(uiConfig.smallCaptionFont)
                         .foregroundColor(monthlyPalette.textSecondary)
                 }
+
+                // Show holidays if enabled
+                if featureFlags.holidayDisplayEnabled && !holidaysOnThisDay.isEmpty {
+                    ForEach(holidaysOnThisDay.prefix(2)) { holiday in
+                        HStack(spacing: 2) {
+                            Text(holiday.emoji)
+                                .font(.system(size: 8))
+                            Text(holiday.name)
+                                .font(uiConfig.captionFont)
+                                .lineLimit(1)
+                                .foregroundColor(monthlyPalette.accent)
+                        }
+                    }
+                }
             } else {
                 // In compact layout, show compact representations
                 HStack(spacing: 2) {
@@ -724,6 +744,16 @@ struct DayView: View {
                         Text("…")
                             .font(.system(size: 10))
                             .foregroundColor(monthlyPalette.textSecondary)
+                    }
+                }
+
+                // Show holidays in compact layout if enabled
+                if featureFlags.holidayDisplayEnabled && !holidaysOnThisDay.isEmpty && isCompactLayout {
+                    HStack(spacing: 1) {
+                        ForEach(holidaysOnThisDay.prefix(2)) { holiday in
+                            Text(holiday.emoji)
+                                .font(.system(size: 8))
+                        }
                     }
                 }
             }

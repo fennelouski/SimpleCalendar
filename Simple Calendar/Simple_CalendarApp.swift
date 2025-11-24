@@ -15,6 +15,7 @@ struct Simple_CalendarApp: App {
     @StateObject private var uiConfig = UIConfiguration()
     @StateObject private var featureFlags = FeatureFlags.shared
     @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+    @StateObject private var holidayManager = HolidayManager.shared
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -37,6 +38,7 @@ struct Simple_CalendarApp: App {
                 .environmentObject(uiConfig)
                 .environmentObject(featureFlags)
                 .environmentObject(monthlyThemeManager)
+                .environmentObject(holidayManager)
         }
         .modelContainer(sharedModelContainer)
         .commands {

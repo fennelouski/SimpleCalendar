@@ -88,6 +88,15 @@ class FeatureFlags: ObservableObject {
         }
     }
 
+    @Published var holidayDisplayEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(holidayDisplayEnabled, forKey: "feature_holidayDisplayEnabled")
+            // Also sync to iCloud
+            NSUbiquitousKeyValueStore.default.set(holidayDisplayEnabled, forKey: "feature_holidayDisplayEnabled")
+            NSUbiquitousKeyValueStore.default.synchronize()
+        }
+    }
+
     private init() {
         // Load initial values from UserDefaults
         advancedViews = UserDefaults.standard.bool(forKey: "feature_advancedViews")
@@ -182,6 +191,7 @@ class FeatureFlags: ObservableObject {
 
         onThisDayEnabled = getOnThisDayFlag()
         weekendTintingEnabled = getWeekendTintingFlag()
+        holidayDisplayEnabled = getHolidayDisplayFlag()
     }
 
     /// Get On This Day flag with iCloud sync support
@@ -208,6 +218,22 @@ class FeatureFlags: ObservableObject {
         return UserDefaults.standard.bool(forKey: "feature_weekendTintingEnabled")
     }
 
+    /// Get Holiday Display flag with iCloud sync support
+    private func getHolidayDisplayFlag() -> Bool {
+        // Try iCloud first, then local defaults
+        let iCloudValue = NSUbiquitousKeyValueStore.default.bool(forKey: "feature_holidayDisplayEnabled")
+        if NSUbiquitousKeyValueStore.default.object(forKey: "feature_holidayDisplayEnabled") != nil {
+            return iCloudValue
+        }
+
+        // Fall back to local UserDefaults, defaulting to true
+        let localValue = UserDefaults.standard.bool(forKey: "feature_holidayDisplayEnabled")
+        if UserDefaults.standard.object(forKey: "feature_holidayDisplayEnabled") != nil {
+            return localValue
+        }
+        return true // Default to enabled
+    }
+
     /// Reset all feature flags to defaults
     func resetToDefaults() {
         advancedViews = true
@@ -230,6 +256,7 @@ class FeatureFlags: ObservableObject {
         daylightVisualizationDayView = true
         onThisDayEnabled = false  // Default to off
         weekendTintingEnabled = false  // Default to off
+        holidayDisplayEnabled = true  // Default to on
 
         saveAll()
     }
@@ -255,6 +282,7 @@ class FeatureFlags: ObservableObject {
         UserDefaults.standard.set(daylightVisualizationDayView, forKey: "feature_daylightVisualizationDayView")
         UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
         UserDefaults.standard.set(weekendTintingEnabled, forKey: "feature_weekendTintingEnabled")
+        UserDefaults.standard.set(holidayDisplayEnabled, forKey: "feature_holidayDisplayEnabled")
         UserDefaults.standard.synchronize()
     }
 
