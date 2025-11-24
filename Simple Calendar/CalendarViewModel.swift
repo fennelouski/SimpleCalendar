@@ -16,6 +16,7 @@ import AppKit
 class CalendarViewModel: ObservableObject {
     @Published var currentDate: Date = Date()
     @Published var selectedDate: Date?
+    @Published var selectionAnimationId: UUID = UUID()
     @Published var viewMode: CalendarViewMode {
         didSet {
             // Save to UserDefaults when view mode changes
@@ -218,6 +219,8 @@ class CalendarViewModel: ObservableObject {
 
     func selectDate(_ date: Date) {
         selectedDate = date
+        // Change animation ID to cancel any previous animations and start fresh
+        selectionAnimationId = UUID()
     }
 
     func toggleDayDetail() {

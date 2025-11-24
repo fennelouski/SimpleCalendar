@@ -378,7 +378,7 @@ struct ContentView: View {
                 }
                 .padding(.horizontal)
                 #if os(iOS)
-                .animation(.easeInOut(duration: 0.3), value: calendarViewModel.selectedDate)
+                .animation(.easeInOut(duration: 0.3), value: calendarViewModel.selectionAnimationId)
                 #endif
             }
             .animation(.easeInOut(duration: 0.35), value: calendarViewModel.viewMode)
