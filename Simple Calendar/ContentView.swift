@@ -854,6 +854,7 @@ struct DayDetailView: View {
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var featureFlags = FeatureFlags.shared
     @StateObject private var onThisDayService = OnThisDayService.shared
+    @StateObject private var holidayManager = HolidayManager.shared
     @State private var onThisDayData: OnThisDayData?
     @State private var isLoadingOnThisDay = false
     @State private var onThisDayError: Error?
@@ -911,9 +912,37 @@ struct DayDetailView: View {
                         Calendar.current.isDate(event.startDate, inSameDayAs: date)
                     }
 
+                    let holidaysOnThisDay = featureFlags.holidayDisplayEnabled ? holidayManager.holidaysOn(date) : []
+
                     let groupedEvents = groupDuplicateEvents(dayEvents)
 
-                    if dayEvents.isEmpty {
+                    // Show holidays at the top if enabled
+                    if !holidaysOnThisDay.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(holidaysOnThisDay) { holiday in
+                                HStack(spacing: 8) {
+                                    Text(holiday.emoji)
+                                        .font(.system(size: 16))
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(holiday.name)
+                                            .font(uiConfig.eventTitleFont)
+                                            .foregroundColor(themeManager.currentPalette.accent)
+                                        Text(holiday.description)
+                                            .font(uiConfig.captionFont)
+                                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                                            .lineLimit(2)
+                                    }
+                                }
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
+                                .background(themeManager.currentPalette.surface.opacity(0.7))
+                                .cornerRadius(8)
+                            }
+                        }
+                        .padding(.bottom, 8)
+                    }
+
+                    if dayEvents.isEmpty && holidaysOnThisDay.isEmpty {
                         Text("No events for this day")
                             .foregroundColor(themeManager.currentPalette.textSecondary)
                             .font(uiConfig.eventDetailFont)

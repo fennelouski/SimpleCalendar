@@ -45,13 +45,125 @@ struct CalendarHoliday: Identifiable, Hashable {
     /// Get the date for this holiday in the given year
     func dateInYear(_ year: Int) -> Date? {
         if isRecurring {
-            let calendar = Calendar.current
-            var components = calendar.dateComponents([.month, .day], from: self.date)
-            components.year = year
-            return calendar.date(from: components)
+            // Handle special cases for holidays that don't have fixed dates
+            switch name {
+            case "Thanksgiving":
+                return thanksgivingDate(for: year)
+            case "Black Friday":
+                if let thanksgiving = thanksgivingDate(for: year) {
+                    return Calendar.current.date(byAdding: .day, value: 1, to: thanksgiving)
+                }
+                return nil
+            case "Martin Luther King Jr. Day":
+                return nthWeekdayOfMonth(year: year, month: 1, weekday: .monday, n: 3)
+            case "Presidents' Day":
+                return nthWeekdayOfMonth(year: year, month: 2, weekday: .monday, n: 3)
+            case "Indigenous Peoples' Day":
+                return nthWeekdayOfMonth(year: year, month: 10, weekday: .monday, n: 2)
+            case "Memorial Day":
+                return lastWeekdayOfMonth(year: year, month: 5, weekday: .monday)
+            case "Mother's Day":
+                return nthWeekdayOfMonth(year: year, month: 5, weekday: .sunday, n: 2)
+            case "Father's Day":
+                return nthWeekdayOfMonth(year: year, month: 6, weekday: .sunday, n: 3)
+            case "Easter":
+                return easterDate(for: year)
+            default:
+                // For other recurring holidays, use the stored date but update the year
+                let calendar = Calendar.current
+                var components = calendar.dateComponents([.month, .day], from: self.date)
+                components.year = year
+                return calendar.date(from: components)
+            }
         } else {
             return self.date
         }
+    }
+
+    /// Calculate Thanksgiving date (fourth Thursday of November)
+    private func thanksgivingDate(for year: Int) -> Date? {
+        nthWeekdayOfMonth(year: year, month: 11, weekday: .thursday, n: 4)
+    }
+
+    /// Calculate Easter date using the algorithm
+    private func easterDate(for year: Int) -> Date? {
+        // Easter calculation using Meeus/Jones/Butcher algorithm
+        let a = year % 19
+        let b = year / 100
+        let c = year % 100
+        let d = b / 4
+        let e = b % 4
+        let f = (b + 8) / 25
+        let g = (b - f + 1) / 3
+        let h = (19 * a + b - d - g + 15) % 30
+        let i = c / 4
+        let k = c % 4
+        let l = (32 + 2 * e + 2 * i - h - k) % 7
+        let m = (a + 11 * h + 22 * l) / 451
+        let month = (h + l - 7 * m + 114) / 31
+        let day = ((h + l - 7 * m + 114) % 31) + 1
+
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        return Calendar.current.date(from: components)
+    }
+
+    /// Find the nth weekday of a given month and year
+    private func nthWeekdayOfMonth(year: Int, month: Int, weekday: Weekday, n: Int) -> Date? {
+        let calendar = Calendar.current
+
+        // Start of the month
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = 1
+
+        guard let startOfMonth = calendar.date(from: components) else { return nil }
+
+        // Find the first occurrence of the weekday in the month
+        let weekdayOffset = (weekday.rawValue - calendar.component(.weekday, from: startOfMonth) + 7) % 7
+        let firstWeekday = calendar.date(byAdding: .day, value: weekdayOffset, to: startOfMonth)
+
+        // Calculate the nth occurrence
+        guard let firstOccurrence = firstWeekday else { return nil }
+        let nthOccurrence = calendar.date(byAdding: .day, value: (n - 1) * 7, to: firstOccurrence)
+
+        return nthOccurrence
+    }
+
+    /// Find the last weekday of a given month and year
+    private func lastWeekdayOfMonth(year: Int, month: Int, weekday: Weekday) -> Date? {
+        let calendar = Calendar.current
+
+        // Start of next month
+        var nextMonthComponents = DateComponents()
+        nextMonthComponents.year = month == 12 ? year + 1 : year
+        nextMonthComponents.month = month == 12 ? 1 : month + 1
+        nextMonthComponents.day = 1
+
+        guard let startOfNextMonth = calendar.date(from: nextMonthComponents) else { return nil }
+
+        // Go back one day to get end of current month
+        guard let endOfMonth = calendar.date(byAdding: .day, value: -1, to: startOfNextMonth) else { return nil }
+
+        // Find the last occurrence of the weekday
+        let endWeekday = calendar.component(.weekday, from: endOfMonth)
+        let weekdayOffset = (endWeekday - weekday.rawValue + 7) % 7
+        let lastWeekday = calendar.date(byAdding: .day, value: -weekdayOffset, to: endOfMonth)
+
+        return lastWeekday
+    }
+
+    enum Weekday: Int {
+        case sunday = 1
+        case monday = 2
+        case tuesday = 3
+        case wednesday = 4
+        case thursday = 5
+        case friday = 6
+        case saturday = 7
     }
 }
 
