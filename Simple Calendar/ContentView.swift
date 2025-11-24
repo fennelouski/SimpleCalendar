@@ -1369,10 +1369,30 @@ struct KeyCommandRow: View {
 struct URLTextView: View {
     let text: String
     @Environment(\.openURL) var openURL
-    @State private var tappedURL: URL? = nil
 
-    private var processedText: String {
-        // Find URLs in the text and replace them with domain links
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(textComponents, id: \.id) { component in
+                switch component {
+                case .text(let string):
+                    Text(string)
+                case .url(let url, let domain):
+                    Text(domain)
+                        .foregroundColor(.blue.opacity(0.8))
+                        .bold()
+                        .underline()
+                        .onTapGesture {
+                            openURL(url)
+                        }
+                }
+            }
+        }
+    }
+
+    private var textComponents: [URLTextComponent] {
+        var components: [URLTextComponent] = []
+
+        // Find URLs in the text
         let urlPattern = #"https?://[^\s]+"#
         let regex = try? NSRegularExpression(pattern: urlPattern, options: [])
 
@@ -1380,35 +1400,56 @@ struct URLTextView: View {
             let nsString = text as NSString
             let matches = regex.matches(in: text, options: [], range: NSRange(location: 0, length: nsString.length))
 
-            if let firstMatch = matches.first {
-                let urlString = nsString.substring(with: firstMatch.range)
+            var lastEnd = 0
+
+            for match in matches {
+                // Add text before the URL
+                if match.range.location > lastEnd {
+                    let beforeRange = NSRange(location: lastEnd, length: match.range.location - lastEnd)
+                    let beforeText = nsString.substring(with: beforeRange)
+                    components.append(.text(beforeText))
+                }
+
+                // Add the URL
+                let urlString = nsString.substring(with: match.range)
                 if let url = URL(string: urlString) {
                     let domain = extractDomain(from: url)
-                    let beforeURL = nsString.substring(to: firstMatch.range.location)
-                    let afterURL = nsString.substring(from: firstMatch.range.location + firstMatch.range.length)
-
-                    tappedURL = url
-                    return beforeURL + "[\(domain)]" + afterURL
+                    components.append(.url(url, domain))
                 }
+
+                lastEnd = match.range.location + match.range.length
             }
+
+            // Add remaining text after the last URL
+            if lastEnd < nsString.length {
+                let remainingRange = NSRange(location: lastEnd, length: nsString.length - lastEnd)
+                let remainingText = nsString.substring(with: remainingRange)
+                components.append(.text(remainingText))
+            }
+        } else {
+            // No URLs found, just return the text
+            components.append(.text(text))
         }
 
-        return text
-    }
-
-    var body: some View {
-        Text(processedText)
-            .foregroundColor(tappedURL != nil ? .blue : .primary)
-            .underline(tappedURL != nil)
-            .onTapGesture {
-                if let url = tappedURL {
-                    openURL(url)
-                }
-            }
+        return components
     }
 
     private func extractDomain(from url: URL) -> String {
         return url.host ?? url.absoluteString
+    }
+
+    private enum URLTextComponent: Identifiable {
+        case text(String)
+        case url(URL, String) // URL and display text
+
+        var id: String {
+            switch self {
+            case .text(let string):
+                return "text_\(string.hash)"
+            case .url(let url, let domain):
+                return "url_\(url.absoluteString.hash)"
+            }
+        }
     }
 }
 

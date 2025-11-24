@@ -32,9 +32,17 @@ struct EventMapView: View {
                 .onAppear {
                     geocodeLocation()
                 }
+                #if os(iOS)
+                .disabled(true) // Disable user interaction to prevent scrolling
+                .contentShape(Rectangle()) // Make the whole area tappable
                 .onTapGesture {
                     showFullMap = true
                 }
+                #else
+                .onTapGesture {
+                    showFullMap = true
+                }
+                #endif
 
             if isLoading {
                 ProgressView()
