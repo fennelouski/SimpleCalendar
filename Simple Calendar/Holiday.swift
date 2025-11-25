@@ -30,16 +30,9 @@ struct CalendarHoliday: Identifiable, Hashable {
     /// Check if this holiday occurs on the given date
     func occursOn(_ date: Date) -> Bool {
         let calendar = Calendar.current
-        if isRecurring {
-            // For recurring holidays, check month and day
-            let holidayComponents = calendar.dateComponents([.month, .day], from: self.date)
-            let checkComponents = calendar.dateComponents([.month, .day], from: date)
-            return holidayComponents.month == checkComponents.month &&
-                   holidayComponents.day == checkComponents.day
-        } else {
-            // For fixed date holidays, check exact date
-            return calendar.isDate(self.date, inSameDayAs: date)
-        }
+        // For both recurring and fixed holidays, check if they occur on the same day
+        // Each holiday instance already has the correct date set for its specific year
+        return calendar.isDate(self.date, inSameDayAs: date)
     }
 
     /// Get the date for this holiday in the given year

@@ -42,15 +42,30 @@ class HolidayManager: ObservableObject {
         loadHolidaysForCurrentYear()
     }
 
-    /// Load holidays for the current year and next year
+    /// Load holidays for the previous year, current year, and next year
     private func loadHolidaysForCurrentYear() {
         let calendar = Calendar.current
         let currentYear = calendar.component(.year, from: Date())
+        let previousYear = currentYear - 1
         let nextYear = currentYear + 1
 
         var yearHolidays: [CalendarHoliday] = []
 
         for holiday in allHolidays {
+            // Add holiday for previous year
+            if let previousYearDate = holiday.dateInYear(previousYear) {
+                let holidayForPreviousYear = CalendarHoliday(
+                    name: holiday.name,
+                    date: previousYearDate,
+                    emoji: holiday.emoji,
+                    description: holiday.description,
+                    unsplashSearchTerm: holiday.unsplashSearchTerm,
+                    isRecurring: holiday.isRecurring,
+                    category: holiday.category
+                )
+                yearHolidays.append(holidayForPreviousYear)
+            }
+
             // Add holiday for current year
             if let currentYearDate = holiday.dateInYear(currentYear) {
                 let holidayForCurrentYear = CalendarHoliday(
@@ -85,6 +100,7 @@ class HolidayManager: ObservableObject {
 
     /// Get holidays that occur on a specific date
     func holidaysOn(_ date: Date) -> [CalendarHoliday] {
+        refreshHolidaysIfNeeded()
         let matchingHolidays = holidays.filter { $0.occursOn(date) }
         // Remove duplicates by name to avoid showing the same holiday twice
         var seenNames = Set<String>()
@@ -130,11 +146,15 @@ class HolidayManager: ObservableObject {
     /// Refresh holidays for new years as needed
     func refreshHolidaysIfNeeded() {
         let currentYear = Calendar.current.component(.year, from: Date())
+        let previousYear = currentYear - 1
         let hasCurrentYear = holidays.contains { holiday in
             Calendar.current.component(.year, from: holiday.date) == currentYear
         }
+        let hasPreviousYear = holidays.contains { holiday in
+            Calendar.current.component(.year, from: holiday.date) == previousYear
+        }
 
-        if !hasCurrentYear {
+        if !hasCurrentYear || !hasPreviousYear {
             loadHolidaysForCurrentYear()
         }
     }

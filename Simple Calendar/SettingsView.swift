@@ -213,6 +213,53 @@ struct SettingsContentView: View {
                             .padding(.horizontal, 16)
                         }
 
+                        // Appearance Section
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Appearance")
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+                                .padding(.horizontal, 16)
+
+                            VStack(spacing: 0) {
+                                // Day Number Font Size
+                                VStack(alignment: .leading, spacing: 12) {
+                                    HStack {
+                                        VStack(alignment: .leading, spacing: 2) {
+                                            Text("Day Number Size")
+                                                .font(.body)
+                                                .fontWeight(.medium)
+                                                .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                                            Text("Adjust the size of day numbers in the calendar")
+                                                .font(.subheadline)
+                                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                                                .lineLimit(nil)
+                                        }
+
+                                        Spacer()
+
+                                        Text("\(Int(UIConfiguration.shared.dayNumberFontSize))pt")
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                                            .frame(minWidth: 40, alignment: .trailing)
+                                    }
+
+                                    Slider(value: Binding(
+                                        get: { UIConfiguration.shared.dayNumberFontSize },
+                                        set: { UIConfiguration.shared.dayNumberFontSize = $0 }
+                                    ), in: 10...24, step: 1)
+                                    .tint(themeManager.currentPalette.primary)
+                                }
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 16)
+                            }
+                            .background(themeManager.currentPalette.surface.opacity(0.5))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding(.horizontal, 16)
+                        }
+
                         // About Section
                         VStack(alignment: .leading, spacing: 12) {
                             Text("About")

@@ -106,19 +106,38 @@ class UIConfiguration: ObservableObject {
         }
     }
 
+    @Published var dayNumberFontSize: Double {
+        didSet {
+            saveSettings()
+        }
+    }
+
     private let fontSizeKey = "fontSizeCategory"
     private let gridLineOpacityKey = "gridLineOpacity"
+    private let dayNumberFontSizeKey = "dayNumberFontSize"
 
     init() {
         let savedFontSize = UserDefaults.standard.integer(forKey: fontSizeKey)
         self.fontSizeCategory = FontSizeCategory(rawValue: savedFontSize) ?? .normal
 
         // Load grid line opacity, default to 0.8 (80%)
-        self.gridLineOpacity = UserDefaults.standard.double(forKey: gridLineOpacityKey)
-        if self.gridLineOpacity == 0.0 && !UserDefaults.standard.bool(forKey: "gridLineOpacitySet") {
+        let loadedGridLineOpacity = UserDefaults.standard.double(forKey: gridLineOpacityKey)
+        if loadedGridLineOpacity == 0.0 && !UserDefaults.standard.bool(forKey: "gridLineOpacitySet") {
             // First time setup, use default value
             self.gridLineOpacity = 0.8
             UserDefaults.standard.set(true, forKey: "gridLineOpacitySet")
+        } else {
+            self.gridLineOpacity = loadedGridLineOpacity
+        }
+
+        // Load day number font size, default to 14.0
+        let loadedDayNumberFontSize = UserDefaults.standard.double(forKey: dayNumberFontSizeKey)
+        if loadedDayNumberFontSize == 0.0 && !UserDefaults.standard.bool(forKey: "dayNumberFontSizeSet") {
+            // First time setup, use default value
+            self.dayNumberFontSize = 14.0
+            UserDefaults.standard.set(true, forKey: "dayNumberFontSizeSet")
+        } else {
+            self.dayNumberFontSize = loadedDayNumberFontSize
         }
     }
 
@@ -139,6 +158,7 @@ class UIConfiguration: ObservableObject {
     private func saveSettings() {
         UserDefaults.standard.set(fontSizeCategory.rawValue, forKey: fontSizeKey)
         UserDefaults.standard.set(gridLineOpacity, forKey: gridLineOpacityKey)
+        UserDefaults.standard.set(dayNumberFontSize, forKey: dayNumberFontSizeKey)
         UserDefaults.standard.synchronize()
     }
 
@@ -172,6 +192,7 @@ class UIConfiguration: ObservableObject {
     var monthTitleFont: Font { scaledFont(32, weight: .bold) }
     var yearTitleFont: Font { scaledFont(.title2) }
     var dayNumberFont: Font { scaledFont(14, weight: .medium) }
+    var customDayNumberFont: Font { .system(size: dayNumberFontSize, weight: .medium) }
     var dayNameFont: Font { scaledFont(12, weight: .semibold) }
     var eventTitleFont: Font { scaledFont(.headline) }
     var eventDetailFont: Font { scaledFont(.subheadline) }

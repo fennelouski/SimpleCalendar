@@ -18,7 +18,7 @@ struct ContentView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var featureFlags = FeatureFlags.shared
-    @StateObject private var holidayManager = HolidayManager.shared
+    private let holidayManager = HolidayManager.shared
     @Environment(\.colorScheme) var colorScheme
     @State private var searchText = ""
     @State private var showQuickAdd = false
@@ -703,7 +703,7 @@ struct DayView: View {
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var featureFlags = FeatureFlags.shared
     @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
-    @StateObject private var holidayManager = HolidayManager.shared
+    private let holidayManager = HolidayManager.shared
 
     private var monthlyPalette: ColorPalette {
         let month = Calendar.current.component(.month, from: day.date)
@@ -731,8 +731,12 @@ struct DayView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: isCompactLayout ? 1 : 2) {
             Text(day.date.formatted(.dateTime.day()))
-                .font(isCompactLayout ? uiConfig.scaledFont(14, weight: .semibold) : uiConfig.dayNumberFont)
+                .font(isCompactLayout ?
+                      (day.isToday ? uiConfig.customDayNumberFont.weight(.bold) : uiConfig.customDayNumberFont) :
+                      (day.isToday ? uiConfig.customDayNumberFont.weight(.bold) : uiConfig.customDayNumberFont))
                 .foregroundColor(dayTextColor)
+                .minimumScaleFactor(0.5) // Allow font to scale down to 50% of original size
+                .lineLimit(1) // Ensure single line
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             // Show event details with compact representation for narrow cells
@@ -814,7 +818,7 @@ struct DayView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
-                .stroke(day.isToday ? monthlyPalette.todayHighlight : Color.clear, lineWidth: 2)
+                .stroke(day.isToday ? monthlyPalette.accent : Color.clear, lineWidth: day.isToday ? 3 : 0)
         )
         .animation(.easeInOut(duration: 0.2), value: day.isSelected)
     }
@@ -822,6 +826,8 @@ struct DayView: View {
     private var dayTextColor: Color {
         if day.isSelected {
             return monthlyPalette.calendarSurface
+        } else if day.isToday {
+            return monthlyPalette.accent
         } else if day.isCurrentMonth {
             return monthlyPalette.textPrimary
         } else {
@@ -832,6 +838,8 @@ struct DayView: View {
     private var dayBackgroundColor: Color {
         if day.isSelected {
             return monthlyPalette.selectedDay
+        } else if day.isToday {
+            return monthlyPalette.accent.opacity(0.15)
         } else if featureFlags.weekendTintingEnabled && isWeekend {
             // Apply subtle weekend tinting
             return monthlyPalette.surface.opacity(0.3)
@@ -854,7 +862,7 @@ struct DayDetailView: View {
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var featureFlags = FeatureFlags.shared
     @StateObject private var onThisDayService = OnThisDayService.shared
-    @StateObject private var holidayManager = HolidayManager.shared
+    private let holidayManager = HolidayManager.shared
     @State private var onThisDayData: OnThisDayData?
     @State private var isLoadingOnThisDay = false
     @State private var onThisDayError: Error?
