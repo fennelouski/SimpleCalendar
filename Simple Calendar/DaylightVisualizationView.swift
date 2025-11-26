@@ -88,8 +88,8 @@ struct VerticalDaylightVisualizationView: View {
 
     private func timeMarkers(geometry: GeometryProxy) -> some View {
         ZStack {
-            let sunrise = DaylightManager.shared.sunriseTime(for: date)
-            let sunset = DaylightManager.shared.sunsetTime(for: date)
+            let sunrise = DaylightManager.shared.sunriseTimeInHours(for: date)
+            let sunset = DaylightManager.shared.sunsetTimeInHours(for: date)
 
             // Check if sunrise/sunset are within 2 hours of each other
             let isNearTwilight = abs(sunrise - sunset) < 2.0
@@ -118,8 +118,8 @@ struct VerticalDaylightVisualizationView: View {
     private func getKeyTimes(for date: Date, isNearTwilight: Bool) -> [(hour: Double, label: String)] {
         var times: [(Double, String)] = []
 
-        let sunrise = DaylightManager.shared.sunriseTime(for: date)
-        let sunset = DaylightManager.shared.sunsetTime(for: date)
+        let sunrise = DaylightManager.shared.sunriseTimeInHours(for: date)
+        let sunset = DaylightManager.shared.sunsetTimeInHours(for: date)
 
         // Always show sunrise and sunset
         times.append((sunrise, "☀️"))

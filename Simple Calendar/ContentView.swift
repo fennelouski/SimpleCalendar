@@ -12,6 +12,7 @@ import AppKit
 
 // Import for daylight visualization
 import Foundation
+import CoreLocation
 
 struct ContentView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
@@ -22,6 +23,10 @@ struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @State private var searchText = ""
     @State private var showQuickAdd = false
+    @State private var currentFontSize: Double = 14.0
+    @State private var refreshTrigger: UUID = UUID()
+    @FocusState private var focusedDate: Date?
+
 
     private var mainContentView: some View {
         ZStack {
@@ -69,13 +74,98 @@ struct ContentView: View {
             ViewModeSelectorView()
         }
         .sheet(isPresented: $calendarViewModel.showSettings) {
-            SettingsContentView(showSettings: $calendarViewModel.showSettings, googleOAuthManager: calendarViewModel.googleOAuthManager)
+            SettingsContentView(showSettings: $calendarViewModel.showSettings, googleOAuthManager: calendarViewModel.googleOAuthManager ?? GoogleOAuthManager())
         }
         .roundedCorners(.small)
     }
 
     var body: some View {
-        #if os(iOS)
+        #if os(tvOS)
+        // On tvOS, use full screen layout optimized for TV
+        ZStack {
+            // Full screen background
+            themeManager.currentPalette.calendarBackground
+                .ignoresSafeArea()
+
+            // Content optimized for TV viewing
+            mainContentView
+        }
+        .gesture(
+            LongPressGesture(minimumDuration: 0.5)
+                .onEnded { _ in
+                    // Long press opens settings on tvOS
+                    calendarViewModel.showSettings = true
+                }
+        )
+        .onMoveCommand { direction in
+            #if os(tvOS)
+            guard shouldHandleMoveCommand(direction) else { return }
+            #endif
+            // Handle arrow key navigation on tvOS when focus can't move further
+            switch direction {
+            case .left:
+                calendarViewModel.moveSelectedDate(.left)
+            case .right:
+                calendarViewModel.moveSelectedDate(.right)
+            case .up:
+                calendarViewModel.moveSelectedDate(.up)
+            case .down:
+                calendarViewModel.moveSelectedDate(.down)
+            @unknown default:
+                break
+            }
+        }
+        .onExitCommand {
+            // Back/Menu button opens settings on tvOS
+            calendarViewModel.showSettings = true
+        }
+        .onPlayPauseCommand {
+            // Play/Pause/Select button opens day detail view on tvOS
+            if calendarViewModel.selectedDate != nil {
+                calendarViewModel.toggleDayDetail()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .ToggleDaylightVisualization)) { _ in
+            FeatureFlags.shared.daylightVisualizationCalendar.toggle()
+            FeatureFlags.shared.daylightVisualizationDayView.toggle()
+        }
+        .onAppear {
+            calendarViewModel.navigateToToday()
+            currentFontSize = uiConfig.dayNumberFontSize // Initialize with current value
+            focusedDate = normalizedDate(calendarViewModel.selectedDate) // Initialize focus to selected date
+        }
+        .onChange(of: colorScheme) { newColorScheme in
+            themeManager.currentColorScheme = newColorScheme
+        }
+        .onChange(of: uiConfig.dayNumberFontSize) { newFontSize in
+            currentFontSize = newFontSize
+            refreshTrigger = UUID()
+        }
+        .onChange(of: uiConfig.gridLineOpacity) { _ in
+            refreshTrigger = UUID()
+        }
+        .onChange(of: focusedDate) { newFocusedDate in
+            if let date = newFocusedDate {
+                calendarViewModel.selectDate(date)
+            }
+        }
+        .onChange(of: calendarViewModel.selectedDate) { newSelectedDate in
+            guard let normalized = normalizedDate(newSelectedDate) else { return }
+            if normalized != focusedDate {
+                focusedDate = normalized
+            }
+        }
+        .onChange(of: calendarViewModel.showDayDetail) { isShowing in
+            if !isShowing, let normalized = normalizedDate(calendarViewModel.selectedDate) {
+                DispatchQueue.main.async {
+                    focusedDate = normalized
+                }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .RefreshCalendar)) { _ in
+            calendarViewModel.refresh()
+        }
+        #elseif os(iOS)
         // On iOS, background extends edge to edge, content respects safe areas
         ZStack {
             // Full screen background that ignores safe areas
@@ -91,6 +181,18 @@ struct ContentView: View {
         }
         .onAppear {
             calendarViewModel.navigateToToday()
+            currentFontSize = uiConfig.dayNumberFontSize // Initialize with current value
+            focusedDate = normalizedDate(calendarViewModel.selectedDate) // Initialize focus to selected date
+        }
+        .onChange(of: colorScheme) { newColorScheme in
+            themeManager.currentColorScheme = newColorScheme
+        }
+        .onChange(of: uiConfig.dayNumberFontSize) { newFontSize in
+            currentFontSize = newFontSize
+            refreshTrigger = UUID()
+        }
+        .onChange(of: uiConfig.gridLineOpacity) { _ in
+            refreshTrigger = UUID()
         }
         .onReceive(NotificationCenter.default.publisher(for: .init("ToggleFullscreen"))) { _ in
             calendarViewModel.toggleFullscreen()
@@ -117,6 +219,18 @@ struct ContentView: View {
         }
         .onAppear {
             calendarViewModel.navigateToToday()
+            currentFontSize = uiConfig.dayNumberFontSize // Initialize with current value
+            focusedDate = normalizedDate(calendarViewModel.selectedDate) // Initialize focus to selected date
+        }
+        .onChange(of: colorScheme) { newColorScheme in
+            themeManager.currentColorScheme = newColorScheme
+        }
+        .onChange(of: uiConfig.dayNumberFontSize) { newFontSize in
+            currentFontSize = newFontSize
+            refreshTrigger = UUID()
+        }
+        .onChange(of: uiConfig.gridLineOpacity) { _ in
+            refreshTrigger = UUID()
         }
         .onReceive(NotificationCenter.default.publisher(for: .init("ToggleFullscreen"))) { _ in
             calendarViewModel.toggleFullscreen()
@@ -148,7 +262,9 @@ struct ContentView: View {
             .ignoresSafeArea(.keyboard) // Only ignore keyboard safe area, keep top/bottom safe areas
             #endif
         }
-        #if os(iOS)
+        #if os(tvOS)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        #elseif os(iOS)
         .ignoresSafeArea(.container, edges: []) // Respect safe areas for calendar content
         .gesture(
             DragGesture()
@@ -196,7 +312,19 @@ struct ContentView: View {
     }
 
     private var calendarHeader: some View {
-        #if os(iOS)
+        #if os(tvOS)
+        // tvOS layout: centered month/year (settings accessible via long press)
+        HStack(spacing: 0) {
+            Spacer()
+
+            // Month and year display
+            monthYearDisplay
+
+            Spacer()
+        }
+        .padding(.bottom, 30)
+        .focusSection()
+        #elseif os(iOS)
         // Custom iOS layout: gear | month | year
         HStack(spacing: 0) {
             // Settings gear button with specific positioning
@@ -309,7 +437,11 @@ struct ContentView: View {
             let availableHeight = geometry.size.height - headerHeight - 32 // Subtract padding
             #endif
             let rowsCount = calculateRowsCount(for: days.count, columns: daysPerRow)
+            #if os(tvOS)
+            let cellHeight = availableHeight / CGFloat(rowsCount) // Let rows expand to fill available space on tvOS
+            #else
             let cellHeight = max(availableHeight / CGFloat(rowsCount), 60) // Minimum height of 60
+            #endif
 
             VStack(spacing: 8) {
                 // Headers (only for non-year views)
@@ -322,7 +454,13 @@ struct ContentView: View {
                     LazyVGrid(columns: columns, spacing: 8) {
                         ForEach(0..<daysPerRow, id: \.self) { index in
                             Text(dayName(for: index, availableWidth: widthPerColumn))
+                                #if os(tvOS)
+                                .font(.system(size: 16, weight: .medium)) // Even smaller font for tvOS
+                                .minimumScaleFactor(0.5) // Allow more scaling down to fit
+                                .lineLimit(1)
+                                #else
                                 .font(uiConfig.dayNameFont)
+                                #endif
                                 .foregroundColor(themeManager.currentPalette.dayNameText)
                                 .frame(height: 24)
                         }
@@ -336,6 +474,17 @@ struct ContentView: View {
                         // Year view: show mini months
                         ForEach(days.indices, id: \.self) { index in
                             let day = days[index]
+                            #if os(tvOS)
+                            Button(action: {
+                                // Switch to month view for the selected month
+                                calendarViewModel.currentDate = day.date
+                                calendarViewModel.setViewMode(.month)
+                            }) {
+                                MonthMiniView(monthDate: day.date, geometry: geometry)
+                                    .frame(height: cellHeight)
+                            }
+                            .buttonStyle(.borderless)
+                            #else
                             MonthMiniView(monthDate: day.date, geometry: geometry)
                                 .frame(height: cellHeight)
                                 .onTapGesture {
@@ -343,11 +492,23 @@ struct ContentView: View {
                                     calendarViewModel.currentDate = day.date
                                     calendarViewModel.setViewMode(.month)
                                 }
+                            #endif
                         }
                     } else {
                         // Regular views: show day cells
                         ForEach(days) { day in
-                            DayView(day: day, geometry: geometry, cellHeight: cellHeight, columnsCount: daysPerRow)
+                            #if os(tvOS)
+                            Button(action: {
+                                // Ensure the currently activated tile becomes the selected date before showing detail
+                                calendarViewModel.selectDate(day.date)
+                                calendarViewModel.toggleDayDetail()
+                            }) {
+                                DayView(day: day, geometry: geometry, cellHeight: cellHeight, columnsCount: daysPerRow, fontSize: currentFontSize)
+                            }
+                            .buttonStyle(.borderless)
+                            .focused($focusedDate, equals: day.date)
+                            #else
+                            DayView(day: day, geometry: geometry, cellHeight: cellHeight, columnsCount: daysPerRow, fontSize: currentFontSize)
                                 .onTapGesture(count: 2) {
                                     handleDayDoubleClick(day.date)
                                 }
@@ -392,6 +553,7 @@ struct ContentView: View {
                                         Label("View Day", systemImage: "calendar")
                                     }
                                 }
+                            #endif
                         }
                     }
                 }
@@ -408,6 +570,42 @@ struct ContentView: View {
     private func calculateRowsCount(for itemCount: Int, columns: Int) -> Int {
         return (itemCount + columns - 1) / columns // Ceiling division
     }
+
+    private func normalizedDate(_ date: Date?) -> Date? {
+        guard let date else { return nil }
+        return Calendar.current.startOfDay(for: date)
+    }
+
+    #if os(tvOS)
+    private func shouldHandleMoveCommand(_ direction: MoveCommandDirection) -> Bool {
+        // If nothing is focused, we must handle navigation manually
+        if focusedDate == nil {
+            return true
+        }
+
+        // Only need manual handling for month view edges; other views rely on default focus movement
+        guard calendarViewModel.viewMode == .month,
+              let selectedDate = calendarViewModel.selectedDate else {
+            return false
+        }
+
+        let calendar = Calendar.current
+        let days = generateCalendarDays()
+        guard let index = days.firstIndex(where: { calendar.isDate($0.date, inSameDayAs: selectedDate) }) else {
+            return false
+        }
+
+        let columns = daysPerRow
+        switch direction {
+        case .up:
+            return index < columns
+        case .down:
+            return index >= days.count - columns
+        default:
+            return false
+        }
+    }
+    #endif
 
     private var searchOverlay: some View {
         Group {
@@ -699,6 +897,7 @@ struct DayView: View {
     let geometry: GeometryProxy
     let cellHeight: CGFloat
     let columnsCount: Int
+    let fontSize: Double
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var featureFlags = FeatureFlags.shared
@@ -706,9 +905,13 @@ struct DayView: View {
     private let holidayManager = HolidayManager.shared
 
     private var monthlyPalette: ColorPalette {
-        let month = Calendar.current.component(.month, from: day.date)
-        let monthlyTheme = monthlyThemeManager.theme(for: month)
-        return monthlyTheme.palette(for: themeManager.currentColorScheme)
+        if featureFlags.monthlyThemesEnabled {
+            let month = Calendar.current.component(.month, from: day.date)
+            let monthlyTheme = monthlyThemeManager.theme(for: month)
+            return monthlyTheme.palette(for: themeManager.currentColorScheme)
+        } else {
+            return themeManager.currentPalette
+        }
     }
 
     private var isCompactLayout: Bool {
@@ -731,15 +934,88 @@ struct DayView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: isCompactLayout ? 1 : 2) {
             Text(day.date.formatted(.dateTime.day()))
-                .font(isCompactLayout ?
-                      (day.isToday ? uiConfig.customDayNumberFont.weight(.bold) : uiConfig.customDayNumberFont) :
-                      (day.isToday ? uiConfig.customDayNumberFont.weight(.bold) : uiConfig.customDayNumberFont))
+                .font(.system(size: fontSize, weight: isCompactLayout ?
+                             (day.isToday ? .bold : .medium) :
+                             (day.isToday ? .bold : .medium)))
                 .foregroundColor(dayTextColor)
-                .minimumScaleFactor(0.5) // Allow font to scale down to 50% of original size
+                #if !os(tvOS)
+                .minimumScaleFactor(0.5) // Allow font to scale down to 50% of original size on iOS/macOS
+                #endif
                 .lineLimit(1) // Ensure single line
                 .frame(maxWidth: .infinity, alignment: .leading)
+                #if os(tvOS)
+                .frame(minHeight: fontSize * 1.2) // Ensure minimum height for date number on tvOS
+                #endif
 
             // Show event details with compact representation for narrow cells
+            #if os(tvOS)
+            // tvOS: Show holidays AND events - tvOS doesn't have EventKit so holidays are primary
+            let hasContent = !day.events.isEmpty || !holidaysOnThisDay.isEmpty
+            
+            if hasContent {
+                Spacer(minLength: 4) // Push content to middle area
+                
+                VStack(alignment: .center, spacing: 6) {
+                    // Show holiday emojis prominently (these are visible on tvOS!)
+                    // Limit to 2 holidays on tvOS for better visibility in detail view
+                    if !holidaysOnThisDay.isEmpty {
+                        let displayedHolidays = holidaysOnThisDay.prefix(2)
+                        HStack(spacing: 8) {
+                            ForEach(Array(displayedHolidays)) { holiday in
+                                Text(holiday.emoji)
+                                    .font(.system(size: 36)) // Large emoji for TV visibility
+                            }
+                        }
+                        
+                        // Show holiday name if only one
+                        if holidaysOnThisDay.count == 1, let holiday = holidaysOnThisDay.first {
+                            Text(holiday.name)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(monthlyPalette.accent)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.4)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        } else if holidaysOnThisDay.count > 1 {
+                            Text("\(holidaysOnThisDay.count) holidays")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(monthlyPalette.accent)
+                        }
+                    }
+                    
+                    // Show event indicators if any events exist
+                    if !day.events.isEmpty {
+                        HStack(spacing: 8) {
+                            ForEach(Array(day.events.prefix(4).enumerated()), id: \.offset) { index, event in
+                                if let emoji = EventIconManager.emojiForEvent(event.title) {
+                                    Text(emoji)
+                                        .font(.system(size: 28))
+                                } else {
+                                    Circle()
+                                        .fill(eventIndicatorColor(for: index))
+                                        .frame(width: 20, height: 20)
+                                }
+                            }
+                        }
+                        
+                        if day.events.count == 1, let firstEvent = day.events.first {
+                            Text(firstEvent.title)
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundColor(monthlyPalette.textPrimary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.4)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                        } else {
+                            Text("\(day.events.count) events")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(monthlyPalette.textSecondary)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            
+            Spacer(minLength: 4) // Bottom spacer
+            #else
             if !isCompactLayout {
                 ForEach(day.events.prefix(maxEventsToShow)) { event in
                     Text(event.title)
@@ -793,8 +1069,11 @@ struct DayView: View {
                     }
                 }
             }
+            #endif // End iOS/macOS conditional
 
+            #if !os(tvOS)
             Spacer()
+            #endif
         }
         .compactPadding()
         .frame(height: cellHeight)
@@ -853,6 +1132,23 @@ struct DayView: View {
         // weekday 1 = Sunday, 7 = Saturday in Gregorian calendar
         return weekday == 1 || weekday == 7
     }
+
+    #if os(tvOS)
+    /// Returns a distinct color for event indicator based on index
+    private func eventIndicatorColor(for index: Int) -> Color {
+        let colors: [Color] = [
+            .blue,
+            .green,
+            .orange,
+            .purple,
+            .red,
+            .cyan,
+            .pink,
+            .yellow
+        ]
+        return colors[index % colors.count]
+    }
+    #endif
 }
 
 struct DayDetailView: View {
@@ -908,10 +1204,12 @@ struct DayDetailView: View {
                             .font(uiConfig.scaledFont(28, weight: .bold))
                     }
                     Spacer()
+                    #if !os(tvOS)
                     Button(action: { calendarViewModel.toggleDayDetail() }) {
                         Image(systemName: "xmark")
                             .foregroundColor(themeManager.currentPalette.textSecondary)
                     }
+                    #endif
                 }
                 .standardPadding()
 
@@ -926,9 +1224,42 @@ struct DayDetailView: View {
                     let groupedEvents = groupDuplicateEvents(dayEvents)
 
                     // Show holidays at the top if enabled
+                    // Limit to 2 holidays on tvOS for better visibility in detail view
                     if !holidaysOnThisDay.isEmpty {
+                        #if os(tvOS)
+                        let displayedHolidays = Array(holidaysOnThisDay.prefix(2))
+                        #else
+                        let displayedHolidays = holidaysOnThisDay
+                        #endif
                         VStack(alignment: .leading, spacing: 8) {
-                            ForEach(holidaysOnThisDay) { holiday in
+                            ForEach(displayedHolidays) { holiday in
+                                #if os(tvOS)
+                                // tvOS: Holiday name at top, HUGE emoji beneath, then description
+                                VStack(spacing: 16) {
+                                    // Holiday name at top
+                                    Text(holiday.name)
+                                        .font(.system(size: 42, weight: .bold))
+                                        .foregroundColor(themeManager.currentPalette.accent)
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                    
+                                    // HUGE emoji beneath the name
+                                    Text(holiday.emoji)
+                                        .font(.system(size: 160)) // Massive emoji for TV viewing
+                                    
+                                    // Description beneath the emoji
+                                    Text(holiday.description)
+                                        .font(.system(size: 28, weight: .regular))
+                                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                                        .multilineTextAlignment(.center)
+                                        .frame(maxWidth: .infinity, alignment: .center)
+                                }
+                                .padding(.vertical, 24)
+                                .padding(.horizontal, 20)
+                                .frame(maxWidth: .infinity)
+                                .background(themeManager.currentPalette.surface.opacity(0.7))
+                                .cornerRadius(16)
+                                #else
+                                // iOS/macOS: Original horizontal layout
                                 HStack(spacing: 8) {
                                     Text(holiday.emoji)
                                         .font(.system(size: 16))
@@ -939,13 +1270,13 @@ struct DayDetailView: View {
                                         Text(holiday.description)
                                             .font(uiConfig.captionFont)
                                             .foregroundColor(themeManager.currentPalette.textSecondary)
-                                            .lineLimit(2)
                                     }
                                 }
                                 .padding(.vertical, 8)
                                 .padding(.horizontal, 12)
                                 .background(themeManager.currentPalette.surface.opacity(0.7))
                                 .cornerRadius(8)
+                                #endif
                             }
                         }
                         .padding(.bottom, 8)
@@ -972,6 +1303,11 @@ struct DayDetailView: View {
                             }
                         }
                     }
+
+                    // Astronomical Information section (tvOS only)
+                    #if os(tvOS)
+                    AstronomicalInfoSection(date: date)
+                    #endif
 
                     // On This Day section
                     if featureFlags.onThisDayEnabled {
@@ -1127,6 +1463,272 @@ struct OnThisDayCategoryView: View {
     }
 }
 
+// MARK: - Astronomical Information Section (tvOS)
+#if os(tvOS)
+struct AstronomicalInfoSection: View {
+    let date: Date
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var uiConfig: UIConfiguration
+    
+    private let daylightManager = DaylightManager.shared
+    private let locationApproximator = LocationApproximator.shared
+    
+    private var location: CLLocationCoordinate2D {
+        locationApproximator.approximateLocation()
+    }
+    
+    private var astronomicalData: AstronomicalData? {
+        calculateAstronomicalData()
+    }
+    
+    var body: some View {
+        if let data = astronomicalData {
+            VStack(alignment: .leading, spacing: 24) {
+                // Section Title
+                Text("Astronomical Information")
+                    .font(.system(size: 42, weight: .bold))
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.bottom, 8)
+                
+                // Sunrise and Sunset
+                VStack(spacing: 20) {
+                    AstronomicalInfoRow(
+                        icon: "sunrise.fill",
+                        title: "Sunrise",
+                        time: data.sunrise,
+                        color: .orange
+                    )
+                    
+                    AstronomicalInfoRow(
+                        icon: "sunset.fill",
+                        title: "Sunset",
+                        time: data.sunset,
+                        color: .orange
+                    )
+                }
+                .padding(.vertical, 16)
+                .padding(.horizontal, 20)
+                .background(themeManager.currentPalette.surface.opacity(0.7))
+                .cornerRadius(16)
+                
+                // Daylight Duration
+                VStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "sun.max.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.yellow)
+                        Text("Daylight Duration")
+                            .font(.system(size: 32, weight: .semibold))
+                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                    }
+                    Text(data.daylightDuration)
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+                .background(themeManager.currentPalette.surface.opacity(0.7))
+                .cornerRadius(16)
+                
+                // Twilight Times
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Twilight Times")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                    
+                    // Astronomical Twilight
+                    TwilightInfoGroup(
+                        title: "Astronomical Twilight",
+                        startTime: data.astronomicalTwilightStart,
+                        endTime: data.astronomicalTwilightEnd,
+                        color: .purple
+                    )
+                    
+                    // Nautical Twilight
+                    TwilightInfoGroup(
+                        title: "Nautical Twilight",
+                        startTime: data.nauticalTwilightStart,
+                        endTime: data.nauticalTwilightEnd,
+                        color: .blue
+                    )
+                    
+                    // Civil Twilight
+                    TwilightInfoGroup(
+                        title: "Civil Twilight",
+                        startTime: data.civilTwilightStart,
+                        endTime: data.civilTwilightEnd,
+                        color: .cyan
+                    )
+                }
+                .padding(.vertical, 20)
+                .padding(.horizontal, 20)
+                .background(themeManager.currentPalette.surface.opacity(0.7))
+                .cornerRadius(16)
+                
+                // Night Duration
+                VStack(spacing: 12) {
+                    HStack {
+                        Image(systemName: "moon.stars.fill")
+                            .font(.system(size: 32))
+                            .foregroundColor(.indigo)
+                        Text("Night Duration")
+                            .font(.system(size: 32, weight: .semibold))
+                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                    }
+                    Text(data.nightDuration)
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 20)
+                .background(themeManager.currentPalette.surface.opacity(0.7))
+                .cornerRadius(16)
+            }
+            .padding(.horizontal)
+            .padding(.vertical, 8)
+        }
+    }
+    
+    private func calculateAstronomicalData() -> AstronomicalData? {
+        let latitude = location.latitude
+        let longitude = location.longitude
+        
+        guard let sunrise = daylightManager.sunriseTime(for: date, latitude: latitude, longitude: longitude),
+              let sunset = daylightManager.sunsetTime(for: date, latitude: latitude, longitude: longitude) else {
+            return nil
+        }
+        
+        let astronomicalStart = daylightManager.astronomicalTwilightStart(for: date, latitude: latitude, longitude: longitude)
+        let astronomicalEnd = daylightManager.astronomicalTwilightEnd(for: date, latitude: latitude, longitude: longitude)
+        let nauticalStart = daylightManager.nauticalTwilightStart(for: date, latitude: latitude, longitude: longitude)
+        let nauticalEnd = daylightManager.nauticalTwilightEnd(for: date, latitude: latitude, longitude: longitude)
+        let civilStart = daylightManager.civilTwilightStart(for: date, latitude: latitude, longitude: longitude)
+        let civilEnd = daylightManager.civilTwilightEnd(for: date, latitude: latitude, longitude: longitude)
+        
+        // Calculate daylight duration
+        let daylightHours = daylightManager.durationInHours(from: sunrise, to: sunset)
+        let daylightDuration = daylightManager.formatDuration(daylightHours)
+        
+        // Calculate night duration (from sunset to sunrise next day)
+        let calendar = Calendar.current
+        let nextDay = calendar.date(byAdding: .day, value: 1, to: date)!
+        let nextDaySunrise = daylightManager.sunriseTime(for: nextDay, latitude: latitude, longitude: longitude) ?? sunset
+        let nightHours = daylightManager.durationInHours(from: sunset, to: nextDaySunrise)
+        let nightDuration = daylightManager.formatDuration(nightHours)
+        
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        
+        return AstronomicalData(
+            sunrise: formatter.string(from: sunrise),
+            sunset: formatter.string(from: sunset),
+            daylightDuration: daylightDuration,
+            nightDuration: nightDuration,
+            astronomicalTwilightStart: astronomicalStart.map { formatter.string(from: $0) } ?? "N/A",
+            astronomicalTwilightEnd: astronomicalEnd.map { formatter.string(from: $0) } ?? "N/A",
+            nauticalTwilightStart: nauticalStart.map { formatter.string(from: $0) } ?? "N/A",
+            nauticalTwilightEnd: nauticalEnd.map { formatter.string(from: $0) } ?? "N/A",
+            civilTwilightStart: civilStart.map { formatter.string(from: $0) } ?? "N/A",
+            civilTwilightEnd: civilEnd.map { formatter.string(from: $0) } ?? "N/A"
+        )
+    }
+}
+
+struct AstronomicalData {
+    let sunrise: String
+    let sunset: String
+    let daylightDuration: String
+    let nightDuration: String
+    let astronomicalTwilightStart: String
+    let astronomicalTwilightEnd: String
+    let nauticalTwilightStart: String
+    let nauticalTwilightEnd: String
+    let civilTwilightStart: String
+    let civilTwilightEnd: String
+}
+
+struct AstronomicalInfoRow: View {
+    let icon: String
+    let title: String
+    let time: String
+    let color: Color
+    
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    var body: some View {
+        HStack(spacing: 20) {
+            Image(systemName: icon)
+                .font(.system(size: 40))
+                .foregroundColor(color)
+                .frame(width: 60)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                Text(time)
+                    .font(.system(size: 32, weight: .bold))
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+            }
+            
+            Spacer()
+        }
+    }
+}
+
+struct TwilightInfoGroup: View {
+    let title: String
+    let startTime: String
+    let endTime: String
+    let color: Color
+    
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: "moon.fill")
+                    .font(.system(size: 24))
+                    .foregroundColor(color)
+                Text(title)
+                    .font(.system(size: 28, weight: .semibold))
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+            }
+            
+            HStack(spacing: 40) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Start")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                    Text(startTime)
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                }
+                
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 24))
+                    .foregroundColor(color)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("End")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                    Text(endTime)
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                }
+            }
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .background(themeManager.currentPalette.surface.opacity(0.5))
+        .cornerRadius(12)
+    }
+}
+#endif
+
 struct EventDetailView: View {
     let event: CalendarEvent
     @EnvironmentObject var calendarViewModel: CalendarViewModel
@@ -1167,10 +1769,71 @@ struct EventDetailView: View {
                 }
             }
 
+            #if os(tvOS)
+            // tvOS: Always show event title at top
+            Text(event.title)
+                .font(.system(size: 36, weight: .bold))
+                .foregroundColor(themeManager.currentPalette.textPrimary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.6)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 8)
+            
+            // tvOS: HUGE emoji/icon BENEATH the title text
+            VStack(spacing: 20) {
+                // Huge emoji (144pt+) positioned beneath title
+                if let eventEmoji = EventIconManager.emojiForEvent(event.title) {
+                    Text(eventEmoji)
+                        .font(.system(size: 160)) // Extra large for TV viewing
+                } else {
+                    // Fallback: Large clock icon
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.system(size: 120))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+
+                // Time information beneath the icon
+                if isAllDayEvent {
+                    Text("All Day")
+                        .font(.system(size: 40, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                } else {
+                    HStack(spacing: 40) {
+                        VStack(spacing: 6) {
+                            Text("Starts")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                            Text(event.startDate.formatted(.dateTime.hour().minute()))
+                                .font(.system(size: 38, weight: .bold))
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+                        }
+                        
+                        // Arrow separator
+                        Image(systemName: "arrow.right")
+                            .font(.system(size: 32))
+                            .foregroundColor(themeManager.currentPalette.accent)
+                        
+                        VStack(spacing: 6) {
+                            Text("Ends")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                            Text(event.endDate.formatted(.dateTime.hour().minute()))
+                                .font(.system(size: 38, weight: .bold))
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 16)
+            #else
             Text(event.title)
                 .font(uiConfig.eventTitleFont)
                 .fontWeight(.bold)
+            #endif
 
+            #if !os(tvOS)
+            // iOS/macOS: Icon inline with text
             HStack {
                 Image(systemName: "clock")
                 if isAllDayEvent {
@@ -1196,6 +1859,7 @@ struct EventDetailView: View {
                     }
                 }
             }
+            #endif
 
             if let location = event.location {
                 HStack {
@@ -1299,13 +1963,13 @@ struct SearchView: View {
         VStack(spacing: 0) {
             HStack {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
                 TextField("Search events or dates", text: $searchText)
                     .textFieldStyle(PlainTextFieldStyle())
                     .focused($isSearchFocused)
                 Button(action: { calendarViewModel.toggleSearch() }) {
                     Image(systemName: "xmark")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                 }
             }
             .padding()
@@ -1315,7 +1979,7 @@ struct SearchView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         if searchResults.isEmpty {
                             Text("No events found")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
                                 .padding()
                         } else {
                             ForEach(searchResults) { event in
@@ -1339,27 +2003,28 @@ struct SearchView: View {
 
 struct SearchResultRow: View {
     let event: CalendarEvent
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(event.title)
                 .font(.headline)
-                .foregroundColor(.primary)
+                .foregroundColor(themeManager.currentPalette.textPrimary)
 
             HStack {
                 Text(event.startDate.formatted(.dateTime.month(.abbreviated).day().year()))
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
 
                 Text(event.startDate.formatted(.dateTime.hour().minute()))
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
             }
 
             if let location = event.location {
                 Text(location)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
             }
         }
         .padding(.horizontal)
@@ -1377,11 +2042,16 @@ struct MonthMiniView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
     @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+    @StateObject private var featureFlags = FeatureFlags.shared
 
     private var monthlyPalette: ColorPalette {
-        let month = Calendar.current.component(.month, from: monthDate)
-        let monthlyTheme = monthlyThemeManager.theme(for: month)
-        return monthlyTheme.palette(for: themeManager.currentColorScheme)
+        if featureFlags.monthlyThemesEnabled {
+            let month = Calendar.current.component(.month, from: monthDate)
+            let monthlyTheme = monthlyThemeManager.theme(for: month)
+            return monthlyTheme.palette(for: themeManager.currentColorScheme)
+        } else {
+            return themeManager.currentPalette
+        }
     }
 
     var body: some View {
@@ -1440,7 +2110,8 @@ struct MonthMiniView: View {
 
             for i in (daysInPreviousMonth - daysFromPreviousMonth + 1)...daysInPreviousMonth {
                 if let date = calendar.date(bySetting: .day, value: i, of: previousMonth) {
-                    days.append(CalendarDay(id: date, date: date, isToday: false, isSelected: false, events: [], isCurrentMonth: false))
+                    let isSelected = calendarViewModel.selectedDate.map { calendar.startOfDay(for: $0) == calendar.startOfDay(for: date) } ?? false
+                    days.append(CalendarDay(id: date, date: date, isToday: false, isSelected: isSelected, events: [], isCurrentMonth: false))
                 }
             }
         }
@@ -1449,7 +2120,8 @@ struct MonthMiniView: View {
         for day in 1...range.count {
             if let date = calendar.date(bySetting: .day, value: day, of: startOfMonth) {
                 let isToday = calendar.isDateInToday(date)
-                days.append(CalendarDay(id: date, date: date, isToday: isToday, isSelected: false, events: [], isCurrentMonth: true))
+                let isSelected = calendarViewModel.selectedDate.map { calendar.startOfDay(for: $0) == calendar.startOfDay(for: date) } ?? false
+                days.append(CalendarDay(id: date, date: date, isToday: isToday, isSelected: isSelected, events: [], isCurrentMonth: true))
             }
         }
 
@@ -1459,7 +2131,8 @@ struct MonthMiniView: View {
 
         for day in 1...remainingCells {
             if let date = calendar.date(bySetting: .day, value: day, of: nextMonth) {
-                days.append(CalendarDay(id: date, date: date, isToday: false, isSelected: false, events: [], isCurrentMonth: false))
+                let isSelected = calendarViewModel.selectedDate.map { calendar.startOfDay(for: $0) == calendar.startOfDay(for: date) } ?? false
+                days.append(CalendarDay(id: date, date: date, isToday: false, isSelected: isSelected, events: [], isCurrentMonth: false))
             }
         }
 
@@ -1520,6 +2193,7 @@ struct MonthMiniView: View {
 
 struct KeyCommandsView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -1530,7 +2204,7 @@ struct KeyCommandsView: View {
                 Spacer()
                 Button(action: { calendarViewModel.toggleKeyCommands() }) {
                     Image(systemName: "xmark")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                 }
             }
             .padding()
@@ -1566,6 +2240,7 @@ struct KeyCommandsView: View {
 struct KeyCommandRow: View {
     let key: String
     let description: String
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         HStack {
@@ -1576,7 +2251,7 @@ struct KeyCommandRow: View {
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(4)
             Text(description)
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
             Spacer()
         }
     }
@@ -1585,6 +2260,7 @@ struct KeyCommandRow: View {
 // MARK: - URL Text View
 struct URLTextView: View {
     let text: String
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var showBrowserSelection = false
     @State private var selectedURL: URL? = nil
 
@@ -1596,7 +2272,7 @@ struct URLTextView: View {
                     Text(string)
                 case .url(let url, let displayText):
                     Text(displayText)
-                        .foregroundColor(.blue.opacity(0.8))
+                        .foregroundColor(themeManager.currentPalette.accent.opacity(0.8))
                         .bold()
                         .underline()
                         .onTapGesture {
@@ -1824,6 +2500,7 @@ struct EventIconManager {
 struct BrowserSelectionView: View {
     let url: URL
     @Binding var isPresented: Bool
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.openURL) var openURL
 
     var body: some View {
@@ -1834,7 +2511,7 @@ struct BrowserSelectionView: View {
                     .fontWeight(.bold)
 
                 Text("Choose how to open this link:")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
 
                 Text(url.absoluteString)
                     .font(.system(.body, design: .monospaced))
@@ -2074,7 +2751,7 @@ struct ViewModeSelectorView: View {
                 Button("Cancel") {
                     calendarViewModel.showViewModeSelector = false
                 }
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
             }
             .padding(40)
         }
@@ -2094,16 +2771,57 @@ struct DayDetailSlideOut: View {
     @State private var isFullScreen = false
     @State private var dragStartOffset: CGFloat = 0
 
-    private let slideWidth: CGFloat = 300
+    private var slideWidth: CGFloat {
+        #if os(tvOS)
+        return 300 // Keep fixed width for tvOS for now, will be overridden by geometry
+        #else
+        return 300
+        #endif
+    }
     private let fullScreenThreshold: CGFloat = 150 // How far to pull to go full screen
     private let dismissThreshold: CGFloat = 100 // How far to drag to dismiss
 
+    // Determine if the selected date is in the first half of the week
+    private var isFirstHalfOfWeek: Bool {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date)
+        // weekday 1 = Sunday, 2 = Monday, ..., 7 = Saturday
+        // First half: Sunday (1), Monday (2), Tuesday (3), Wednesday (4)
+        // Second half: Thursday (5), Friday (6), Saturday (7)
+        return weekday <= 4
+    }
+
+    // Dynamic alignment based on week position
+    private var slideAlignment: Alignment {
+        return isFirstHalfOfWeek ? .trailing : .leading
+    }
+
+    private var dayDetailBackground: Color {
+        #if os(tvOS)
+        return themeManager.currentTheme == .system ?
+            Color.gray.opacity(0.95) : // More opaque solid background for system theme on tvOS
+            themeManager.currentPalette.calendarSurface.opacity(0.95)
+        #else
+        return themeManager.currentPalette.calendarSurface
+        #endif
+    }
+
+    private var fullScreenBackground: Color {
+        #if os(tvOS)
+        return themeManager.currentTheme == .system ?
+            Color.black.opacity(0.8) : // More opaque for system theme on tvOS
+            Color.black.opacity(0.3)
+        #else
+        return Color.black.opacity(0.3)
+        #endif
+    }
+
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .trailing) {
+            ZStack(alignment: slideAlignment) {
                 // Background overlay for full screen mode
                 if isFullScreen {
-                    Color.black.opacity(0.3)
+                    fullScreenBackground
                         .ignoresSafeArea()
                         .onTapGesture {
                             withAnimation(.spring()) {
@@ -2114,12 +2832,13 @@ struct DayDetailSlideOut: View {
 
                 // Slide-out content
                 DayDetailView(date: date)
-                    .frame(width: isFullScreen ? geometry.size.width : slideWidth)
+                    .frame(width: isFullScreen ? geometry.size.width : (geometry.size.width / 3))
                     .frame(maxHeight: isFullScreen ? .infinity : .infinity)
-                    .background(themeManager.currentPalette.calendarSurface)
+                    .background(dayDetailBackground)
                     .roundedCorners(isFullScreen ? .none : .medium)
                     .shadow(radius: isFullScreen ? 0 : 10)
-                    .offset(x: slideOffset)
+                    .offset(x: isFirstHalfOfWeek ? slideOffset : -slideOffset)
+                    #if !os(tvOS)
                     .gesture(
                         DragGesture()
                             .onChanged { value in
@@ -2132,12 +2851,24 @@ struct DayDetailSlideOut: View {
                                     }
                                 } else {
                                     // In normal mode, allow pulling to full screen or dragging to close
-                                    if translation < 0 {
-                                        // Pulling to the left (towards full screen)
-                                        slideOffset = min(0, translation)
+                                    if isFirstHalfOfWeek {
+                                        // Right-side sliding: pulling left goes to full screen, right closes
+                                        if translation < 0 {
+                                            // Pulling to the left (towards full screen)
+                                            slideOffset = min(0, translation)
+                                        } else {
+                                            // Dragging to the right (towards close)
+                                            slideOffset = max(0, translation)
+                                        }
                                     } else {
-                                        // Dragging to the right (towards close)
-                                        slideOffset = max(0, translation)
+                                        // Left-side sliding: pulling right goes to full screen, left closes
+                                        if translation > 0 {
+                                            // Pulling to the right (towards full screen)
+                                            slideOffset = max(0, translation)
+                                        } else {
+                                            // Dragging to the left (towards close)
+                                            slideOffset = min(0, translation)
+                                        }
                                     }
                                 }
                             }
@@ -2154,21 +2885,38 @@ struct DayDetailSlideOut: View {
                                         slideOffset = 0
                                     } else {
                                         // Normal mode
-                                        if translation < -fullScreenThreshold || velocity < -300 {
-                                            // Pulled far enough left - go full screen
-                                            isFullScreen = true
-                                            slideOffset = 0
-                                        } else if translation > dismissThreshold || velocity > 300 {
-                                            // Dragged far enough right - close
-                                            calendarViewModel.showDayDetail = false
+                                        if isFirstHalfOfWeek {
+                                            // Right-side sliding
+                                            if translation < -fullScreenThreshold || velocity < -300 {
+                                                // Pulled far enough left - go full screen
+                                                isFullScreen = true
+                                                slideOffset = 0
+                                            } else if translation > dismissThreshold || velocity > 300 {
+                                                // Dragged far enough right - close
+                                                calendarViewModel.showDayDetail = false
+                                            } else {
+                                                // Return to original position
+                                                slideOffset = 0
+                                            }
                                         } else {
-                                            // Return to original position
-                                            slideOffset = 0
+                                            // Left-side sliding
+                                            if translation > fullScreenThreshold || velocity > 300 {
+                                                // Pulled far enough right - go full screen
+                                                isFullScreen = true
+                                                slideOffset = 0
+                                            } else if translation < -dismissThreshold || velocity < -300 {
+                                                // Dragged far enough left - close
+                                                calendarViewModel.showDayDetail = false
+                                            } else {
+                                                // Return to original position
+                                                slideOffset = 0
+                                            }
                                         }
                                     }
                                 }
                             }
                     )
+                    #endif
                     .transition(.move(edge: .trailing).combined(with: .opacity))
             }
             .ignoresSafeArea(isFullScreen ? .all : [])

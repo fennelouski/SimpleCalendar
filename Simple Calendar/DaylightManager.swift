@@ -171,17 +171,33 @@ class DaylightManager {
         return 23.45 * sin(dayAngle) * Double.pi / 180.0 // Convert to radians
     }
 
-    /// Get sunrise time in hours for a date
-    func sunriseTime(for date: Date, latitude: Double = 40.7128, longitude: Double = -74.0060) -> Double {
+    /// Get sunrise time in hours for a date (legacy method for visualization)
+    func sunriseTimeInHours(for date: Date, latitude: Double = 40.7128, longitude: Double = -74.0060) -> Double {
         let dayOfYear = dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
         return calculateSunriseHour(latitude: latitude, solarDeclination: solarDeclination)
     }
 
-    /// Get sunset time in hours for a date
-    func sunsetTime(for date: Date, latitude: Double = 40.7128, longitude: Double = -74.0060) -> Double {
-        let sunriseHour = sunriseTime(for: date, latitude: latitude, longitude: longitude)
+    /// Get sunset time in hours for a date (legacy method for visualization)
+    func sunsetTimeInHours(
+        for date: Date,
+        latitude: Double = 40.7128,
+        longitude: Double = -74.0060
+    ) -> Double {
+        let sunriseHour = sunriseTimeInHours(for: date, latitude: latitude, longitude: longitude)
         return 24.0 - sunriseHour
+    }
+    
+    /// Get sunrise time in hours for a date (convenience method using approximate location)
+    func sunriseTime(for date: Date) -> Double {
+        let location = LocationApproximator.shared.approximateLocation()
+        return sunriseTimeInHours(for: date, latitude: location.latitude, longitude: location.longitude)
+    }
+    
+    /// Get sunset time in hours for a date (convenience method using approximate location)
+    func sunsetTime(for date: Date) -> Double {
+        let location = LocationApproximator.shared.approximateLocation()
+        return sunsetTimeInHours(for: date, latitude: location.latitude, longitude: location.longitude)
     }
 
     /// Approximate sunrise hour calculation
@@ -196,5 +212,237 @@ class DaylightManager {
 
         // Clamp to reasonable values
         return max(5.0, min(9.0, sunriseHour))
+    }
+    
+    // MARK: - Astronomical Calculations
+    
+    /// Calculate solar elevation angle for a given hour angle
+    private func solarElevation(latitude: Double, solarDeclination: Double, hourAngle: Double) -> Double {
+        let latRad = latitude * Double.pi / 180.0
+        let declRad = solarDeclination
+        let haRad = hourAngle * Double.pi / 180.0
+        
+        let elevation = asin(sin(latRad) * sin(declRad) + cos(latRad) * cos(declRad) * cos(haRad))
+        return elevation * 180.0 / Double.pi // Convert to degrees
+    }
+    
+    /// Calculate hour angle for a given solar elevation
+    private func hourAngleForElevation(latitude: Double, solarDeclination: Double, elevation: Double) -> Double? {
+        let latRad = latitude * Double.pi / 180.0
+        let declRad = solarDeclination
+        let elevRad = elevation * Double.pi / 180.0
+        
+        let cosHA = (sin(elevRad) - sin(latRad) * sin(declRad)) / (cos(latRad) * cos(declRad))
+        
+        // Check if the sun reaches this elevation
+        guard cosHA >= -1.0 && cosHA <= 1.0 else {
+            return nil
+        }
+        
+        return acos(cosHA) * 180.0 / Double.pi // Convert to degrees
+    }
+    
+    /// Calculate time when sun reaches a specific elevation angle
+    private func timeForElevation(latitude: Double, solarDeclination: Double, elevation: Double, isRising: Bool) -> Double? {
+        guard let hourAngle = hourAngleForElevation(latitude: latitude, solarDeclination: solarDeclination, elevation: elevation) else {
+            return nil
+        }
+        
+        // Convert hour angle to time (hours from solar noon)
+        let timeFromNoon = hourAngle / 15.0 // 15 degrees per hour
+        
+        if isRising {
+            return 12.0 - timeFromNoon
+        } else {
+            return 12.0 + timeFromNoon
+        }
+    }
+    
+    /// Calculate equation of time correction (in minutes)
+    private func equationOfTime(dayOfYear: Int) -> Double {
+        let B = 2 * Double.pi * Double(dayOfYear - 81) / 365.0
+        return 9.87 * sin(2 * B) - 7.53 * cos(B) - 1.5 * sin(B)
+    }
+    
+    /// Get sunrise time for a date and location
+    func sunriseTime(for date: Date, latitude: Double, longitude: Double) -> Date? {
+        let calendar = Calendar.current
+        let dayOfYear = self.dayOfYear(from: date)
+        let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
+        
+        // Calculate time when sun is at -0.83 degrees (accounting for atmospheric refraction)
+        guard let hour = timeForElevation(latitude: latitude, solarDeclination: solarDeclination, elevation: -0.83, isRising: true) else {
+            return nil
+        }
+        
+        // Apply equation of time correction
+        let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0 // Convert minutes to hours
+        let longitudeCorrection = longitude / 15.0 // 15 degrees per hour
+        let correctedHour = hour - eqTime - longitudeCorrection
+        
+        // Get the date at midnight
+        let startOfDay = calendar.startOfDay(for: date)
+        
+        // Add the calculated hours
+        return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
+            .addingTimeInterval((correctedHour - Double(Int(correctedHour))) * 3600)
+    }
+    
+    /// Get sunset time for a date and location
+    func sunsetTime(for date: Date, latitude: Double, longitude: Double) -> Date? {
+        let calendar = Calendar.current
+        let dayOfYear = self.dayOfYear(from: date)
+        let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
+        
+        // Calculate time when sun is at -0.83 degrees (accounting for atmospheric refraction)
+        guard let hour = timeForElevation(latitude: latitude, solarDeclination: solarDeclination, elevation: -0.83, isRising: false) else {
+            return nil
+        }
+        
+        // Apply equation of time correction
+        let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0 // Convert minutes to hours
+        let longitudeCorrection = longitude / 15.0 // 15 degrees per hour
+        let correctedHour = hour - eqTime - longitudeCorrection
+        
+        // Get the date at midnight
+        let startOfDay = calendar.startOfDay(for: date)
+        
+        // Add the calculated hours
+        return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
+            .addingTimeInterval((correctedHour - Double(Int(correctedHour))) * 3600)
+    }
+    
+    /// Get astronomical twilight start time (sun at -18 degrees)
+    func astronomicalTwilightStart(for date: Date, latitude: Double, longitude: Double) -> Date? {
+        let calendar = Calendar.current
+        let dayOfYear = self.dayOfYear(from: date)
+        let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
+        
+        guard let hour = timeForElevation(latitude: latitude, solarDeclination: solarDeclination, elevation: -18.0, isRising: true) else {
+            return nil
+        }
+        
+        let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
+        let longitudeCorrection = longitude / 15.0
+        let correctedHour = hour - eqTime - longitudeCorrection
+        
+        let startOfDay = calendar.startOfDay(for: date)
+        return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
+            .addingTimeInterval((correctedHour - Double(Int(correctedHour))) * 3600)
+    }
+    
+    /// Get astronomical twilight end time (sun at -18 degrees)
+    func astronomicalTwilightEnd(for date: Date, latitude: Double, longitude: Double) -> Date? {
+        let calendar = Calendar.current
+        let dayOfYear = self.dayOfYear(from: date)
+        let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
+        
+        guard let hour = timeForElevation(latitude: latitude, solarDeclination: solarDeclination, elevation: -18.0, isRising: false) else {
+            return nil
+        }
+        
+        let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
+        let longitudeCorrection = longitude / 15.0
+        let correctedHour = hour - eqTime - longitudeCorrection
+        
+        let startOfDay = calendar.startOfDay(for: date)
+        return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
+            .addingTimeInterval((correctedHour - Double(Int(correctedHour))) * 3600)
+    }
+    
+    /// Get nautical twilight start time (sun at -12 degrees)
+    func nauticalTwilightStart(for date: Date, latitude: Double, longitude: Double) -> Date? {
+        let calendar = Calendar.current
+        let dayOfYear = self.dayOfYear(from: date)
+        let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
+        
+        guard let hour = timeForElevation(latitude: latitude, solarDeclination: solarDeclination, elevation: -12.0, isRising: true) else {
+            return nil
+        }
+        
+        let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
+        let longitudeCorrection = longitude / 15.0
+        let correctedHour = hour - eqTime - longitudeCorrection
+        
+        let startOfDay = calendar.startOfDay(for: date)
+        return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
+            .addingTimeInterval((correctedHour - Double(Int(correctedHour))) * 3600)
+    }
+    
+    /// Get nautical twilight end time (sun at -12 degrees)
+    func nauticalTwilightEnd(for date: Date, latitude: Double, longitude: Double) -> Date? {
+        let calendar = Calendar.current
+        let dayOfYear = self.dayOfYear(from: date)
+        let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
+        
+        guard let hour = timeForElevation(latitude: latitude, solarDeclination: solarDeclination, elevation: -12.0, isRising: false) else {
+            return nil
+        }
+        
+        let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
+        let longitudeCorrection = longitude / 15.0
+        let correctedHour = hour - eqTime - longitudeCorrection
+        
+        let startOfDay = calendar.startOfDay(for: date)
+        return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
+            .addingTimeInterval((correctedHour - Double(Int(correctedHour))) * 3600)
+    }
+    
+    /// Get civil twilight start time (sun at -6 degrees)
+    func civilTwilightStart(for date: Date, latitude: Double, longitude: Double) -> Date? {
+        let calendar = Calendar.current
+        let dayOfYear = self.dayOfYear(from: date)
+        let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
+        
+        guard let hour = timeForElevation(latitude: latitude, solarDeclination: solarDeclination, elevation: -6.0, isRising: true) else {
+            return nil
+        }
+        
+        let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
+        let longitudeCorrection = longitude / 15.0
+        let correctedHour = hour - eqTime - longitudeCorrection
+        
+        let startOfDay = calendar.startOfDay(for: date)
+        return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
+            .addingTimeInterval((correctedHour - Double(Int(correctedHour))) * 3600)
+    }
+    
+    /// Get civil twilight end time (sun at -6 degrees)
+    func civilTwilightEnd(for date: Date, latitude: Double, longitude: Double) -> Date? {
+        let calendar = Calendar.current
+        let dayOfYear = self.dayOfYear(from: date)
+        let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
+        
+        guard let hour = timeForElevation(latitude: latitude, solarDeclination: solarDeclination, elevation: -6.0, isRising: false) else {
+            return nil
+        }
+        
+        let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
+        let longitudeCorrection = longitude / 15.0
+        let correctedHour = hour - eqTime - longitudeCorrection
+        
+        let startOfDay = calendar.startOfDay(for: date)
+        return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
+            .addingTimeInterval((correctedHour - Double(Int(correctedHour))) * 3600)
+    }
+    
+    /// Calculate duration between two dates in hours
+    func durationInHours(from start: Date, to end: Date) -> Double {
+        return end.timeIntervalSince(start) / 3600.0
+    }
+    
+    /// Format duration as hours and minutes
+    func formatDuration(_ hours: Double) -> String {
+        let totalMinutes = Int(hours * 60)
+        let h = totalMinutes / 60
+        let m = totalMinutes % 60
+        
+        if h > 0 && m > 0 {
+            return "\(h)h \(m)m"
+        } else if h > 0 {
+            return "\(h)h"
+        } else {
+            return "\(m)m"
+        }
     }
 }
