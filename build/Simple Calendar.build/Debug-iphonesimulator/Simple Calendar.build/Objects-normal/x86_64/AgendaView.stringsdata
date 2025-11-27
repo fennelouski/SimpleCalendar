@@ -1,0 +1,48 @@
+{
+  "source": "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/AgendaView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "Today",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "No events",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 250
+        }
+      },
+      {
+        "comment": "",
+        "key": "Today",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 228
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld event%@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 240
+        }
+      }
+    ]
+  },
+  "version": 1
+}

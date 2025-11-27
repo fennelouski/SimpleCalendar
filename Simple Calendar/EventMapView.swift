@@ -19,6 +19,7 @@ struct MapLocation: Identifiable {
 
 struct EventMapView: View {
     let location: String
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var region = MKCoordinateRegion(
         center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194), // Default to San Francisco
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
@@ -84,6 +85,7 @@ struct EventMapView: View {
 struct InteractiveMapView: View {
     let location: String
     let region: MKCoordinateRegion
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
 
     @State private var mapHeight: CGFloat = 0
@@ -189,7 +191,7 @@ struct InteractiveMapView: View {
                 Button(action: { dismiss() }) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.title)
-                        .foregroundColor(.gray)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                 }
             }
             .padding()

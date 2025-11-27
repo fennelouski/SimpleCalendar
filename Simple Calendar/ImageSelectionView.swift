@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ImageSelectionView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.presentationMode) var presentationMode
     @State private var searchQuery = ""
     @State private var searchResults: [ImageMetadata] = []
@@ -46,7 +47,7 @@ struct ImageSelectionView: View {
             // Search bar
             HStack {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
                 TextField("Search for images...", text: $searchQuery)
                     .textFieldStyle(.plain)
                     .onSubmit {
@@ -58,7 +59,7 @@ struct ImageSelectionView: View {
                         searchResults = []
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
                     }
                 }
             }
@@ -75,9 +76,9 @@ struct ImageSelectionView: View {
                 VStack {
                     Image(systemName: "photo")
                         .font(.largeTitle)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                     Text("No images found")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                     Button("Try a different search") {
                         searchQuery = ""
                     }
@@ -88,12 +89,12 @@ struct ImageSelectionView: View {
                 VStack {
                     Image(systemName: "photo.on.rectangle")
                         .font(.largeTitle)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                     Text("Search for images to add to your event")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                         .multilineTextAlignment(.center)
                     Text("Try searching for '\(suggestedSearchTerm)'")
-                        .foregroundColor(.blue)
+                        .foregroundColor(themeManager.currentPalette.primary)
                         .padding(.top, 4)
                         .onTapGesture {
                             searchQuery = suggestedSearchTerm

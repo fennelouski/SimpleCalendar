@@ -6,10 +6,13 @@
 //
 
 import SwiftUI
+#if !os(tvOS)
 import EventKit
+#endif
 
 struct EventTemplateSelector: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.presentationMode) var presentationMode
 
     @State private var selectedCategory: EventTemplate.EventCategory = .work
@@ -39,9 +42,16 @@ struct EventTemplateSelector: View {
 
             VStack {
                 // Date picker
+                #if os(tvOS)
+                // tvOS simplified date selection - uses selected date
+                Text("Event will use the selected date")
+                    .font(.headline)
+                    .padding(.horizontal)
+                #else
                 DatePicker("Event Date & Time", selection: $selectedDate)
                     .datePickerStyle(.graphical)
                     .padding()
+                #endif
 
                 // Category picker
                 Picker("Category", selection: $selectedCategory) {
@@ -67,11 +77,13 @@ struct EventTemplateSelector: View {
                 }
             }
         }
+        #if !os(tvOS)
         .sheet(isPresented: $showEventCreation) {
             if let template = selectedTemplate {
                 EventCreationFromTemplateView(template: template, selectedDate: selectedDate)
             }
         }
+        #endif
     }
 }
 
@@ -82,14 +94,14 @@ struct TemplateCard: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: iconName(for: template.category))
-                    .foregroundColor(.blue)
+                    .foregroundColor(.primary) // Keep as semantic color since it's inside TemplateCard
                     .font(.title2)
 
                 Spacer()
 
                 Text(template.category.rawValue)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.secondary) // Keep as semantic color since it's inside TemplateCard
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(Color.secondary.opacity(0.1))
@@ -162,20 +174,26 @@ struct TemplateCard: View {
     }
 }
 
+#if !os(tvOS)
 struct EventCreationFromTemplateView: View {
     let template: EventTemplate
     let selectedDate: Date
 
     @EnvironmentObject var calendarViewModel: CalendarViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.presentationMode) var presentationMode
 
     @State private var event: CalendarEvent
     @State private var showRecurrencePicker = false
+    #if !os(tvOS)
     @State private var recurrenceRule: EKRecurrenceRule?
+    #endif
     @State private var showReminderPicker = false
     @State private var reminderMinutes = 15
 
+    #if !os(tvOS)
     private let eventStore = EKEventStore()
+    #endif
 
     init(template: EventTemplate, selectedDate: Date) {
         self.template = template
@@ -219,7 +237,7 @@ struct EventCreationFromTemplateView: View {
 
                         if event.notes?.isEmpty ?? true {
                             Text("Notes")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
                                 .padding(.top, 8)
                                 .padding(.leading, 4)
                                 .allowsHitTesting(false)
@@ -227,22 +245,26 @@ struct EventCreationFromTemplateView: View {
                     }
                 }
 
+                #if !os(tvOS)
                 Section {
                     Button(action: { showRecurrencePicker = true }) {
                         HStack {
                             Text("Repeat")
                             Spacer()
                             Text(recurrenceRule?.description ?? "Never")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
                         }
                     }
+                }
+                #endif
 
+                Section {
                     Button(action: { showReminderPicker = true }) {
                         HStack {
                             Text("Reminder")
                             Spacer()
                             Text(reminderText)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
                         }
                     }
                 }
@@ -260,12 +282,16 @@ struct EventCreationFromTemplateView: View {
             }
             .padding()
         }
+        #if !os(tvOS)
         .sheet(isPresented: $showRecurrencePicker) {
             RecurrencePickerView(recurrenceRule: $recurrenceRule)
         }
+        #endif
+        #if !os(tvOS)
         .sheet(isPresented: $showReminderPicker) {
             ReminderPickerView(reminderMinutes: $reminderMinutes)
         }
+        #endif
     }
 
     private var reminderText: String {
@@ -280,6 +306,12 @@ struct EventCreationFromTemplateView: View {
     }
 
     private func saveEvent() {
+        #if os(tvOS)
+        // On tvOS, add the event directly to the viewModel
+        calendarViewModel.events.append(event)
+        calendarViewModel.events.sort { $0.startDate < $1.startDate }
+        presentationMode.wrappedValue.dismiss()
+        #else
         eventStore.requestAccess(to: .event) { granted, error in
             guard granted else { return }
 
@@ -311,5 +343,7 @@ struct EventCreationFromTemplateView: View {
                 }
             }
         }
+        #endif
     }
 }
+#endif

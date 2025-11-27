@@ -70,6 +70,10 @@ class FeatureFlags: ObservableObject {
         didSet { UserDefaults.standard.set(daylightVisualizationDayView, forKey: "feature_daylightVisualizationDayView") }
     }
 
+    @Published var monthlyThemesEnabled: Bool = true {
+        didSet { UserDefaults.standard.set(monthlyThemesEnabled, forKey: "feature_monthlyThemesEnabled") }
+    }
+
     @Published var onThisDayEnabled: Bool = false {
         didSet {
             UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
@@ -189,6 +193,11 @@ class FeatureFlags: ObservableObject {
             daylightVisualizationDayView = true
         }
 
+        monthlyThemesEnabled = UserDefaults.standard.bool(forKey: "feature_monthlyThemesEnabled")
+        if monthlyThemesEnabled == false && UserDefaults.standard.object(forKey: "feature_monthlyThemesEnabled") == nil {
+            monthlyThemesEnabled = false // Default to false to not surprise users
+        }
+
         onThisDayEnabled = getOnThisDayFlag()
         weekendTintingEnabled = getWeekendTintingFlag()
         holidayDisplayEnabled = getHolidayDisplayFlag()
@@ -254,8 +263,9 @@ class FeatureFlags: ObservableObject {
         collaborationFeatures = true
         daylightVisualizationCalendar = true
         daylightVisualizationDayView = true
+        monthlyThemesEnabled = false  // Default to off (opt-in feature)
         onThisDayEnabled = false  // Default to off
-        weekendTintingEnabled = false  // Default to off
+        weekendTintingEnabled = true   // Default to on for all platforms
         holidayDisplayEnabled = true  // Default to on
 
         saveAll()
@@ -280,6 +290,7 @@ class FeatureFlags: ObservableObject {
         UserDefaults.standard.set(collaborationFeatures, forKey: "feature_collaborationFeatures")
         UserDefaults.standard.set(daylightVisualizationCalendar, forKey: "feature_daylightVisualizationCalendar")
         UserDefaults.standard.set(daylightVisualizationDayView, forKey: "feature_daylightVisualizationDayView")
+        UserDefaults.standard.set(monthlyThemesEnabled, forKey: "feature_monthlyThemesEnabled")
         UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
         UserDefaults.standard.set(weekendTintingEnabled, forKey: "feature_weekendTintingEnabled")
         UserDefaults.standard.set(holidayDisplayEnabled, forKey: "feature_holidayDisplayEnabled")

@@ -1,0 +1,30 @@
+{
+  "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/KeyboardShortcuts.swift" : {
+    "const-values" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/KeyboardShortcuts.swiftconstvalues",
+    "dependencies" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/KeyboardShortcuts.d",
+    "diagnostics" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/KeyboardShortcuts.dia",
+    "object" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/KeyboardShortcuts.o",
+    "swift-dependencies" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/KeyboardShortcuts.swiftdeps"
+  },
+  "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/OnThisDayModels.swift" : {
+    "const-values" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/OnThisDayModels.swiftconstvalues",
+    "dependencies" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/OnThisDayModels.d",
+    "diagnostics" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/OnThisDayModels.dia",
+    "object" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/OnThisDayModels.o",
+    "swift-dependencies" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/OnThisDayModels.swiftdeps"
+  },
+  "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/OnThisDayService.swift" : {
+    "const-values" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/OnThisDayService.swiftconstvalues",
+    "dependencies" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/OnThisDayService.d",
+    "diagnostics" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/OnThisDayService.dia",
+    "object" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/OnThisDayService.o",
+    "swift-dependencies" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/OnThisDayService.swiftdeps"
+  },
+  "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/PlatformTypes.swift" : {
+    "const-values" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/PlatformTypes.swiftconstvalues",
+    "dependencies" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/PlatformTypes.d",
+    "diagnostics" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/PlatformTypes.dia",
+    "object" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/PlatformTypes.o",
+    "swift-dependencies" : "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/build/Simple Calendar.build/Debug-iphonesimulator/Simple Calendar.build/Objects-normal/x86_64/PlatformTypes.swiftdeps"
+  }
+}

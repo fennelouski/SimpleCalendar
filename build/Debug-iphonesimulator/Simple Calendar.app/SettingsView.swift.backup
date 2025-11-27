@@ -1,0 +1,1262 @@
+//
+//  SettingsView.swift
+//  Simple Calendar
+//
+//  Created by Nathan Fennel on 11/23/25.
+//
+
+import SwiftUI
+
+struct SettingsView: View {
+    @EnvironmentObject var calendarViewModel: CalendarViewModel
+    @State private var showSettings = false
+
+    var body: some View {
+        EmptyView()
+            .sheet(isPresented: $showSettings) {
+                SettingsContentView(showSettings: $showSettings, googleOAuthManager: calendarViewModel.googleOAuthManager)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .init("ShowSettings"))) { _ in
+                showSettings = true
+            }
+    }
+}
+
+struct SettingsContentView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @EnvironmentObject var uiConfig: UIConfiguration
+    @StateObject private var featureFlags = FeatureFlags.shared
+    @Binding var showSettings: Bool
+    @State private var isGoogleCalendarEnabled = false
+    @ObservedObject var googleOAuthManager: GoogleOAuthManager
+
+    @State private var showColorTheme = false
+    @State private var showTypography = false
+    @State private var showFeatureFlags = false
+    @State private var showMonthlyThemes = false
+
+    var body: some View {
+        #if os(iOS)
+        NavigationView {
+            mainSettingsContent
+                .navigationBarHidden(true)
+        }
+        .sheet(isPresented: $showColorTheme) {
+            ColorThemeSettingsView()
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showTypography) {
+            TypographySettingsView()
+                .environmentObject(uiConfig)
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showFeatureFlags) {
+            FeatureFlagsSettingsView()
+                .environmentObject(featureFlags)
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showMonthlyThemes) {
+            MonthlyThemesSettingsView()
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showAboutTheApp) {
+            AboutTheAppView()
+        }
+        #else
+        // On macOS, use sheets for all sub-views since NavigationView doesn't work well
+        mainSettingsContent
+        .sheet(isPresented: $showColorTheme) {
+            ColorThemeSettingsView()
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showTypography) {
+            TypographySettingsView()
+                .environmentObject(uiConfig)
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showFeatureFlags) {
+            FeatureFlagsSettingsView()
+                .environmentObject(featureFlags)
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showMonthlyThemes) {
+            MonthlyThemesSettingsView()
+                .environmentObject(themeManager)
+        }
+        .sheet(isPresented: $showAboutTheApp) {
+            AboutTheAppView()
+        }
+        #endif
+        }
+
+    private var settingsSections: some View {
+        VStack(spacing: 16) {
+            // Calendar Integration
+            StickySettingsSection(title: "Calendar Integration") {
+                VStack(spacing: 12) {
+                    SettingsRowWithInfo(
+                        title: "System Calendar",
+                        subtitle: "Sync with macOS Calendar",
+                        infoText: "Automatically sync events from your system's built-in calendar. This ensures all your appointments, meetings, and reminders appear in the calendar view.",
+                        trailingContent: AnyView(
+                            Toggle("", isOn: .constant(true))
+                                .disabled(true)
+                                .labelsHidden()
+                        )
+                    )
+
+                    SettingsRowWithInfo(
+                        title: "Google Calendar",
+                        subtitle: googleOAuthManager.isAuthenticated ?
+                            "Signed in as \(googleOAuthManager.userEmail ?? "Unknown")" :
+                            "Connect your Google Calendar",
+                        infoText: "Connect your Google Calendar to sync events from Google. This allows you to see your Google appointments alongside your system calendar events.",
+                        trailingContent: AnyView(
+                            Toggle("", isOn: $isGoogleCalendarEnabled)
+                                .labelsHidden()
+                        )
+                    )
+
+                    if isGoogleCalendarEnabled {
+                        if !googleOAuthManager.isAuthenticated {
+                            Button("Sign in to Google") {
+                                googleOAuthManager.signIn()
+                            }
+                            .foregroundColor(.blue)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(8)
+                        } else {
+                            Button("Sign out") {
+                                googleOAuthManager.signOut()
+                            }
+                            .foregroundColor(.red)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(8)
+                        }
+                    }
+                }
+            }
+
+            // Appearance
+            StickySettingsSection(title: "Appearance") {
+                VStack(spacing: 12) {
+                    Button(action: {
+                        showColorTheme = true
+                    }) {
+                        SettingsRowWithInfo(
+                            title: "Color Theme",
+                            subtitle: themeManager.currentPalette.name,
+                            infoText: "Choose from different color themes to customize the look and feel of the calendar. Each theme includes coordinated colors for backgrounds, text, and UI elements.",
+                            trailingContent: AnyView(
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                            )
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        showTypography = true
+                    }) {
+                        SettingsRowWithInfo(
+                            title: "Typography & Fonts",
+                            subtitle: "Customize text sizes and fonts",
+                            infoText: "Adjust font sizes for better readability and choose custom fonts for each month of the year. This helps personalize the calendar's appearance.",
+                            trailingContent: AnyView(
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                            )
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // Features
+            StickySettingsSection(title: "Features") {
+                VStack(spacing: 12) {
+                    Button(action: {
+                        showFeatureFlags = true
+                    }) {
+                        SettingsRowWithInfo(
+                            title: "Experimental Features",
+                            subtitle: "Enable advanced calendar features",
+                            infoText: "Access experimental features like daylight visualization, weekend tinting, and other advanced calendar display options.",
+                            trailingContent: AnyView(
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                            )
+                        )
+                    }
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        showMonthlyThemes = true
+                    }) {
+                        SettingsRowWithInfo(
+                            title: "Monthly Themes",
+                            subtitle: "Customize appearance per month",
+                            infoText: "Assign different color themes and fonts to each month of the year, creating a unique look for every month.",
+                            trailingContent: AnyView(
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                            )
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+
+            // About
+            StickySettingsSection(title: "About") {
+                VStack(spacing: 12) {
+                    SettingsRow(
+                        title: "Version",
+                        subtitle: "Simple Calendar 1.0.0",
+                        trailingContent: AnyView(EmptyView())
+                    )
+
+                    Button(action: {
+                        showAboutTheApp = true
+                    }) {
+                        SettingsRowWithInfo(
+                            title: "About the App",
+                            subtitle: "Why I built this calendar",
+                            infoText: "Learn about the story behind Simple Calendar and why it was created to help teach kids about calendars and time measurement.",
+                            trailingContent: AnyView(
+                                Image(systemName: "chevron.right")
+                                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                            )
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    @State private var showAboutTheApp = false
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+
+    private var mainSettingsContent: some View {
+        ZStack {
+            // Background color using theme
+            themeManager.currentPalette.calendarBackground
+                .ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Sticky Header
+                VStack(spacing: 0) {
+                    HStack {
+                        Text("Settings")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                        Spacer()
+                        Button("Done") {
+                            showSettings = false
+                        }
+                        .foregroundColor(themeManager.currentPalette.primary)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+                    .padding(.bottom, 8)
+                    .background(themeManager.currentPalette.calendarSurface.opacity(0.95))
+                }
+
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // Settings Sections
+                        settingsSections
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                }
+            }
+        }
+
+}
+
+// MARK: - Helper Views
+
+struct SettingsSection<Content: View>: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    let title: String
+    let content: Content
+
+    init(title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .foregroundColor(themeManager.currentPalette.textPrimary)
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+
+            VStack(alignment: .leading, spacing: 12) {
+                content
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
+        }
+        .background(themeManager.currentPalette.surface.opacity(0.6))
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(themeManager.currentPalette.border.opacity(0.3), lineWidth: 0.5)
+        )
+    }
+}
+
+struct SettingsRow: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    let title: String
+    let subtitle: String?
+    let showChevron: Bool
+    let trailingContent: AnyView?
+
+    init(title: String, subtitle: String? = nil, showChevron: Bool = false, trailingContent: AnyView? = nil) {
+        self.title = title
+        self.subtitle = subtitle
+        self.showChevron = showChevron
+        self.trailingContent = trailingContent
+    }
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.body)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                        .lineLimit(1)
+                }
+            }
+            Spacer(minLength: 8)
+
+            if let trailingContent = trailingContent {
+                trailingContent
+            }
+
+            if showChevron {
+                Image(systemName: "chevron.right")
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                    .font(.body)
+            }
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 4)
+        .contentShape(Rectangle())
+    }
+}
+
+// MARK: - Sub-Settings Views
+
+struct ColorThemeSettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.colorScheme) var colorScheme
+
+    private func themePalette(_ theme: ColorTheme) -> ColorPalette {
+        theme.palette(for: colorScheme)
+    }
+
+    private func currentPalette() -> ColorPalette {
+        themeManager.currentPalette
+    }
+
+    private func strokeColor(for theme: ColorTheme) -> Color {
+        if themeManager.currentTheme == theme {
+            return themePalette(theme).primary
+        } else {
+            return currentPalette().border.opacity(0.3)
+        }
+    }
+
+    private func strokeWidth(for theme: ColorTheme) -> CGFloat {
+        if themeManager.currentTheme == theme {
+            return 2
+        } else {
+            return 0.5
+        }
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Header
+                HStack {
+                    Text("Color Theme")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(currentPalette().textPrimary)
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top)
+
+                // Theme Selection
+                VStack(spacing: 16) {
+                    ForEach(ColorTheme.allCases) { theme in
+                        Button(action: {
+                            themeManager.currentTheme = theme
+                        }) {
+                            HStack(spacing: 16) {
+                                // Theme Icon
+                                Image(systemName: themePalette(theme).icon)
+                                    .foregroundColor(themePalette(theme).primary)
+                                    .frame(width: 24, height: 24)
+
+                                // Theme Info
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(themePalette(theme).name)
+                                        .font(.headline)
+                                        .foregroundColor(currentPalette().textPrimary)
+
+                                    // Color Preview
+                                    HStack(spacing: 6) {
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette(theme).primary)
+                                            .frame(width: 14, height: 14)
+
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette(theme).secondary)
+                                            .frame(width: 14, height: 14)
+
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette(theme).accent)
+                                            .frame(width: 14, height: 14)
+
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette(theme).background)
+                                            .frame(width: 14, height: 14)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 3)
+                                                    .stroke(themePalette(theme).border, lineWidth: 0.5)
+                                            )
+                                    }
+                                }
+
+                                Spacer()
+
+                                // Selection Indicator
+                                if themeManager.currentTheme == theme {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(themePalette(theme).primary)
+                                        .font(.title3)
+                                }
+                            }
+                            .padding(16)
+                            .background(currentPalette().surface.opacity(0.6))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(strokeColor(for: theme), lineWidth: strokeWidth(for: theme))
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .padding(.bottom, 20)
+        }
+    }
+}
+
+struct TypographySettingsView: View {
+    @EnvironmentObject var uiConfig: UIConfiguration
+    @EnvironmentObject var themeManager: ThemeManager
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Header
+                HStack {
+                    Text("Typography")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top)
+
+                // Font Size Controls
+                VStack(spacing: 16) {
+                    SettingsSection(title: "Font Size") {
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack {
+                                Text("Size")
+                                Spacer()
+                                Button(action: {
+                                    uiConfig.decreaseFontSize()
+                                }) {
+                                    Image(systemName: "minus.circle")
+                                        .foregroundColor(uiConfig.fontSizeCategory == .extraSmall ? .gray : .blue)
+                                }
+                                .disabled(uiConfig.fontSizeCategory == .extraSmall)
+
+                                Text(uiConfig.fontSizeCategory.displayName)
+                                    .frame(minWidth: 80)
+                                    .multilineTextAlignment(.center)
+
+                                Button(action: {
+                                    uiConfig.increaseFontSize()
+                                }) {
+                                    Image(systemName: "plus.circle")
+                                        .foregroundColor(uiConfig.fontSizeCategory == .extraLarge ? .gray : .blue)
+                                }
+                                .disabled(uiConfig.fontSizeCategory == .extraLarge)
+                            }
+                            .padding(.vertical, 4)
+
+                            // Font size preview
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text("Preview")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Month Name")
+                                        .font(uiConfig.monthTitleFont)
+                                    Text("January 2025")
+                                        .font(uiConfig.yearTitleFont)
+                                    Text("Day numbers and event details")
+                                        .font(uiConfig.eventDetailFont)
+                                }
+                                .padding(12)
+                                .background(Color.gray.opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .padding(.bottom, 20)
+        }
+    }
+}
+
+struct FeatureFlagsSettingsView: View {
+    @EnvironmentObject var featureFlags: FeatureFlags
+    @EnvironmentObject var themeManager: ThemeManager
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Header
+                HStack {
+                    Text("Experimental Features")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Spacer()
+                }
+                .padding(.horizontal)
+                .padding(.top)
+
+                // Feature Toggles
+                VStack(spacing: 16) {
+                    // Available Features
+                    SettingsSection(title: "Available Features") {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Toggle("Advanced Views", isOn: $featureFlags.advancedViews)
+                                .help("Agenda view, event templates, and advanced calendar layouts")
+
+                            Toggle("Image Integration", isOn: $featureFlags.imageIntegration)
+                                .help("Beautiful images from Unsplash for events")
+
+                            Toggle("Google Calendar", isOn: $featureFlags.googleCalendarIntegration)
+                                .help("Sync with your Google Calendar account")
+
+                            Toggle("Color Themes", isOn: $featureFlags.colorThemes)
+                                .help("Choose from multiple beautiful color palettes")
+
+                            Toggle("Font Customization", isOn: $featureFlags.fontSizeCustomization)
+                                .help("Adjust font sizes for better readability")
+
+                            Toggle("Event Export", isOn: $featureFlags.eventExport)
+                                .help("Export events to other calendar applications")
+
+                            Toggle("Map Integration", isOn: $featureFlags.mapIntegration)
+                                .help("View event locations on interactive maps")
+
+                            Toggle("Keyboard Shortcuts", isOn: $featureFlags.advancedKeyboardShortcuts)
+                                .help("Full keyboard navigation and shortcuts")
+
+                            Toggle("Event Reminders", isOn: $featureFlags.eventReminders)
+                                .help("Get notified about upcoming events")
+
+                            Toggle("Recurring Events", isOn: $featureFlags.recurringEvents)
+                                .help("Create events that repeat daily, weekly, or monthly")
+
+                            Toggle("Event Templates", isOn: $featureFlags.eventTemplates)
+                                .help("Quick event creation with predefined templates")
+
+                            Toggle("Calendar Daylight Visualization", isOn: $featureFlags.daylightVisualizationCalendar)
+                                .help("Show daylight cycles on calendar day squares")
+
+                            Toggle("Day View Daylight Visualization", isOn: $featureFlags.daylightVisualizationDayView)
+                                .help("Show daylight cycles in day detail view with time markers")
+
+                            Toggle("On This Day", isOn: $featureFlags.onThisDayEnabled)
+                                .help("Show historical events, holidays, and observances for each day")
+
+                            Toggle("Weekend Tinting", isOn: $featureFlags.weekendTintingEnabled)
+                                .help("Apply subtle background tinting to weekend days")
+                        }
+                    }
+
+                    // Planned Features
+                    SettingsSection(title: "Planned Features") {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Toggle("Weather Integration", isOn: $featureFlags.weatherIntegration)
+                                .help("Weather forecasts for outdoor events")
+
+                            Toggle("Calendar Sharing", isOn: $featureFlags.calendarSharing)
+                                .help("Share calendars with family and friends")
+
+                            Toggle("Natural Language", isOn: $featureFlags.naturalLanguageEvents)
+                                .help("Create events using plain English")
+
+                            Toggle("AI Suggestions", isOn: $featureFlags.aiEventSuggestions)
+                                .help("Smart event suggestions based on your habits")
+
+                            Toggle("Collaboration", isOn: $featureFlags.collaborationFeatures)
+                                .help("Collaborate on events with others")
+                        }
+                    }
+
+                    // Reset Button
+                    VStack(spacing: 16) {
+                        Divider()
+
+                        Button(action: {
+                            featureFlags.resetToDefaults()
+                        }) {
+                            Text("Reset to Defaults")
+                                .foregroundColor(.blue)
+                        }
+                        .buttonStyle(.plain)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding(.vertical, 8)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .padding(.bottom, 20)
+        }
+    }
+}
+
+// MARK: - Monthly Themes Settings View
+struct MonthlyThemesSettingsView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+    @Environment(\.dismiss) var dismiss // For iOS dismissal
+    @State private var showSettings: Bool = false // For macOS sheet dismissal
+
+    private let months = [
+        (1, "January"), (2, "February"), (3, "March"), (4, "April"),
+        (5, "May"), (6, "June"), (7, "July"), (8, "August"),
+        (9, "September"), (10, "October"), (11, "November"), (12, "December")
+    ]
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                #if os(macOS)
+                // Header for macOS sheet
+                HStack {
+                    Text("Monthly Themes")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Spacer()
+                    Button("Done") {
+                        showSettings = false
+                    }
+                    .foregroundColor(themeManager.currentPalette.primary)
+                }
+                .padding(.horizontal)
+                .padding(.top)
+                #else
+                // iOS uses NavigationView title
+                Text("Monthly Themes")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .padding(.top)
+                #endif
+
+                VStack(spacing: 16) {
+                    ForEach(months, id: \.0) { (monthNumber, monthName) in
+                        MonthThemeRow(monthNumber: monthNumber, monthName: monthName)
+                    }
+                }
+                .padding(.horizontal)
+
+                // Reset button
+                Button(action: {
+                    monthlyThemeManager.resetToDefaults()
+                }) {
+                    Text("Reset All to Defaults")
+                        .foregroundColor(themeManager.currentPalette.primary)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .background(themeManager.currentPalette.surface.opacity(0.8))
+                        .cornerRadius(8)
+                }
+                .padding(.top, 8)
+
+                Spacer()
+            }
+        }
+        .background(themeManager.currentPalette.calendarBackground)
+        #if os(iOS)
+        .navigationTitle("Monthly Themes")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Done") {
+                    dismiss()
+                }
+            }
+        }
+        #else
+        .frame(minWidth: 500, minHeight: 600)
+        #endif
+    }
+}
+
+struct MonthThemeRow: View {
+    let monthNumber: Int
+    let monthName: String
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+
+    @State private var showThemePicker = false
+    @State private var showFontPicker = false
+
+    private var currentTheme: ColorTheme {
+        monthlyThemeManager.theme(for: monthNumber)
+    }
+
+    private var currentFont: String {
+        monthlyThemeManager.font(for: monthNumber)
+    }
+
+    var body: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Text(monthName)
+                    .font(.headline)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                Spacer()
+            }
+
+            HStack(spacing: 12) {
+                // Theme Button
+                Button(action: {
+                    showThemePicker = true
+                }) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Theme")
+                            .font(.caption)
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+
+                        HStack(spacing: 8) {
+                            Image(systemName: currentTheme.palette(for: themeManager.currentColorScheme).icon)
+                                .foregroundColor(currentTheme.palette(for: themeManager.currentColorScheme).primary)
+                                .frame(width: 20, height: 20)
+
+                            Text(currentTheme.palette(for: themeManager.currentColorScheme).name)
+                                .font(.subheadline)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                                .font(.caption)
+                        }
+                        .padding(8)
+                        .background(themeManager.currentPalette.surface.opacity(0.6))
+                        .cornerRadius(8)
+                    }
+                }
+                .buttonStyle(.plain)
+
+                // Font Button
+                Button(action: {
+                    showFontPicker = true
+                }) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Font")
+                            .font(.caption)
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+
+                        HStack(spacing: 8) {
+                            Text("Aa")
+                                .font(.custom(currentFont, size: 16))
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                            Text(currentFont)
+                                .font(.subheadline)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                            Spacer()
+
+                            Image(systemName: "chevron.right")
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                                .font(.caption)
+                        }
+                        .padding(8)
+                        .background(themeManager.currentPalette.surface.opacity(0.6))
+                        .cornerRadius(8)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(12)
+        .background(themeManager.currentPalette.surface.opacity(0.3))
+        .cornerRadius(12)
+        .sheet(isPresented: $showThemePicker) {
+            ThemePickerView(monthNumber: monthNumber, monthName: monthName, currentTheme: currentTheme)
+        }
+        .sheet(isPresented: $showFontPicker) {
+            FontPickerView(monthNumber: monthNumber, monthName: monthName, currentFont: currentFont)
+        }
+    }
+}
+
+struct ThemePickerView: View {
+    let monthNumber: Int
+    let monthName: String
+    let currentTheme: ColorTheme
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        #if os(iOS)
+        NavigationView {
+            pickerContent
+                .navigationBarItems(trailing: Button("Cancel") { dismiss() })
+        }
+        #else
+        VStack(spacing: 0) {
+            // macOS header
+            HStack {
+                Text("Choose Theme for \(monthName)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                Spacer()
+                Button("Cancel") {
+                    dismiss()
+                }
+                .foregroundColor(themeManager.currentPalette.primary)
+            }
+            .padding(.horizontal)
+            .padding(.top)
+            .padding(.bottom, 8)
+            .background(themeManager.currentPalette.calendarBackground)
+
+            pickerContent
+        }
+        .background(themeManager.currentPalette.calendarBackground)
+        #endif
+    }
+
+    private var pickerContent: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                #if os(iOS)
+                Text("Choose Theme for \(monthName)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .padding(.top)
+                #endif
+
+                VStack(spacing: 16) {
+                    ForEach(ColorTheme.allCases.filter { $0 != .system }, id: \.self) { theme in
+                        let themePalette = theme.palette(for: themeManager.currentColorScheme)
+
+                        Button(action: {
+                            monthlyThemeManager.setTheme(theme, for: monthNumber)
+                            dismiss()
+                        }) {
+                            HStack(spacing: 16) {
+                                Image(systemName: themePalette.icon)
+                                    .foregroundColor(themePalette.primary)
+                                    .frame(width: 24, height: 24)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(themePalette.name)
+                                        .font(.headline)
+                                        .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                                    HStack(spacing: 6) {
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette.primary)
+                                            .frame(width: 14, height: 14)
+
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette.secondary)
+                                            .frame(width: 14, height: 14)
+
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette.accent)
+                                            .frame(width: 14, height: 14)
+
+                                        RoundedRectangle(cornerRadius: 3)
+                                            .fill(themePalette.background)
+                                            .frame(width: 14, height: 14)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 3)
+                                                    .stroke(themePalette.border, lineWidth: 0.5)
+                                            )
+                                    }
+                                }
+
+                                Spacer()
+
+                                if theme == currentTheme {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(themePalette.primary)
+                                        .font(.title3)
+                                }
+                            }
+                            .padding(16)
+                            .background(themeManager.currentPalette.surface.opacity(0.6))
+                            .cornerRadius(12)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+            }
+        }
+        .background(themeManager.currentPalette.calendarBackground)
+    }
+}
+
+struct FontPickerView: View {
+    let monthNumber: Int
+    let monthName: String
+    let currentFont: String
+
+    @EnvironmentObject var themeManager: ThemeManager
+    @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        #if os(iOS)
+        NavigationView {
+            pickerContent
+                .navigationBarItems(trailing: Button("Cancel") { dismiss() })
+        }
+        #else
+        VStack(spacing: 0) {
+            // macOS header
+            HStack {
+                Text("Choose Font for \(monthName)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                Spacer()
+                Button("Cancel") {
+                    dismiss()
+                }
+                .foregroundColor(themeManager.currentPalette.primary)
+            }
+            .padding(.horizontal)
+            .padding(.top)
+            .padding(.bottom, 8)
+            .background(themeManager.currentPalette.calendarBackground)
+
+            pickerContent
+        }
+        .background(themeManager.currentPalette.calendarBackground)
+        #endif
+    }
+
+    private var pickerContent: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                #if os(iOS)
+                Text("Choose Font for \(monthName)")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .padding(.top)
+                #endif
+
+                VStack(spacing: 16) {
+                    ForEach(MonthlyThemeManager.availableFonts, id: \.self) { fontName in
+                        Button(action: {
+                            monthlyThemeManager.setFont(fontName, for: monthNumber)
+                            dismiss()
+                        }) {
+                            HStack(spacing: 16) {
+                                Text("AaBbCc")
+                                    .font(.custom(fontName, size: 20))
+                                    .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(fontName)
+                                        .font(.headline)
+                                        .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                                    Text("The quick brown fox jumps over the lazy dog")
+                                        .font(.custom(fontName, size: 14))
+                                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                                        .lineLimit(1)
+                                }
+
+                                Spacer()
+
+                                if fontName == currentFont {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(themeManager.currentPalette.primary)
+                                        .font(.title3)
+                                }
+                            }
+                            .padding(16)
+                            .background(themeManager.currentPalette.surface.opacity(0.6))
+                            .cornerRadius(12)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.bottom, 20)
+            }
+        }
+        .background(themeManager.currentPalette.calendarBackground)
+    }
+}
+
+// MARK: - Sticky Settings Section
+struct StickySettingsSection<Content: View>: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    let title: String
+    let content: Content
+
+    init(title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(title)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(themeManager.currentPalette.textPrimary)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(themeManager.currentPalette.calendarSurface.opacity(0.95))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            VStack(spacing: 0) {
+                content
+            }
+            .background(themeManager.currentPalette.surface.opacity(0.5))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(themeManager.currentPalette.surface.opacity(0.3), lineWidth: 1)
+            )
+            .padding(.horizontal, 16)
+        }
+    }
+}
+
+// MARK: - Settings Row with Info Button
+struct SettingsRowWithInfo: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    let title: String
+    let subtitle: String?
+    let infoText: String
+    let trailingContent: AnyView
+
+    @State private var showInfo = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .lineLimit(nil) // Allow text to wrap
+
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                        .lineLimit(nil) // Allow text to wrap
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            // Info button
+            Button(action: {
+                showInfo = true
+            }) {
+                Image(systemName: "info.circle")
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                    .font(.system(size: 16))
+            }
+            .popover(isPresented: $showInfo) {
+                Text(infoText)
+                    .font(.body)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .padding()
+                    .frame(maxWidth: 250)
+                    .background(themeManager.currentPalette.surface)
+                    .cornerRadius(8)
+                    .shadow(radius: 8)
+            }
+
+            trailingContent
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .contentShape(Rectangle())
+    }
+}
+
+// MARK: - About The App View
+struct AboutTheAppView: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    // Header
+                    VStack(alignment: .center, spacing: 16) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 60))
+                            .foregroundColor(themeManager.currentPalette.primary)
+
+                        Text("About Simple Calendar")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                            .multilineTextAlignment(.center)
+
+                        Text("A calendar app built with love for learning")
+                            .font(.subheadline)
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    // Story
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Why I Built This App")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .foregroundColor(themeManager.currentPalette.textPrimary)
+
+                        Text("""
+                        As a father, I've always believed that understanding time and calendars is one of the most important skills we can teach our children. Yet, I found that most calendar apps were designed for productivity rather than education.
+
+                        That's why I created Simple Calendar - not as just another calendar app, but as a teaching tool specifically designed to help kids understand how we measure time, organize our lives, and make sense of the world around us.
+
+                        Every feature in this app was designed with learning in mind:
+                        """)
+                        .font(.body)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                        .lineLimit(nil)
+
+                        VStack(alignment: .leading, spacing: 12) {
+                            BulletPoint("Visual calendar layouts help children see the structure of time")
+                            BulletPoint("Color themes teach about organization and categorization")
+                            BulletPoint("Daylight visualization shows how the Earth rotates and orbits the sun")
+                            BulletPoint("Monthly themes connect calendar dates with seasons and holidays")
+                            BulletPoint("Swipe gestures make navigation intuitive and fun")
+                        }
+
+                        Text("""
+                        My hope is that through using this app, children will not only learn to manage their time effectively, but also develop a deeper appreciation for the beautiful systems we use to organize our lives.
+
+                        Thank you for being part of this learning journey! 🌟
+                        """)
+                        .font(.body)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                        .lineLimit(nil)
+                    }
+
+                    // Version info
+                    VStack(alignment: .center, spacing: 8) {
+                        Text("Simple Calendar v1.0.0")
+                            .font(.caption)
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+
+                        Text("Built with ❤️ for curious minds")
+                            .font(.caption)
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .padding(.horizontal, 24)
+                .padding(.vertical, 24)
+            }
+            .background(themeManager.currentPalette.calendarBackground.ignoresSafeArea())
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(trailing: Button("Done") {
+                dismiss()
+            })
+        }
+        .navigationViewStyle(.stack)
+    }
+}
+
+// MARK: - Bullet Point Helper
+struct BulletPoint: View {
+    @EnvironmentObject var themeManager: ThemeManager
+    let text: String
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text("•")
+                .font(.body)
+                .foregroundColor(themeManager.currentPalette.primary)
+
+            Text(text)
+                .font(.body)
+                .foregroundColor(themeManager.currentPalette.textPrimary)
+                .lineLimit(nil)
+        }
+    }
+}
+
+// Extension to add settings notification
+// extension Notification.Name {
+//     static let ShowSettings = Notification.Name("ShowSettings")
+// }
+

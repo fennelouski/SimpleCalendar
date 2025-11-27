@@ -39,8 +39,7 @@ struct ContentView: View {
                                     .animation(.easeInOut(duration: 0.3), value: selectedDate)
                             }
                         }
-                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: calendarViewModel.showDayDetail),
-                        alignment: .trailing
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: calendarViewModel.showDayDetail)
                     )
                     .overlay(searchOverlay, alignment: .center)
                     .overlay(keyCommandsOverlay, alignment: .center)
@@ -53,8 +52,7 @@ struct ContentView: View {
                                     .animation(.easeInOut(duration: 0.3), value: selectedDate)
                             }
                         }
-                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: calendarViewModel.showDayDetail),
-                        alignment: .trailing
+                        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: calendarViewModel.showDayDetail)
                     )
                     .overlay(searchOverlay, alignment: .center)
                     .overlay(keyCommandsOverlay, alignment: .center)
@@ -1202,6 +1200,7 @@ struct DayDetailView: View {
                             .foregroundColor(themeManager.currentPalette.textSecondary)
                         Text(date.formatted(.dateTime.month(.wide).day().year()))
                             .font(uiConfig.scaledFont(28, weight: .bold))
+                            .foregroundColor(themeManager.currentPalette.textPrimary)
                     }
                     Spacer()
                     #if !os(tvOS)
@@ -1306,7 +1305,7 @@ struct DayDetailView: View {
 
                     // Astronomical Information section (tvOS only)
                     #if os(tvOS)
-                    AstronomicalInfoSection(date: date)
+                    AstronomicalInfoSection(date: date, eventCount: dayEvents.count + holidaysOnThisDay.count)
                     #endif
 
                     // On This Day section
@@ -1373,7 +1372,7 @@ struct OnThisDaySection: View {
                     .padding(.vertical, 20)
             } else if error != nil {
                 Text("Unable to load historical data")
-                    .foregroundColor(.red)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
                     .font(uiConfig.eventDetailFont)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, 20)
@@ -1467,6 +1466,7 @@ struct OnThisDayCategoryView: View {
 #if os(tvOS)
 struct AstronomicalInfoSection: View {
     let date: Date
+    let eventCount: Int
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
     
@@ -1482,17 +1482,42 @@ struct AstronomicalInfoSection: View {
     }
     
     var body: some View {
-        if let data = astronomicalData {
-            VStack(alignment: .leading, spacing: 24) {
-                // Section Title
-                Text("Astronomical Information")
-                    .font(.system(size: 42, weight: .bold))
-                    .foregroundColor(themeManager.currentPalette.textPrimary)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.bottom, 8)
-                
-                // Sunrise and Sunset
-                VStack(spacing: 20) {
+        Group {
+            // Don't show if 2+ events
+            if eventCount >= 2 {
+                EmptyView()
+            } else if let data = astronomicalData {
+                // If 1 event, only show sunrise/sunset
+                if eventCount == 1 {
+                    VStack(alignment: .leading, spacing: 16) {
+                        // Sunrise and Sunset (side by side)
+                        HStack(spacing: 16) {
+                            AstronomicalInfoRow(
+                                icon: "sunrise.fill",
+                                title: "Sunrise",
+                                time: data.sunrise,
+                                color: .orange
+                            )
+                            
+                            AstronomicalInfoRow(
+                                icon: "sunset.fill",
+                                title: "Sunset",
+                                time: data.sunset,
+                                color: .orange
+                            )
+                        }
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 16)
+                        .background(themeManager.currentPalette.surface.opacity(0.7))
+                        .cornerRadius(12)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
+                } else if eventCount == 0 {
+                    // If 0 events, show full information including Daily Progression
+                    VStack(alignment: .leading, spacing: 16) {
+                // Sunrise and Sunset (side by side)
+                HStack(spacing: 16) {
                     AstronomicalInfoRow(
                         icon: "sunrise.fill",
                         title: "Sunrise",
@@ -1507,87 +1532,138 @@ struct AstronomicalInfoSection: View {
                         color: .orange
                     )
                 }
-                .padding(.vertical, 16)
-                .padding(.horizontal, 20)
+                .padding(.vertical, 12)
+                .padding(.horizontal, 16)
                 .background(themeManager.currentPalette.surface.opacity(0.7))
-                .cornerRadius(16)
+                .cornerRadius(12)
                 
-                // Daylight Duration
-                VStack(spacing: 12) {
-                    HStack {
-                        Image(systemName: "sun.max.fill")
-                            .font(.system(size: 32))
-                            .foregroundColor(.yellow)
-                        Text("Daylight Duration")
-                            .font(.system(size: 32, weight: .semibold))
-                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                // Daylight and Night Duration (side by side)
+                HStack(spacing: 16) {
+                    // Daylight Duration
+                    VStack(spacing: 8) {
+                        HStack {
+                            Image(systemName: "sun.max.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.yellow)
+                            Text("Daylight")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+                        }
+                        Text(data.daylightDuration)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(themeManager.currentPalette.accent)
                     }
-                    Text(data.daylightDuration)
-                        .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(themeManager.currentPalette.accent)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(themeManager.currentPalette.surface.opacity(0.7))
+                    .cornerRadius(12)
+                    
+                    // Night Duration
+                    VStack(spacing: 8) {
+                        HStack {
+                            Image(systemName: "moon.stars.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(.indigo)
+                            Text("Night")
+                                .font(.system(size: 20, weight: .semibold))
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
+                        }
+                        Text(data.nightDuration)
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundColor(themeManager.currentPalette.accent)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(themeManager.currentPalette.surface.opacity(0.7))
+                    .cornerRadius(12)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .background(themeManager.currentPalette.surface.opacity(0.7))
-                .cornerRadius(16)
                 
-                // Twilight Times
-                VStack(alignment: .leading, spacing: 16) {
-                    Text("Twilight Times")
-                        .font(.system(size: 32, weight: .bold))
+                // Daily Progression - Only shown when eventCount == 0 (we're already in that block)
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Daily Progression")
+                        .font(.system(size: 24, weight: .bold))
                         .foregroundColor(themeManager.currentPalette.textPrimary)
                         .frame(maxWidth: .infinity, alignment: .center)
-                    
-                    // Astronomical Twilight
-                    TwilightInfoGroup(
-                        title: "Astronomical Twilight",
-                        startTime: data.astronomicalTwilightStart,
-                        endTime: data.astronomicalTwilightEnd,
-                        color: .purple
-                    )
-                    
-                    // Nautical Twilight
-                    TwilightInfoGroup(
-                        title: "Nautical Twilight",
-                        startTime: data.nauticalTwilightStart,
-                        endTime: data.nauticalTwilightEnd,
-                        color: .blue
-                    )
-                    
-                    // Civil Twilight
-                    TwilightInfoGroup(
-                        title: "Civil Twilight",
-                        startTime: data.civilTwilightStart,
-                        endTime: data.civilTwilightEnd,
-                        color: .cyan
-                    )
+                        .padding(.bottom, 4)
+                        
+                        // Morning progression: Astronomical -> Nautical -> Civil -> Sunrise
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Morning")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                                .padding(.bottom, 2)
+                            
+                            TwilightTransitionRow(
+                                label: "Astronomical Twilight Begins",
+                                time: data.astronomicalTwilightStart,
+                                color: .purple
+                            )
+                            
+                            TwilightTransitionRow(
+                                label: "Nautical Twilight Begins",
+                                time: data.nauticalTwilightStart,
+                                color: .blue
+                            )
+                            
+                            TwilightTransitionRow(
+                                label: "Civil Twilight Begins",
+                                time: data.civilTwilightStart,
+                                color: .cyan
+                            )
+                            
+                            TwilightTransitionRow(
+                                label: "Sunrise",
+                                time: data.sunrise,
+                                color: .orange
+                            )
+                        }
+                        
+                        Divider()
+                            .padding(.vertical, 8)
+                        
+                        // Evening progression: Sunset -> Civil -> Nautical -> Astronomical
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Evening")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                                .padding(.bottom, 2)
+                            
+                            TwilightTransitionRow(
+                                label: "Sunset",
+                                time: data.sunset,
+                                color: .orange
+                            )
+                            
+                            TwilightTransitionRow(
+                                label: "Civil Twilight Ends",
+                                time: data.civilTwilightEnd,
+                                color: .cyan
+                            )
+                            
+                            TwilightTransitionRow(
+                                label: "Nautical Twilight Ends",
+                                time: data.nauticalTwilightEnd,
+                                color: .blue
+                            )
+                            
+                            TwilightTransitionRow(
+                                label: "Astronomical Twilight Ends",
+                                time: data.astronomicalTwilightEnd,
+                                color: .purple
+                            )
+                        }
                 }
-                .padding(.vertical, 20)
-                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .padding(.horizontal, 16)
                 .background(themeManager.currentPalette.surface.opacity(0.7))
-                .cornerRadius(16)
-                
-                // Night Duration
-                VStack(spacing: 12) {
-                    HStack {
-                        Image(systemName: "moon.stars.fill")
-                            .font(.system(size: 32))
-                            .foregroundColor(.indigo)
-                        Text("Night Duration")
-                            .font(.system(size: 32, weight: .semibold))
-                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                .cornerRadius(12)
                     }
-                    Text(data.nightDuration)
-                        .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(themeManager.currentPalette.accent)
+                    .padding(.horizontal)
+                    .padding(.vertical, 8)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 20)
-                .background(themeManager.currentPalette.surface.opacity(0.7))
-                .cornerRadius(16)
+            } else {
+                EmptyView()
             }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
         }
     }
     
@@ -1620,6 +1696,7 @@ struct AstronomicalInfoSection: View {
         
         let formatter = DateFormatter()
         formatter.timeStyle = .short
+        formatter.timeZone = TimeZone.current
         
         return AstronomicalData(
             sunrise: formatter.string(from: sunrise),
@@ -1658,18 +1735,18 @@ struct AstronomicalInfoRow: View {
     @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: 16) {
             Image(systemName: icon)
-                .font(.system(size: 40))
+                .font(.system(size: 28))
                 .foregroundColor(color)
-                .frame(width: 60)
+                .frame(width: 40)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.system(size: 24, weight: .medium))
+                    .font(.system(size: 18, weight: .medium))
                     .foregroundColor(themeManager.currentPalette.textSecondary)
                 Text(time)
-                    .font(.system(size: 32, weight: .bold))
+                    .font(.system(size: 24, weight: .bold))
                     .foregroundColor(themeManager.currentPalette.textPrimary)
             }
             
@@ -1678,53 +1755,37 @@ struct AstronomicalInfoRow: View {
     }
 }
 
-struct TwilightInfoGroup: View {
-    let title: String
-    let startTime: String
-    let endTime: String
+struct TwilightTransitionRow: View {
+    let label: String
+    let time: String
     let color: Color
     
     @EnvironmentObject var themeManager: ThemeManager
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: "moon.fill")
-                    .font(.system(size: 24))
-                    .foregroundColor(color)
-                Text(title)
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundColor(themeManager.currentPalette.textPrimary)
-            }
+        HStack(spacing: 12) {
+            Text(time)
+                .font(.system(size: 18, weight: .bold))
+                .foregroundColor(color)
+                .frame(width: 80, alignment: .leading)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
             
-            HStack(spacing: 40) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Start")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(themeManager.currentPalette.textSecondary)
-                    Text(startTime)
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundColor(themeManager.currentPalette.textPrimary)
-                }
-                
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 24))
-                    .foregroundColor(color)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("End")
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(themeManager.currentPalette.textSecondary)
-                    Text(endTime)
-                        .font(.system(size: 26, weight: .bold))
-                        .foregroundColor(themeManager.currentPalette.textPrimary)
-                }
-            }
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            
+            Text(label)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(themeManager.currentPalette.textPrimary)
+                .lineLimit(1)
+            
+            Spacer()
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
-        .background(themeManager.currentPalette.surface.opacity(0.5))
-        .cornerRadius(12)
+        .padding(.vertical, 6)
+        .padding(.horizontal, 8)
+        .background(themeManager.currentPalette.surface.opacity(0.4))
+        .cornerRadius(8)
     }
 }
 #endif
@@ -1760,9 +1821,9 @@ struct EventDetailView: View {
                        let metadata = calendarViewModel.getImageMetadataForEvent(event) {
                         Text("Photo by \(metadata.author)")
                             .font(.caption2)
-                            .foregroundColor(.white)
+                            .foregroundColor(themeManager.currentPalette.textPrimary)
                             .padding(6)
-                            .background(Color.black.opacity(0.7))
+                            .background(themeManager.currentPalette.surface.opacity(0.9))
                             .cornerRadius(4)
                             .padding(4)
                     }
@@ -1830,16 +1891,19 @@ struct EventDetailView: View {
             Text(event.title)
                 .font(uiConfig.eventTitleFont)
                 .fontWeight(.bold)
+                .foregroundColor(themeManager.currentPalette.textPrimary)
             #endif
 
             #if !os(tvOS)
             // iOS/macOS: Icon inline with text
             HStack {
                 Image(systemName: "clock")
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
                 if isAllDayEvent {
                     Text("All Day")
                         .font(uiConfig.eventDetailFont)
                         .fontWeight(.medium)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
                 } else {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 4) {
@@ -1848,6 +1912,7 @@ struct EventDetailView: View {
                                 .foregroundColor(themeManager.currentPalette.textSecondary)
                             Text(event.startDate.formatted(.dateTime.hour().minute()))
                                 .font(uiConfig.eventDetailFont)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
                         }
                         HStack(spacing: 4) {
                             Text("Ends:")
@@ -1855,6 +1920,7 @@ struct EventDetailView: View {
                                 .foregroundColor(themeManager.currentPalette.textSecondary)
                             Text(event.endDate.formatted(.dateTime.hour().minute()))
                                 .font(uiConfig.eventDetailFont)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
                         }
                     }
                 }
@@ -1864,8 +1930,10 @@ struct EventDetailView: View {
             if let location = event.location {
                 HStack {
                     Image(systemName: "location")
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                     Text(location)
                         .font(uiConfig.eventDetailFont)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
                 }
 
                 // Map view for events with location
@@ -1885,6 +1953,7 @@ struct EventDetailView: View {
                                 .foregroundColor(themeManager.currentPalette.accent)
                             Text(weather.temperatureString)
                                 .font(uiConfig.eventDetailFont)
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
                             Text(weather.condition)
                                 .font(uiConfig.captionFont)
                                 .foregroundColor(themeManager.currentPalette.textSecondary)
@@ -1892,10 +1961,11 @@ struct EventDetailView: View {
 
                         HStack(spacing: 16) {
                             Label(weather.humidityString, systemImage: "humidity")
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
                             Label(weather.windSpeedString, systemImage: "wind")
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
                         }
                         .font(uiConfig.captionFont)
-                        .foregroundColor(themeManager.currentPalette.textSecondary)
                     }
                     .padding(12)
                     .frame(maxWidth: .infinity) // Match map view width
@@ -1966,6 +2036,7 @@ struct SearchView: View {
                     .foregroundColor(themeManager.currentPalette.textSecondary)
                 TextField("Search events or dates", text: $searchText)
                     .textFieldStyle(PlainTextFieldStyle())
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
                     .focused($isSearchFocused)
                 Button(action: { calendarViewModel.toggleSearch() }) {
                     Image(systemName: "xmark")
@@ -2246,6 +2317,7 @@ struct KeyCommandRow: View {
         HStack {
             Text(key)
                 .font(.system(.body, design: .monospaced))
+                .foregroundColor(themeManager.currentPalette.textPrimary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(Color.gray.opacity(0.1))
@@ -2270,6 +2342,7 @@ struct URLTextView: View {
                 switch component {
                 case .text(let string):
                     Text(string)
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
                 case .url(let url, let displayText):
                     Text(displayText)
                         .foregroundColor(themeManager.currentPalette.accent.opacity(0.8))
@@ -2509,12 +2582,14 @@ struct BrowserSelectionView: View {
                 Text("Open Link")
                     .font(.title2)
                     .fontWeight(.bold)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
 
                 Text("Choose how to open this link:")
                     .foregroundColor(themeManager.currentPalette.textSecondary)
 
                 Text(url.absoluteString)
                     .font(.system(.body, design: .monospaced))
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
                     .padding()
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(8)
@@ -2544,7 +2619,9 @@ struct BrowserSelectionView: View {
                     }) {
                         HStack {
                             Image(systemName: "globe")
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
                             Text("Open in Chrome")
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -2558,7 +2635,9 @@ struct BrowserSelectionView: View {
                     }) {
                         HStack {
                             Image(systemName: "globe")
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
                             Text("Open in Edge")
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -2572,7 +2651,9 @@ struct BrowserSelectionView: View {
                     }) {
                         HStack {
                             Image(systemName: "globe")
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
                             Text("Open in Firefox")
+                                .foregroundColor(themeManager.currentPalette.textPrimary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -2586,7 +2667,7 @@ struct BrowserSelectionView: View {
                 Button("Cancel") {
                     isPresented = false
                 }
-                .foregroundColor(.red)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
                 .padding(.top, 10)
 
                 Spacer()
@@ -2770,6 +2851,7 @@ struct DayDetailSlideOut: View {
     @State private var slideOffset: CGFloat = 0
     @State private var isFullScreen = false
     @State private var dragStartOffset: CGFloat = 0
+    @State private var showOnRight: Bool? = nil // nil means use initial calculation
 
     private var slideWidth: CGFloat {
         #if os(tvOS)
@@ -2781,19 +2863,54 @@ struct DayDetailSlideOut: View {
     private let fullScreenThreshold: CGFloat = 150 // How far to pull to go full screen
     private let dismissThreshold: CGFloat = 100 // How far to drag to dismiss
 
-    // Determine if the selected date is in the first half of the week
-    private var isFirstHalfOfWeek: Bool {
-        let calendar = Calendar.current
-        let weekday = calendar.component(.weekday, from: date)
-        // weekday 1 = Sunday, 2 = Monday, ..., 7 = Saturday
-        // First half: Sunday (1), Monday (2), Tuesday (3), Wednesday (4)
-        // Second half: Thursday (5), Friday (6), Saturday (7)
-        return weekday <= 4
-    }
+    // Hysteresis thresholds - only switch sides when crossing these boundaries
+    private let switchToRightThreshold: CGFloat = 0.32 // Switch to right when leading edge < 32%
+    private let switchToLeftThreshold: CGFloat = 0.68  // Switch to left when trailing edge > 68%
 
-    // Dynamic alignment based on week position
-    private var slideAlignment: Alignment {
-        return isFirstHalfOfWeek ? .trailing : .leading
+    // Calculate the column index (0-6) for the selected date in the calendar grid
+    private var columnIndex: Int {
+        let calendar = Calendar.current
+        let weekday = calendar.component(.weekday, from: date) // 1 = Sunday, 7 = Saturday
+        let firstWeekday = calendar.firstWeekday // 1 = Sunday in US, 2 = Monday elsewhere
+        return (weekday - firstWeekday + 7) % 7
+    }
+    
+    // Calculate leading edge position (0.0 to 1.0)
+    private var leadingEdgePosition: CGFloat {
+        return CGFloat(columnIndex) / 7.0
+    }
+    
+    // Calculate trailing edge position (0.0 to 1.0)
+    private var trailingEdgePosition: CGFloat {
+        return CGFloat(columnIndex + 1) / 7.0
+    }
+    
+    // Determine if the slide out should show on the right side (considering hysteresis)
+    private var shouldShowOnRight: Bool {
+        if let currentSide = showOnRight {
+            // Apply hysteresis - only switch if crossing thresholds
+            if currentSide {
+                // Currently on right, switch to left if trailing edge > 68%
+                return trailingEdgePosition <= switchToLeftThreshold
+            } else {
+                // Currently on left, switch to right if leading edge < 32%
+                return leadingEdgePosition < switchToRightThreshold
+            }
+        } else {
+            // Initial calculation - use center point
+            let centerPosition = (leadingEdgePosition + trailingEdgePosition) / 2
+            return centerPosition < 0.5
+        }
+    }
+    
+    // Public property for parent view to use for overlay alignment
+    var currentAlignment: Alignment {
+        return shouldShowOnRight ? .trailing : .leading
+    }
+    
+    // For drag gesture direction calculation
+    private var isOnRightSide: Bool {
+        return shouldShowOnRight
     }
 
     private var dayDetailBackground: Color {
@@ -2818,7 +2935,7 @@ struct DayDetailSlideOut: View {
 
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: slideAlignment) {
+            ZStack {
                 // Background overlay for full screen mode
                 if isFullScreen {
                     fullScreenBackground
@@ -2830,14 +2947,20 @@ struct DayDetailSlideOut: View {
                         }
                 }
 
-                // Slide-out content
-                DayDetailView(date: date)
-                    .frame(width: isFullScreen ? geometry.size.width : (geometry.size.width / 3))
-                    .frame(maxHeight: isFullScreen ? .infinity : .infinity)
-                    .background(dayDetailBackground)
-                    .roundedCorners(isFullScreen ? .none : .medium)
-                    .shadow(radius: isFullScreen ? 0 : 10)
-                    .offset(x: isFirstHalfOfWeek ? slideOffset : -slideOffset)
+                // Use HStack with Spacer to position on left or right
+                HStack(spacing: 0) {
+                    if isOnRightSide {
+                        Spacer(minLength: 0)
+                    }
+                    
+                    // Slide-out content
+                    DayDetailView(date: date)
+                        .frame(width: isFullScreen ? geometry.size.width : (geometry.size.width / 3))
+                        .frame(maxHeight: isFullScreen ? .infinity : .infinity)
+                        .background(dayDetailBackground)
+                        .roundedCorners(isFullScreen ? .none : .medium)
+                        .shadow(radius: isFullScreen ? 0 : 10)
+                        .offset(x: isOnRightSide ? slideOffset : -slideOffset)
                     #if !os(tvOS)
                     .gesture(
                         DragGesture()
@@ -2845,13 +2968,21 @@ struct DayDetailSlideOut: View {
                                 let translation = value.translation.width
 
                                 if isFullScreen {
-                                    // In full screen mode, only allow edge pan from left edge
-                                    if value.startLocation.x < 50 {
-                                        slideOffset = max(0, translation)
+                                    // In full screen mode, only allow edge pan from appropriate edge
+                                    if isOnRightSide {
+                                        // Right side panel - allow pan from right edge
+                                        if value.startLocation.x > geometry.size.width - 50 {
+                                            slideOffset = min(0, translation)
+                                        }
+                                    } else {
+                                        // Left side panel - allow pan from left edge
+                                        if value.startLocation.x < 50 {
+                                            slideOffset = max(0, translation)
+                                        }
                                     }
                                 } else {
                                     // In normal mode, allow pulling to full screen or dragging to close
-                                    if isFirstHalfOfWeek {
+                                    if isOnRightSide {
                                         // Right-side sliding: pulling left goes to full screen, right closes
                                         if translation < 0 {
                                             // Pulling to the left (towards full screen)
@@ -2879,13 +3010,21 @@ struct DayDetailSlideOut: View {
                                 withAnimation(.spring()) {
                                     if isFullScreen {
                                         // Full screen mode: edge pan to dismiss
-                                        if slideOffset > dismissThreshold || velocity > 300 {
-                                            calendarViewModel.showDayDetail = false
+                                        if isOnRightSide {
+                                            // Right side - dismiss on drag right
+                                            if slideOffset > dismissThreshold || velocity > 300 {
+                                                calendarViewModel.showDayDetail = false
+                                            }
+                                        } else {
+                                            // Left side - dismiss on drag left
+                                            if -slideOffset > dismissThreshold || velocity < -300 {
+                                                calendarViewModel.showDayDetail = false
+                                            }
                                         }
                                         slideOffset = 0
                                     } else {
                                         // Normal mode
-                                        if isFirstHalfOfWeek {
+                                        if isOnRightSide {
                                             // Right-side sliding
                                             if translation < -fullScreenThreshold || velocity < -300 {
                                                 // Pulled far enough left - go full screen
@@ -2917,11 +3056,17 @@ struct DayDetailSlideOut: View {
                             }
                     )
                     #endif
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
+                        .transition(.move(edge: isOnRightSide ? .trailing : .leading).combined(with: .opacity))
+                    
+                    if !isOnRightSide {
+                        Spacer(minLength: 0)
+                    }
+                }
             }
             .ignoresSafeArea(isFullScreen ? .all : [])
         }
         .animation(.easeInOut(duration: 0.3), value: date)
+        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: shouldShowOnRight)
         .onChange(of: calendarViewModel.showDayDetail) { newValue in
             if !newValue {
                 withAnimation(.spring()) {
@@ -2929,6 +3074,17 @@ struct DayDetailSlideOut: View {
                     slideOffset = 0
                 }
             }
+        }
+        .onChange(of: date) { _ in
+            // Update the hysteresis state when date changes
+            let newShouldShowOnRight = shouldShowOnRight
+            if showOnRight != newShouldShowOnRight {
+                showOnRight = newShouldShowOnRight
+            }
+        }
+        .onAppear {
+            // Initialize the side based on current position
+            showOnRight = shouldShowOnRight
         }
     }
 }

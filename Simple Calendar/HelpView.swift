@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct HelpView: View {
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.presentationMode) var presentationMode
     @State private var selectedSection: HelpSection = .gettingStarted
 
@@ -159,7 +160,7 @@ struct HelpView: View {
             }
 
             Text("Click on any day to select it. Double-click to open the day detail view.")
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
         }
     }
 
@@ -179,7 +180,7 @@ struct HelpView: View {
                     Text("• Add notes and set reminders")
                     Text("• Choose a calendar color")
                 }
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
             }
 
             VStack(alignment: .leading, spacing: 12) {
@@ -202,7 +203,7 @@ struct HelpView: View {
                     Text("• Templates include pre-set duration, location, and notes")
                     Text("• Quick way to create similar events")
                 }
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
             }
         }
     }
@@ -227,7 +228,7 @@ struct HelpView: View {
                     Text("4. Select an image from the results")
                     Text("5. The image will be cached and associated with your event")
                 }
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
             }
 
             VStack(alignment: .leading, spacing: 12) {
@@ -248,7 +249,7 @@ struct HelpView: View {
                     Text("You can disable attribution in Settings > Images > Show Unsplash Attribution.")
                     Text("Note: Always follow Unsplash's attribution guidelines when sharing images.")
                 }
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
             }
         }
     }
@@ -273,7 +274,7 @@ struct HelpView: View {
                     Text("4. Follow the authentication flow")
                     Text("5. Grant calendar access permissions")
                 }
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
             }
 
             VStack(alignment: .leading, spacing: 12) {
@@ -286,7 +287,7 @@ struct HelpView: View {
             }
 
             Text("Note: Your Google account credentials are never stored locally. Authentication uses secure OAuth 2.0.")
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -340,7 +341,7 @@ struct HelpView: View {
                     Text("• Double-click the same day again to close the slide-out")
                     Text("• In day detail view, double-click events to edit them")
                 }
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
             }
         }
     }
@@ -386,7 +387,7 @@ struct HelpView: View {
                     Text("• Built for teaching calendar concepts to kids")
                     Text("• Designed for macOS with multiplatform support")
                 }
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
             }
         }
     }
@@ -396,6 +397,7 @@ struct FeatureRow: View {
     let icon: String
     let title: String
     let description: String
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -408,7 +410,7 @@ struct FeatureRow: View {
                 Text(title)
                     .font(.headline)
                 Text(description)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -418,6 +420,7 @@ struct FeatureRow: View {
 struct KeyboardShortcutRow: View {
     let shortcut: String
     let description: String
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         HStack {
@@ -430,7 +433,7 @@ struct KeyboardShortcutRow: View {
                 .cornerRadius(4)
 
             Text(description)
-                .foregroundColor(.secondary)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
 
             Spacer()
         }

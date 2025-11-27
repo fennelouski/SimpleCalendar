@@ -1,0 +1,304 @@
+{
+  "source": "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "Calendar Integration",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 114
+        }
+      },
+      {
+        "comment": "",
+        "key": "System Calendar",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync with macOS Calendar",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "Google Calendar",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 126
+        }
+      },
+      {
+        "comment": "",
+        "key": "Signed in as %@",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 133
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connect your Google Calendar",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "Holiday Display",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 165
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 229
+        }
+      },
+      {
+        "comment": "",
+        "key": "Show Holidays",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 207
+        }
+      },
+      {
+        "comment": "",
+        "key": "Display holidays on the calendar with educational information",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 288
+        }
+      },
+      {
+        "comment": "",
+        "key": "Monthly Themes",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 274
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use different colors for each month to help understand calendar concepts",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "Holiday Guide",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 306
+        }
+      },
+      {
+        "comment": "",
+        "key": "Learn about holidays and their meanings (Coming Soon)",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "Appearance",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 338
+        }
+      },
+      {
+        "comment": "",
+        "key": "Day Number Size",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 348
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adjust the size of day numbers in the calendar",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 353
+        }
+      },
+      {
+        "comment": "",
+        "key": "About",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 475
+        }
+      },
+      {
+        "comment": "",
+        "key": "Version",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 485
+        }
+      },
+      {
+        "comment": "",
+        "key": "Simple Calendar 1.0.0",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 490
+        }
+      },
+      {
+        "comment": "",
+        "key": "About the App",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 508
+        }
+      },
+      {
+        "comment": "",
+        "key": "Why I built this calendar",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 514
+        }
+      },
+      {
+        "comment": "",
+        "key": "About Simple Calendar",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 655
+        }
+      },
+      {
+        "comment": "",
+        "key": "Version 1.0",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 660
+        }
+      },
+      {
+        "comment": "",
+        "key": "Why I Built This App",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 668
+        }
+      },
+      {
+        "comment": "",
+        "key": "I created Simple Calendar because I believe that understanding time and dates should be accessible to everyone, especially children. Calendars are fundamental to how we organize our lives, yet many people struggle with calendar concepts.\n\nThis app is designed with education in mind:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 673
+        }
+      },
+      {
+        "comment": "",
+        "key": "Whether you're teaching a child about days, weeks, and months, or just need a clean, simple calendar interface, Simple Calendar provides the tools to make calendar understanding intuitive and enjoyable.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 690
+        }
+      },
+      {
+        "comment": "",
+        "key": "Key Features",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 701
+        }
+      },
+      {
+        "comment": "",
+        "key": "Made with ❤️ for learning and accessibility",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 718
+        }
+      },
+      {
+        "comment": "",
+        "key": "© 2025 Nathan Fennel",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 723
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 738
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 755
+        }
+      }
+    ]
+  },
+  "version": 1
+}

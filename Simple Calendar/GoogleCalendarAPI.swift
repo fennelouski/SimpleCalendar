@@ -5,6 +5,7 @@
 //  Created by Nathan Fennel on 11/23/25.
 //
 
+#if !os(tvOS)
 import Foundation
 
 class GoogleCalendarAPI {
@@ -170,3 +171,20 @@ class GoogleCalendarAPI {
         )
     }
 }
+#endif
+
+// Stub implementation for tvOS
+#if os(tvOS)
+import Foundation
+
+class GoogleCalendarAPI {
+    init(oauthManager: GoogleOAuthManager) {
+        // tvOS doesn't use Google Calendar API
+    }
+
+    func fetchEvents(from startDate: Date, to endDate: Date, completion: @escaping ([CalendarEvent]?) -> Void) {
+        // tvOS doesn't fetch Google Calendar events
+        completion([])
+    }
+}
+#endif

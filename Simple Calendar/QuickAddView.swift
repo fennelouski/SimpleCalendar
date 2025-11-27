@@ -43,7 +43,9 @@ struct QuickAddView: View {
                 // Title
                 TextField("Event title", text: $title)
                     .font(uiConfig.scaledFont(.body))
+                    #if !os(tvOS)
                     .textFieldStyle(.roundedBorder)
+                    #endif
                     .padding(.horizontal)
 
                 // Date and Time
@@ -51,6 +53,12 @@ struct QuickAddView: View {
                     Toggle("All Day", isOn: $isAllDay)
                         .font(uiConfig.scaledFont(.body))
 
+                    #if os(tvOS)
+                    // tvOS simplified date/time selection - uses current date/time
+                    Text("Event will be created for today")
+                        .font(uiConfig.scaledFont(.body))
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                    #else
                     if isAllDay {
                         DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
                             .font(uiConfig.scaledFont(.body))
@@ -65,13 +73,16 @@ struct QuickAddView: View {
                                 .font(uiConfig.scaledFont(.body))
                         }
                     }
+                    #endif
                 }
                 .padding(.horizontal)
 
                 // Location
                 TextField("Location (optional)", text: $location)
                     .font(uiConfig.scaledFont(.body))
+                    #if !os(tvOS)
                     .textFieldStyle(.roundedBorder)
+                    #endif
                     .padding(.horizontal)
 
                 // Action Buttons

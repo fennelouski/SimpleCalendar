@@ -29,6 +29,16 @@ enum FontSizeCategory: Int, CaseIterable, Identifiable {
     }
 
     var scaleFactor: CGFloat {
+        #if os(tvOS)
+        // tvOS needs larger scaling for viewing from distance
+        switch self {
+        case .extraSmall: return 1.0
+        case .small: return 1.1
+        case .normal: return 1.3
+        case .large: return 1.5
+        case .extraLarge: return 1.8
+        }
+        #else
         switch self {
         case .extraSmall: return 0.8
         case .small: return 0.9
@@ -36,6 +46,7 @@ enum FontSizeCategory: Int, CaseIterable, Identifiable {
         case .large: return 1.1
         case .extraLarge: return 1.25
         }
+        #endif
     }
 }
 
@@ -112,6 +123,7 @@ class UIConfiguration: ObservableObject {
         }
     }
 
+
     private let fontSizeKey = "fontSizeCategory"
     private let gridLineOpacityKey = "gridLineOpacity"
     private let dayNumberFontSizeKey = "dayNumberFontSize"
@@ -130,14 +142,23 @@ class UIConfiguration: ObservableObject {
             self.gridLineOpacity = loadedGridLineOpacity
         }
 
-        // Load day number font size, default to 14.0
-        let loadedDayNumberFontSize = UserDefaults.standard.double(forKey: dayNumberFontSizeKey)
-        if loadedDayNumberFontSize == 0.0 && !UserDefaults.standard.bool(forKey: "dayNumberFontSizeSet") {
+        // Load day number font size, default to larger size on tvOS
+        if !UserDefaults.standard.bool(forKey: "dayNumberFontSizeSet") {
             // First time setup, use default value
-            self.dayNumberFontSize = 14.0
+            #if os(tvOS)
+            self.dayNumberFontSize = 68.0 // Large default for tvOS (8 + 6*12 = 68)
+            #else
+            self.dayNumberFontSize = 14.0 // Standard size for iOS/macOS
+            #endif
             UserDefaults.standard.set(true, forKey: "dayNumberFontSizeSet")
+            UserDefaults.standard.set(self.dayNumberFontSize, forKey: dayNumberFontSizeKey)
         } else {
-            self.dayNumberFontSize = loadedDayNumberFontSize
+            // Load stored value, snap to valid step size (8, 20, 32, 44, 56, 68, 80)
+            let loadedValue = UserDefaults.standard.double(forKey: dayNumberFontSizeKey)
+            let clampedValue = max(8, min(80, loadedValue)) // Clamp to valid range
+            let step = 12.0
+            let index = round((clampedValue - 8) / step)
+            self.dayNumberFontSize = 8 + index * step // Snap to nearest valid step
         }
     }
 
@@ -165,10 +186,14 @@ class UIConfiguration: ObservableObject {
     // MARK: - Font Extensions
 
     func scaledFont(_ baseSize: CGFloat, weight: Font.Weight = .regular) -> Font {
-        .system(size: baseSize * fontSizeCategory.scaleFactor, weight: weight)
+        // Ensure reactivity by accessing the published property
+        _ = fontSizeCategory
+        return .system(size: baseSize * fontSizeCategory.scaleFactor, weight: weight)
     }
 
     func scaledFont(_ style: Font.TextStyle, weight: Font.Weight = .regular) -> Font {
+        // Ensure reactivity by accessing the published property
+        _ = fontSizeCategory
         let baseSize: CGFloat
         switch style {
         case .largeTitle: baseSize = 34
@@ -189,16 +214,86 @@ class UIConfiguration: ObservableObject {
 
     // MARK: - Predefined Font Sizes
 
-    var monthTitleFont: Font { scaledFont(32, weight: .bold) }
-    var yearTitleFont: Font { scaledFont(.title2) }
-    var dayNumberFont: Font { scaledFont(14, weight: .medium) }
-    var customDayNumberFont: Font { .system(size: dayNumberFontSize, weight: .medium) }
-    var dayNameFont: Font { scaledFont(12, weight: .semibold) }
-    var eventTitleFont: Font { scaledFont(.headline) }
-    var eventDetailFont: Font { scaledFont(.subheadline) }
-    var buttonFont: Font { scaledFont(17, weight: .medium) }
-    var captionFont: Font { scaledFont(.caption) }
-    var smallCaptionFont: Font { scaledFont(.caption2) }
+    var monthTitleFont: Font {
+        // Ensure reactivity
+        _ = fontSizeCategory
+        #if os(tvOS)
+        return scaledFont(56, weight: .bold) // Even larger for tvOS: 32 + 24 = 56pt minimum
+        #else
+        return scaledFont(32, weight: .bold)
+        #endif
+    }
+
+    var yearTitleFont: Font {
+        #if os(tvOS)
+        scaledFont(46, weight: .semibold) // 22 + 24 = 46pt minimum
+        #else
+        scaledFont(.title2)
+        #endif
+    }
+
+    var dayNumberFont: Font {
+        #if os(tvOS)
+        scaledFont(38, weight: .medium) // 14 + 24 = 38pt minimum
+        #else
+        scaledFont(14, weight: .medium)
+        #endif
+    }
+
+    var customDayNumberFont: Font {
+        #if os(tvOS)
+        .system(size: dayNumberFontSize, weight: .medium)
+        #else
+        .system(size: dayNumberFontSize, weight: .medium)
+        #endif
+    }
+
+    var dayNameFont: Font {
+        #if os(tvOS)
+        scaledFont(36, weight: .semibold) // 12 + 24 = 36pt minimum
+        #else
+        scaledFont(12, weight: .semibold)
+        #endif
+    }
+
+    var eventTitleFont: Font {
+        #if os(tvOS)
+        scaledFont(41, weight: .semibold) // 17 + 24 = 41pt minimum
+        #else
+        scaledFont(.headline)
+        #endif
+    }
+    var eventDetailFont: Font {
+        #if os(tvOS)
+        scaledFont(39, weight: .medium) // 15 + 24 = 39pt minimum
+        #else
+        scaledFont(.subheadline)
+        #endif
+    }
+
+    var buttonFont: Font {
+        #if os(tvOS)
+        scaledFont(41, weight: .medium) // 17 + 24 = 41pt minimum
+        #else
+        scaledFont(17, weight: .medium)
+        #endif
+    }
+
+    var captionFont: Font {
+        #if os(tvOS)
+        scaledFont(36, weight: .regular) // 12 + 24 = 36pt minimum
+        #else
+        scaledFont(.caption)
+        #endif
+    }
+
+    var smallCaptionFont: Font {
+        #if os(tvOS)
+        scaledFont(35, weight: .regular) // 11 + 24 = 35pt minimum
+        #else
+        scaledFont(.caption2)
+        #endif
+    }
 }
 
 // MARK: - View Extensions for Responsive Padding

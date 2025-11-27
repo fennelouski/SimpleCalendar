@@ -9,12 +9,70 @@ import SwiftUI
 
 struct AgendaView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
+    @EnvironmentObject var themeManager: ThemeManager
     @State private var selectedDate = Date()
 
     var body: some View {
         VStack(spacing: 0) {
             // Date picker for jumping to specific dates
             HStack {
+                #if os(tvOS)
+                Button(action: { moveToPreviousWeek() }) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 24))
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.gray.opacity(0.2))
+                        )
+                }
+                .buttonStyle(.borderless)
+
+                #if os(tvOS)
+                // tvOS - date selection via buttons
+                Button(action: {
+                    // Could implement tvOS date picker here, but for now just use current date
+                }) {
+                    Text(selectedDate.formatted(date: .abbreviated, time: .omitted))
+                        .padding(8)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(8)
+                }
+                #else
+                DatePicker("", selection: $selectedDate, displayedComponents: [.date])
+                    .labelsHidden()
+                    .onChange(of: selectedDate) { newDate in
+                        scrollToDate()
+                    }
+                    .frame(maxWidth: 200)
+                #endif
+
+                Button(action: { moveToNextWeek() }) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 24))
+                        .padding(12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.gray.opacity(0.2))
+                        )
+                }
+                .buttonStyle(.borderless)
+
+                Spacer()
+
+                Button(action: { selectedDate = Date() }) {
+                    Text("Today")
+                        .font(.headline)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.blue.opacity(0.8))
+                        )
+                        .foregroundColor(.white)
+                }
+                .buttonStyle(.borderless)
+                #else
                 Button(action: { moveToPreviousWeek() }) {
                     Image(systemName: "chevron.left")
                 }
@@ -37,9 +95,13 @@ struct AgendaView: View {
                     Text("Today")
                 }
                 .keyboardShortcut("t", modifiers: [.command])
+                #endif
             }
             .padding()
             .background(Color.white)
+            #if os(tvOS)
+            .focusSection()
+            #endif
 
             Divider()
 
@@ -50,6 +112,17 @@ struct AgendaView: View {
                         let agendaItems = generateAgendaItems()
 
                         ForEach(agendaItems) { item in
+                            #if os(tvOS)
+                            Button(action: {
+                                calendarViewModel.selectDate(item.date)
+                                calendarViewModel.setViewMode(.singleDay)
+                                calendarViewModel.toggleDayDetail()
+                            }) {
+                                AgendaItemView(item: item)
+                            }
+                            .buttonStyle(.borderless)
+                            .id(item.id)
+                            #else
                             AgendaItemView(item: item)
                                 .id(item.id)
                                 .onTapGesture {
@@ -57,6 +130,7 @@ struct AgendaView: View {
                                     calendarViewModel.setViewMode(.singleDay)
                                     calendarViewModel.toggleDayDetail()
                                 }
+                            #endif
                         }
                     }
                 }
@@ -140,6 +214,7 @@ struct AgendaItem: Identifiable {
 
 struct AgendaItemView: View {
     let item: AgendaItem
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -147,15 +222,15 @@ struct AgendaItemView: View {
             HStack {
                 Text(dateString(for: item.date))
                     .font(.headline)
-                    .foregroundColor(item.isToday ? .blue : .primary)
+                    .foregroundColor(item.isToday ? themeManager.currentPalette.primary : themeManager.currentPalette.textPrimary)
 
                 if item.isToday {
                     Text("Today")
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundColor(themeManager.currentPalette.primary)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(Color.blue.opacity(0.1))
+                        .background(themeManager.currentPalette.primary.opacity(0.1))
                         .cornerRadius(4)
                 }
 
@@ -164,7 +239,7 @@ struct AgendaItemView: View {
                 if !item.events.isEmpty {
                     Text("\(item.events.count) event\(item.events.count == 1 ? "" : "s")")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                 }
             }
             .padding(.horizontal)
@@ -173,7 +248,7 @@ struct AgendaItemView: View {
             // Events
             if item.events.isEmpty {
                 Text("No events")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
                     .font(.caption)
                     .padding(.horizontal)
                     .padding(.bottom, 8)
@@ -209,6 +284,7 @@ struct AgendaItemView: View {
 
 struct EventRowView: View {
     let event: CalendarEvent
+    @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -235,7 +311,7 @@ struct EventRowView: View {
                 if !event.isAllDay {
                     Text(timeString)
                         .font(.system(size: 12))
-                        .foregroundColor(.secondary)
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
                 }
 
                 if let location = event.location {
@@ -244,7 +320,7 @@ struct EventRowView: View {
                             .font(.system(size: 10))
                         Text(location)
                             .font(.system(size: 12))
-                            .foregroundColor(.secondary)
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
                             .lineLimit(1)
                     }
                 }
@@ -259,7 +335,7 @@ struct EventRowView: View {
                     .frame(width: 6, height: 6)
                 Text(calendarSource)
                     .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
             }
         }
         .padding(.vertical, 4)

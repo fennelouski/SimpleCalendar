@@ -1,0 +1,232 @@
+{
+  "source": "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Create Event",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 528
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick Create",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 535
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export Events",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 544
+        }
+      },
+      {
+        "comment": "",
+        "key": "View Day",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 552
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%lld more",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 988
+        }
+      },
+      {
+        "comment": "",
+        "key": "…",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1016
+        }
+      },
+      {
+        "comment": "",
+        "key": "No events for this day",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1198
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%lld more occurrence%@",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 1208
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unable to load historical data",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1282
+        }
+      },
+      {
+        "comment": "",
+        "key": "No historical data available for this date",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1326
+        }
+      },
+      {
+        "comment": "",
+        "key": "On This Day",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1266
+        }
+      },
+      {
+        "comment": "",
+        "key": "Data from Wikipedia",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1272
+        }
+      },
+      {
+        "comment": "",
+        "key": "• %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1363
+        }
+      },
+      {
+        "comment": "",
+        "key": "Photo by %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1402
+        }
+      },
+      {
+        "comment": "",
+        "key": "All Day",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1464
+        }
+      },
+      {
+        "comment": "",
+        "key": "Starts:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1470
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ends:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1477
+        }
+      },
+      {
+        "comment": "",
+        "key": "Weather Forecast",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1503
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search events or dates",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 1591
+        }
+      },
+      {
+        "comment": "",
+        "key": "No events found",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1605
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keyboard Shortcuts",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1825
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 2220
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Link",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 2133
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose how to open this link:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 2137
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 2210
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open in Safari",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 2154
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select View",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2320
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 2321
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -9,7 +9,6 @@ import Foundation
 #if os(macOS)
 import AppKit
 #endif
-import EventKit
 
 class EventExporter {
     static func exportEvents(_ events: [CalendarEvent], to url: URL) throws {

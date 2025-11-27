@@ -41,6 +41,7 @@ struct Simple_CalendarApp: App {
                 .environmentObject(holidayManager)
         }
         .modelContainer(sharedModelContainer)
+        #if !os(tvOS)
         .commands {
             #if os(macOS)
             CommandGroup(replacing: .appInfo) {
@@ -71,6 +72,7 @@ struct Simple_CalendarApp: App {
             }
             #endif
         }
+        #endif
     }
 
     #if os(macOS)

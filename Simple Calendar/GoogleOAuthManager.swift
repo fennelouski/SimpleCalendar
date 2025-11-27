@@ -6,9 +6,11 @@
 //
 
 import Foundation
-import AuthenticationServices
 import SwiftUI
 import Combine
+
+#if !os(tvOS)
+import AuthenticationServices
 
 class GoogleOAuthManager: NSObject, ObservableObject, ASWebAuthenticationPresentationContextProviding {
     @Published var isAuthenticated = false
@@ -21,6 +23,8 @@ class GoogleOAuthManager: NSObject, ObservableObject, ASWebAuthenticationPresent
         return "248767312104-dut5ib3gdfob8r77m2n5fbfo3cf188lv.apps.googleusercontent.com"
         #elseif os(macOS)
         return "248767312104-8dmmmvvjc8g72pu2ptcs45ng6p6cuqht.apps.googleusercontent.com"
+        #elseif os(tvOS)
+        return "248767312104-8dmmmvvjc8g72pu2ptcs45ng6p6cuqht.apps.googleusercontent.com" // Use macOS client ID for now - needs proper tvOS client ID
         #else
         return "248767312104-8dmmmvvjc8g72pu2ptcs45ng6p6cuqht.apps.googleusercontent.com" // Default to macOS
         #endif
@@ -257,3 +261,22 @@ class GoogleOAuthManager: NSObject, ObservableObject, ASWebAuthenticationPresent
         #endif
     }
 }
+#else
+// Stub implementation for tvOS
+class GoogleOAuthManager: ObservableObject {
+    @Published var isAuthenticated = false
+    @Published var userEmail: String?
+    @Published var authenticationError: String?
+
+    func signIn() {
+        // tvOS doesn't support Google OAuth
+        authenticationError = "Google Calendar integration is not available on tvOS"
+    }
+
+    func signOut() {
+        // No-op on tvOS
+        isAuthenticated = false
+        userEmail = nil
+    }
+}
+#endif

@@ -7,7 +7,9 @@
 
 import Foundation
 import SwiftUI
+#if !os(tvOS)
 import EventKit
+#endif
 import Combine
 #if os(macOS)
 import AppKit
@@ -64,24 +66,38 @@ class CalendarViewModel: ObservableObject {
     @Published var showImageSelection: Bool = false
     @Published var selectedEventForImage: CalendarEvent?
 
+    #if !os(tvOS)
     private let eventStore = EKEventStore()
+    #endif
+    #if !os(tvOS)
     let googleOAuthManager = GoogleOAuthManager()
     private let googleCalendarAPI: GoogleCalendarAPI
+    #else
+    let googleOAuthManager: GoogleOAuthManager? = nil
+    private let googleCalendarAPI: GoogleCalendarAPI? = nil
+    #endif
     private let imageManager = ImageManager.shared
     private var cancellables = Set<AnyCancellable>()
     private var syncTimer: Timer?
 
     init() {
+        #if !os(tvOS)
         googleCalendarAPI = GoogleCalendarAPI(oauthManager: googleOAuthManager)
+        #endif
 
-        // Load saved view mode or default to threeDays
+        // Load saved view mode or default to month view on tvOS, threeDays otherwise
         if let savedModeString = UserDefaults.standard.string(forKey: "selectedViewMode"),
            let savedMode = CalendarViewMode(rawValue: savedModeString) {
             self.viewMode = savedMode
         } else {
-            self.viewMode = .threeDays // Default
+            #if os(tvOS)
+            self.viewMode = .month // Default to month view on tvOS
+            #else
+            self.viewMode = .threeDays // Default to threeDays on iOS/macOS
+            #endif
         }
 
+        #if !os(tvOS)
         // Check calendar authorization status
         let status = EKEventStore.authorizationStatus(for: .event)
         switch status {
@@ -95,12 +111,21 @@ class CalendarViewModel: ObservableObject {
         @unknown default:
             print("📅 Unknown calendar authorization status")
         }
+        #endif
 
         setupKeyboardShortcuts()
         setupSyncTimer()
         loadAllEvents() // This will load Google events
+
+        // Initialize selected date for tvOS
+        #if os(tvOS)
+        if selectedDate == nil {
+            selectDate(Date()) // Select today by default on tvOS
+        }
+        #endif
     }
 
+    #if !os(tvOS)
     func requestCalendarAccess() {
         eventStore.requestFullAccessToEvents { [weak self] granted, error in
             DispatchQueue.main.async {
@@ -113,9 +138,12 @@ class CalendarViewModel: ObservableObject {
             }
         }
     }
+    #endif
 
     func loadAllEvents() {
+        #if !os(tvOS)
         loadGoogleEvents()
+        #endif
         // System events are loaded separately when calendar access is granted
     }
 
@@ -125,6 +153,7 @@ class CalendarViewModel: ObservableObject {
         loadAllEvents()
     }
 
+    #if !os(tvOS)
     private func loadSystemEvents() {
         let calendars = eventStore.calendars(for: .event)
         let startDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
@@ -153,7 +182,9 @@ class CalendarViewModel: ObservableObject {
             self.events = (systemEvents + googleEvents).sorted { $0.startDate < $1.startDate }
         }
     }
+    #endif
 
+    #if !os(tvOS)
     private func loadGoogleEvents() {
         guard googleOAuthManager.isAuthenticated else { return }
 
@@ -170,6 +201,7 @@ class CalendarViewModel: ObservableObject {
             }
         }
     }
+    #endif
 
     func setupKeyboardShortcuts() {
         // Keyboard shortcuts will be handled in the view
@@ -182,6 +214,7 @@ class CalendarViewModel: ObservableObject {
             if let newDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate) {
                 currentDate = newDate
                 loadAllEvents()
+                preloadHolidaysForDate(newDate)
             }
         }
     }
@@ -193,6 +226,7 @@ class CalendarViewModel: ObservableObject {
             if let newDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate) {
                 currentDate = newDate
                 loadAllEvents()
+                preloadHolidaysForDate(newDate)
             }
         }
     }
@@ -201,6 +235,7 @@ class CalendarViewModel: ObservableObject {
         if let newDate = Calendar.current.date(byAdding: .year, value: 1, to: currentDate) {
             currentDate = newDate
             loadAllEvents()
+            preloadHolidaysForDate(newDate)
         }
     }
 
@@ -208,6 +243,7 @@ class CalendarViewModel: ObservableObject {
         if let newDate = Calendar.current.date(byAdding: .year, value: -1, to: currentDate) {
             currentDate = newDate
             loadAllEvents()
+            preloadHolidaysForDate(newDate)
         }
     }
 
@@ -215,16 +251,64 @@ class CalendarViewModel: ObservableObject {
         currentDate = Date()
         selectedDate = Date()
         loadAllEvents()
+        preloadHolidaysForDate(Date())
+    }
+    
+    /// Preload holidays for a given date to ensure smooth navigation
+    private func preloadHolidaysForDate(_ date: Date) {
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: date)
+        HolidayManager.shared.preloadHolidaysForYearRange(centerYear: year, range: 2)
     }
 
     func selectDate(_ date: Date) {
         selectedDate = date
         // Change animation ID to cancel any previous animations and start fresh
         selectionAnimationId = UUID()
+        alignCurrentDateWithSelectionIfNeeded(date)
     }
 
     func toggleDayDetail() {
         showDayDetail.toggle()
+    }
+
+    enum CursorDirection {
+        case left, right, up, down
+    }
+
+    func moveSelectedDate(_ direction: CursorDirection) {
+        let calendar = Calendar.current
+        guard let currentSelectedDate = selectedDate else {
+            // If no date is selected, select today
+            selectDate(Date())
+            return
+        }
+
+        var newDate: Date
+
+        switch direction {
+        case .left:
+            newDate = calendar.date(byAdding: .day, value: -1, to: currentSelectedDate) ?? currentSelectedDate
+        case .right:
+            newDate = calendar.date(byAdding: .day, value: 1, to: currentSelectedDate) ?? currentSelectedDate
+        case .up:
+            newDate = calendar.date(byAdding: .day, value: -7, to: currentSelectedDate) ?? currentSelectedDate
+        case .down:
+            newDate = calendar.date(byAdding: .day, value: 7, to: currentSelectedDate) ?? currentSelectedDate
+        }
+
+        selectDate(newDate)
+
+        // Update currentDate to match the month of the selected date (for tvOS navigation)
+        let currentMonth = calendar.component(.month, from: currentDate)
+        let currentYear = calendar.component(.year, from: currentDate)
+        let selectedMonth = calendar.component(.month, from: newDate)
+        let selectedYear = calendar.component(.year, from: newDate)
+
+        if currentMonth != selectedMonth || currentYear != selectedYear {
+            // Selected date is in a different month/year, update currentDate to show that month
+            currentDate = newDate
+        }
     }
 
     func setViewMode(_ mode: CalendarViewMode) {
@@ -282,41 +366,40 @@ class CalendarViewModel: ObservableObject {
     /// Ensures the selected date is visible in the current view by updating currentDate if necessary
     private func ensureSelectedDateIsVisible() {
         guard let selectedDate = selectedDate else { return }
+        alignCurrentDateWithSelectionIfNeeded(selectedDate)
+    }
 
+    private func alignCurrentDateWithSelectionIfNeeded(_ date: Date) {
         let calendar = Calendar.current
 
         switch viewMode {
         case .month:
-            // For month view, check if selected date is in the current month
-            let currentMonthComponents = calendar.dateComponents([.year, .month], from: currentDate)
-            let selectedMonthComponents = calendar.dateComponents([.year, .month], from: selectedDate)
+            let currentComponents = calendar.dateComponents([.year, .month], from: currentDate)
+            let selectedComponents = calendar.dateComponents([.year, .month], from: date)
 
-            if currentMonthComponents != selectedMonthComponents {
-                // Selected date is in a different month, update currentDate to that month
-                if let newCurrentDate = calendar.date(from: selectedMonthComponents) {
-                    currentDate = newCurrentDate
-                    loadAllEvents()
-                }
+            if currentComponents != selectedComponents,
+               let newCurrentDate = calendar.date(from: selectedComponents) {
+                currentDate = newCurrentDate
+                loadAllEvents()
             }
 
         case .year:
-            // For year view, check if selected date is in the current year
             let currentYear = calendar.component(.year, from: currentDate)
-            let selectedYear = calendar.component(.year, from: selectedDate)
+            let selectedYear = calendar.component(.year, from: date)
 
             if currentYear != selectedYear {
-                // Selected date is in a different year, update currentDate to that year
-                if let newCurrentDate = calendar.date(from: calendar.dateComponents([.year], from: selectedDate)) {
+                if let newCurrentDate = calendar.date(from: DateComponents(year: selectedYear, month: 1, day: 1)) {
                     currentDate = newCurrentDate
                     loadAllEvents()
                 }
             }
 
         default:
-            // For day-based views (singleDay, twoDays, threeDays, etc.), center the view on the selected date
-            // These views typically show a range of days around the selected date
-            currentDate = selectedDate
-            loadAllEvents()
+            // For day-based views, ensure currentDate matches the selection
+            if !calendar.isDate(currentDate, inSameDayAs: date) {
+                currentDate = date
+                loadAllEvents()
+            }
         }
     }
 

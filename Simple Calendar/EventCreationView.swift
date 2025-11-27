@@ -6,7 +6,9 @@
 //
 
 import SwiftUI
+#if !os(tvOS)
 import EventKit
+#endif
 import MapKit
 
 struct EventCreationView: View {
@@ -21,17 +23,23 @@ struct EventCreationView: View {
     @State private var location = ""
     @State private var notes = ""
     @State private var isAllDay = false
+    #if !os(tvOS)
     @State private var selectedCalendar: EKCalendar?
+    #endif
 
     @State private var showRecurrencePicker = false
+    #if !os(tvOS)
     @State private var recurrenceRule: EKRecurrenceRule?
+    #endif
 
     @State private var showReminderPicker = false
     @State private var reminderMinutes = 15
     @State private var showImageSelection = false
     @State private var selectedImageId: String?
 
+    #if !os(tvOS)
     private let eventStore = EKEventStore()
+    #endif
 
     var body: some View {
         NavigationView {
@@ -42,29 +50,40 @@ struct EventCreationView: View {
 
                     Toggle("All Day", isOn: $isAllDay)
 
+                    #if os(tvOS)
+                    // tvOS - date selection not available, uses current date
+                    Text("Event will use current date and time")
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                    #else
                     if !isAllDay {
                         DatePicker("Start Time", selection: $startDate, displayedComponents: [.date, .hourAndMinute])
                         DatePicker("End Time", selection: $endDate, displayedComponents: [.date, .hourAndMinute])
                     } else {
                         DatePicker("Date", selection: $startDate, displayedComponents: [.date])
                     }
+                    #endif
                 }
 
                 Section(header: Text("Additional Information")) {
                     TextField("Location", text: $location)
+                    #if os(tvOS)
+                    TextField("Notes", text: $notes)
+                    #else
                     ZStack(alignment: .topLeading) {
                         TextEditor(text: $notes)
                             .frame(minHeight: 80)
                         if notes.isEmpty {
                             Text("Notes")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
                                 .padding(.top, 8)
                                 .padding(.leading, 4)
                                 .allowsHitTesting(false)
                         }
                     }
+                    #endif
                 }
 
+                #if !os(tvOS)
                 Section(header: Text("Calendar")) {
                     Picker("Calendar", selection: $selectedCalendar) {
                         ForEach(eventStore.calendars(for: .event), id: \.calendarIdentifier) { calendar in
@@ -73,6 +92,7 @@ struct EventCreationView: View {
                         }
                     }
                 }
+                #endif
 
                 Section(header: Text("Image")) {
                     Button(action: { showImageSelection = true }) {
@@ -88,37 +108,43 @@ struct EventCreationView: View {
                                     .clipShape(RoundedRectangle(cornerRadius: 4))
                             } else if selectedImageId != nil {
                                 Image(systemName: "photo")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(themeManager.currentPalette.primary)
                             } else {
                                 Text("None")
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(themeManager.currentPalette.textSecondary)
                             }
                         }
                     }
                 }
 
+                #if !os(tvOS)
                 if !location.isEmpty {
                     Section(header: Text("Location Map")) {
                         EventMapView(location: location)
                     }
                 }
+                #endif
 
+                #if !os(tvOS)
                 Section {
                     Button(action: { showRecurrencePicker = true }) {
                         HStack {
                             Text("Repeat")
                             Spacer()
                             Text(recurrenceRule?.description ?? "Never")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
                         }
                     }
+                }
+                #endif
 
+                Section {
                     Button(action: { showReminderPicker = true }) {
                         HStack {
                             Text("Reminder")
                             Spacer()
                             Text(reminderText)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
                         }
                     }
                 }
@@ -137,12 +163,16 @@ struct EventCreationView: View {
             }
             .padding()
         }
+        #if !os(tvOS)
         .sheet(isPresented: $showRecurrencePicker) {
             RecurrencePickerView(recurrenceRule: $recurrenceRule)
         }
+        #endif
+        #if !os(tvOS)
         .sheet(isPresented: $showReminderPicker) {
             ReminderPickerView(reminderMinutes: $reminderMinutes)
         }
+        #endif
         .sheet(isPresented: $showImageSelection) {
             ImageSelectionView(event: CalendarEvent(
                 id: UUID().uuidString,
@@ -151,7 +181,7 @@ struct EventCreationView: View {
                 endDate: endDate,
                 location: location.isEmpty ? nil : location,
                 notes: notes.isEmpty ? nil : notes,
-                calendarIdentifier: selectedCalendar?.calendarIdentifier ?? "",
+                calendarIdentifier: "local",
                 isAllDay: isAllDay
             )) { selectedImageId in
                 self.selectedImageId = selectedImageId
@@ -173,6 +203,24 @@ struct EventCreationView: View {
     private func saveEvent() {
         guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
 
+        #if os(tvOS)
+        // On tvOS, create a CalendarEvent and add it directly to the viewModel
+        let calendarEvent = CalendarEvent(
+            id: "local_\(UUID().uuidString)",
+            title: title,
+            startDate: startDate,
+            endDate: isAllDay ? Calendar.current.date(byAdding: .day, value: 1, to: startDate) ?? endDate : endDate,
+            location: location.isEmpty ? nil : location,
+            notes: notes.isEmpty ? nil : notes,
+            calendarIdentifier: "local",
+            isAllDay: isAllDay
+        )
+
+        // Add to viewModel events
+        calendarViewModel.events.append(calendarEvent)
+        calendarViewModel.events.sort { $0.startDate < $1.startDate }
+        presentationMode.wrappedValue.dismiss()
+        #else
         eventStore.requestAccess(to: .event) { granted, error in
             guard granted else { return }
 
@@ -204,11 +252,14 @@ struct EventCreationView: View {
                 }
             }
         }
+        #endif
     }
 }
 
+#if !os(tvOS)
 struct RecurrencePickerView: View {
     @Binding var recurrenceRule: EKRecurrenceRule?
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.presentationMode) var presentationMode
 
     @State private var frequency: EKRecurrenceFrequency = .daily
@@ -256,7 +307,7 @@ struct RecurrencePickerView: View {
                             Spacer()
                             if endDate == nil {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(themeManager.currentPalette.primary)
                             }
                         }
                     }
@@ -267,7 +318,7 @@ struct RecurrencePickerView: View {
                             Spacer()
                             if endDate != nil {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(themeManager.currentPalette.primary)
                             }
                         }
                     }
@@ -292,6 +343,7 @@ struct RecurrencePickerView: View {
 
 struct ReminderPickerView: View {
     @Binding var reminderMinutes: Int
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.presentationMode) var presentationMode
 
     let reminderOptions = [
@@ -330,7 +382,7 @@ struct ReminderPickerView: View {
                         Spacer()
                         if reminderMinutes == option.0 {
                             Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
+                                .foregroundColor(themeManager.currentPalette.primary)
                         }
                     }
                 }
@@ -338,7 +390,9 @@ struct ReminderPickerView: View {
         }
     }
 }
+#endif
 
+#if !os(tvOS)
 extension EKRecurrenceFrequency {
     var description: String {
         switch self {
@@ -350,3 +404,4 @@ extension EKRecurrenceFrequency {
         }
     }
 }
+#endif

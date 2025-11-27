@@ -71,7 +71,67 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
     case november = 19
     case december = 20
 
+    // Special mode themes (21-22)
+    case dark = 21
+    case light = 22
+
+    // Monochromatic themes (23-35)
+    case red = 23
+    case orange = 24
+    case yellow = 25
+    case green = 26
+    case blue = 27
+    case purple = 28
+    case brown = 29
+    case gray = 30
+    case pink = 31
+    case teal = 32
+    case indigo = 33
+    case magenta = 34
+    case black = 35
+
     var id: Int { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .ocean: return "Ocean"
+        case .forest: return "Forest"
+        case .sunset: return "Sunset"
+        case .space: return "Space"
+        case .candy: return "Candy"
+        case .autumn: return "Autumn"
+        case .winter: return "Winter"
+        case .rainbow: return "Rainbow"
+        case .system: return "System"
+        case .january: return "January"
+        case .february: return "February"
+        case .march: return "March"
+        case .april: return "April"
+        case .may: return "May"
+        case .june: return "June"
+        case .july: return "July"
+        case .august: return "August"
+        case .september: return "September"
+        case .october: return "October"
+        case .november: return "November"
+        case .december: return "December"
+        case .dark: return "Dark"
+        case .light: return "Light"
+        case .red: return "Red"
+        case .orange: return "Orange"
+        case .yellow: return "Yellow"
+        case .green: return "Green"
+        case .blue: return "Blue"
+        case .purple: return "Purple"
+        case .brown: return "Brown"
+        case .gray: return "Gray"
+        case .pink: return "Pink"
+        case .teal: return "Teal"
+        case .indigo: return "Indigo"
+        case .magenta: return "Magenta"
+        case .black: return "Black"
+        }
+    }
 
     func palette(for colorScheme: ColorScheme) -> ColorPalette {
         switch self {
@@ -435,6 +495,29 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 )
             }
         case .system:
+            // For tvOS, return a simple theme since system colors are not available
+            #if os(tvOS)
+            return ColorPalette(
+                name: "System",
+                primary: Color.blue,
+                secondary: Color.gray,
+                accent: Color.orange,
+                background: Color.black.opacity(0.9),
+                surface: Color.gray.opacity(0.2),
+                textPrimary: Color.white,
+                textSecondary: Color.white.opacity(0.7),
+                border: Color.white.opacity(0.3),
+                highlight: Color.blue,
+                gridLine: Color.white.opacity(0.2),
+                eventColors: [
+                    Color.blue,
+                    Color.green,
+                    Color.orange,
+                    Color.purple
+                ],
+                icon: "circle.grid.3x3"
+            )
+            #else
             // System theme that uses appropriate colors for the current color scheme
             if colorScheme == .dark {
                 #if os(macOS)
@@ -525,7 +608,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 )
                 #endif
             }
-
+            #endif
         case .january:
             // Winter theme - cool blues and whites
             if colorScheme == .dark {
@@ -1077,6 +1160,653 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     icon: "star.fill"
                 )
             }
+
+        case .dark:
+            // Always dark theme - uses dark colors regardless of system setting
+            return ColorPalette(
+                name: "Dark",
+                primary: Color(hex: "BB86FC"),      // Light purple
+                secondary: Color(hex: "03DAC6"),    // Teal
+                accent: Color(hex: "CF6679"),      // Pink
+                background: Color(hex: "121212"),   // Very dark gray
+                surface: Color(hex: "1E1E1E"),     // Dark gray
+                textPrimary: Color(hex: "FFFFFF"),  // White
+                textSecondary: Color(hex: "B0B0B0"), // Light gray
+                border: Color(hex: "333333"),      // Medium gray
+                highlight: Color(hex: "BB86FC"),   // Light purple
+                gridLine: Color.white.opacity(0.7),
+                eventColors: [
+                    Color(hex: "BB86FC"), // Light purple
+                    Color(hex: "03DAC6"), // Teal
+                    Color(hex: "CF6679"), // Pink
+                    Color(hex: "FF9800")  // Orange
+                ],
+                icon: "moon.fill"
+            )
+
+        case .light:
+            // Always light theme - uses light colors regardless of system setting
+            return ColorPalette(
+                name: "Light",
+                primary: Color(hex: "1976D2"),      // Blue
+                secondary: Color(hex: "757575"),    // Gray
+                accent: Color(hex: "FF9800"),      // Orange
+                background: Color(hex: "FAFAFA"),   // Very light gray
+                surface: Color(hex: "FFFFFF"),     // White
+                textPrimary: Color(hex: "212121"),  // Very dark gray
+                textSecondary: Color(hex: "757575"), // Gray
+                border: Color(hex: "E0E0E0"),      // Light gray
+                highlight: Color(hex: "1976D2"),   // Blue
+                gridLine: Color.black.opacity(0.7),
+                eventColors: [
+                    Color(hex: "1976D2"), // Blue
+                    Color(hex: "4CAF50"), // Green
+                    Color(hex: "FF9800"), // Orange
+                    Color(hex: "E91E63")  // Pink
+                ],
+                icon: "sun.max.fill"
+            )
+
+        case .red:
+            // Monochromatic red theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Red",
+                    primary: Color(hex: "FF8A80"),      // Light red
+                    secondary: Color(hex: "FF5252"),    // Medium red
+                    accent: Color(hex: "FF1744"),      // Dark red
+                    background: Color(hex: "B71C1C"),   // Very dark red
+                    surface: Color(hex: "D32F2F"),     // Dark red
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "FFCDD2"), // Light red
+                    border: Color(hex: "FF8A80"),      // Light red
+                    highlight: Color(hex: "FF5252"),   // Medium red
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "FF8A80"), // Light red
+                        Color(hex: "FF5252"), // Medium red
+                        Color(hex: "FF1744"), // Dark red
+                        Color(hex: "D32F2F")  // Very dark red
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Red",
+                    primary: Color(hex: "D32F2F"),      // Dark red
+                    secondary: Color(hex: "F44336"),    // Medium red
+                    accent: Color(hex: "FF5252"),      // Light red
+                    background: Color(hex: "FFEBEE"),   // Very light red
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "B71C1C"),  // Very dark red
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "FFCDD2"),      // Light red
+                    highlight: Color(hex: "D32F2F"),   // Dark red
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "B71C1C"), // Very dark red
+                        Color(hex: "D32F2F"), // Dark red
+                        Color(hex: "F44336"), // Medium red
+                        Color(hex: "FF5252")  // Light red
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .orange:
+            // Monochromatic orange theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Orange",
+                    primary: Color(hex: "FFB74D"),      // Light orange
+                    secondary: Color(hex: "FF9800"),    // Medium orange
+                    accent: Color(hex: "E65100"),      // Dark orange
+                    background: Color(hex: "E65100"),   // Very dark orange
+                    surface: Color(hex: "EF6C00"),     // Dark orange
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "FFE0B2"), // Light orange
+                    border: Color(hex: "FFB74D"),      // Light orange
+                    highlight: Color(hex: "FF9800"),   // Medium orange
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "FFB74D"), // Light orange
+                        Color(hex: "FF9800"), // Medium orange
+                        Color(hex: "E65100"), // Dark orange
+                        Color(hex: "EF6C00")  // Very dark orange
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Orange",
+                    primary: Color(hex: "EF6C00"),      // Dark orange
+                    secondary: Color(hex: "F57C00"),    // Medium orange
+                    accent: Color(hex: "FF9800"),      // Light orange
+                    background: Color(hex: "FFF3E0"),   // Very light orange
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "E65100"),  // Very dark orange
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "FFE0B2"),      // Light orange
+                    highlight: Color(hex: "EF6C00"),   // Dark orange
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "E65100"), // Very dark orange
+                        Color(hex: "EF6C00"), // Dark orange
+                        Color(hex: "F57C00"), // Medium orange
+                        Color(hex: "FF9800")  // Light orange
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .yellow:
+            // Monochromatic yellow theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Yellow",
+                    primary: Color(hex: "FFF176"),      // Light yellow
+                    secondary: Color(hex: "FFEB3B"),    // Medium yellow
+                    accent: Color(hex: "F57F17"),      // Dark yellow
+                    background: Color(hex: "F57F17"),   // Very dark yellow
+                    surface: Color(hex: "F9A825"),     // Dark yellow
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "FFF9C4"), // Light yellow
+                    border: Color(hex: "FFF176"),      // Light yellow
+                    highlight: Color(hex: "FFEB3B"),   // Medium yellow
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "FFF176"), // Light yellow
+                        Color(hex: "FFEB3B"), // Medium yellow
+                        Color(hex: "F57F17"), // Dark yellow
+                        Color(hex: "F9A825")  // Very dark yellow
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Yellow",
+                    primary: Color(hex: "F9A825"),      // Dark yellow
+                    secondary: Color(hex: "FBC02D"),    // Medium yellow
+                    accent: Color(hex: "FFEB3B"),      // Light yellow
+                    background: Color(hex: "FFFDE7"),   // Very light yellow
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "F57F17"),  // Very dark yellow
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "FFF9C4"),      // Light yellow
+                    highlight: Color(hex: "F9A825"),   // Dark yellow
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "F57F17"), // Very dark yellow
+                        Color(hex: "F9A825"), // Dark yellow
+                        Color(hex: "FBC02D"), // Medium yellow
+                        Color(hex: "FFEB3B")  // Light yellow
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .green:
+            // Monochromatic green theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Green",
+                    primary: Color(hex: "81C784"),      // Light green
+                    secondary: Color(hex: "4CAF50"),    // Medium green
+                    accent: Color(hex: "2E7D32"),      // Dark green
+                    background: Color(hex: "1B5E20"),   // Very dark green
+                    surface: Color(hex: "2E7D32"),     // Dark green
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "C8E6C9"), // Light green
+                    border: Color(hex: "81C784"),      // Light green
+                    highlight: Color(hex: "4CAF50"),   // Medium green
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "81C784"), // Light green
+                        Color(hex: "4CAF50"), // Medium green
+                        Color(hex: "2E7D32"), // Dark green
+                        Color(hex: "1B5E20")  // Very dark green
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Green",
+                    primary: Color(hex: "2E7D32"),      // Dark green
+                    secondary: Color(hex: "388E3C"),    // Medium green
+                    accent: Color(hex: "4CAF50"),      // Light green
+                    background: Color(hex: "E8F5E8"),   // Very light green
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "1B5E20"),  // Very dark green
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "C8E6C9"),      // Light green
+                    highlight: Color(hex: "2E7D32"),   // Dark green
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "1B5E20"), // Very dark green
+                        Color(hex: "2E7D32"), // Dark green
+                        Color(hex: "388E3C"), // Medium green
+                        Color(hex: "4CAF50")  // Light green
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .blue:
+            // Monochromatic blue theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Blue",
+                    primary: Color(hex: "64B5F6"),      // Light blue
+                    secondary: Color(hex: "2196F3"),    // Medium blue
+                    accent: Color(hex: "0D47A1"),      // Dark blue
+                    background: Color(hex: "0D47A1"),   // Very dark blue
+                    surface: Color(hex: "1565C0"),     // Dark blue
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "BBDEFB"), // Light blue
+                    border: Color(hex: "64B5F6"),      // Light blue
+                    highlight: Color(hex: "2196F3"),   // Medium blue
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "64B5F6"), // Light blue
+                        Color(hex: "2196F3"), // Medium blue
+                        Color(hex: "0D47A1"), // Dark blue
+                        Color(hex: "1565C0")  // Very dark blue
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Blue",
+                    primary: Color(hex: "1565C0"),      // Dark blue
+                    secondary: Color(hex: "1976D2"),    // Medium blue
+                    accent: Color(hex: "2196F3"),      // Light blue
+                    background: Color(hex: "E3F2FD"),   // Very light blue
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "0D47A1"),  // Very dark blue
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "BBDEFB"),      // Light blue
+                    highlight: Color(hex: "1565C0"),   // Dark blue
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "0D47A1"), // Very dark blue
+                        Color(hex: "1565C0"), // Dark blue
+                        Color(hex: "1976D2"), // Medium blue
+                        Color(hex: "2196F3")  // Light blue
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .purple:
+            // Monochromatic purple theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Purple",
+                    primary: Color(hex: "BA68C8"),      // Light purple
+                    secondary: Color(hex: "9C27B0"),    // Medium purple
+                    accent: Color(hex: "4A148C"),      // Dark purple
+                    background: Color(hex: "4A148C"),   // Very dark purple
+                    surface: Color(hex: "6A1B9A"),     // Dark purple
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "E1BEE7"), // Light purple
+                    border: Color(hex: "BA68C8"),      // Light purple
+                    highlight: Color(hex: "9C27B0"),   // Medium purple
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "BA68C8"), // Light purple
+                        Color(hex: "9C27B0"), // Medium purple
+                        Color(hex: "4A148C"), // Dark purple
+                        Color(hex: "6A1B9A")  // Very dark purple
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Purple",
+                    primary: Color(hex: "6A1B9A"),      // Dark purple
+                    secondary: Color(hex: "7B1FA2"),    // Medium purple
+                    accent: Color(hex: "9C27B0"),      // Light purple
+                    background: Color(hex: "F3E5F5"),   // Very light purple
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "4A148C"),  // Very dark purple
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "E1BEE7"),      // Light purple
+                    highlight: Color(hex: "6A1B9A"),   // Dark purple
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "4A148C"), // Very dark purple
+                        Color(hex: "6A1B9A"), // Dark purple
+                        Color(hex: "7B1FA2"), // Medium purple
+                        Color(hex: "9C27B0")  // Light purple
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .brown:
+            // Monochromatic brown theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Brown",
+                    primary: Color(hex: "A1887F"),      // Light brown
+                    secondary: Color(hex: "795548"),    // Medium brown
+                    accent: Color(hex: "3E2723"),      // Dark brown
+                    background: Color(hex: "3E2723"),   // Very dark brown
+                    surface: Color(hex: "4E342E"),     // Dark brown
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "D7CCC8"), // Light brown
+                    border: Color(hex: "A1887F"),      // Light brown
+                    highlight: Color(hex: "795548"),   // Medium brown
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "A1887F"), // Light brown
+                        Color(hex: "795548"), // Medium brown
+                        Color(hex: "3E2723"), // Dark brown
+                        Color(hex: "4E342E")  // Very dark brown
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Brown",
+                    primary: Color(hex: "4E342E"),      // Dark brown
+                    secondary: Color(hex: "5D4037"),    // Medium brown
+                    accent: Color(hex: "795548"),      // Light brown
+                    background: Color(hex: "EFEBE9"),   // Very light brown
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "3E2723"),  // Very dark brown
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "D7CCC8"),      // Light brown
+                    highlight: Color(hex: "4E342E"),   // Dark brown
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "3E2723"), // Very dark brown
+                        Color(hex: "4E342E"), // Dark brown
+                        Color(hex: "5D4037"), // Medium brown
+                        Color(hex: "795548")  // Light brown
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .gray:
+            // Monochromatic gray theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Gray",
+                    primary: Color(hex: "B0B0B0"),      // Light gray
+                    secondary: Color(hex: "757575"),    // Medium gray
+                    accent: Color(hex: "424242"),      // Dark gray
+                    background: Color(hex: "212121"),   // Very dark gray
+                    surface: Color(hex: "303030"),     // Dark gray
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "E0E0E0"), // Light gray
+                    border: Color(hex: "B0B0B0"),      // Light gray
+                    highlight: Color(hex: "757575"),   // Medium gray
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "B0B0B0"), // Light gray
+                        Color(hex: "757575"), // Medium gray
+                        Color(hex: "424242"), // Dark gray
+                        Color(hex: "212121")  // Very dark gray
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Gray",
+                    primary: Color(hex: "424242"),      // Dark gray
+                    secondary: Color(hex: "616161"),    // Medium gray
+                    accent: Color(hex: "757575"),      // Light gray
+                    background: Color(hex: "F5F5F5"),   // Very light gray
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "212121"),  // Very dark gray
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "E0E0E0"),      // Light gray
+                    highlight: Color(hex: "424242"),   // Dark gray
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "212121"), // Very dark gray
+                        Color(hex: "424242"), // Dark gray
+                        Color(hex: "616161"), // Medium gray
+                        Color(hex: "757575")  // Light gray
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .pink:
+            // Monochromatic pink theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Pink",
+                    primary: Color(hex: "F48FB1"),      // Light pink
+                    secondary: Color(hex: "E91E63"),    // Medium pink
+                    accent: Color(hex: "C2185B"),      // Dark pink
+                    background: Color(hex: "880E4F"),   // Very dark pink
+                    surface: Color(hex: "C2185B"),     // Dark pink
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "F8BBD9"), // Light pink
+                    border: Color(hex: "F48FB1"),      // Light pink
+                    highlight: Color(hex: "E91E63"),   // Medium pink
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "F48FB1"), // Light pink
+                        Color(hex: "E91E63"), // Medium pink
+                        Color(hex: "C2185B"), // Dark pink
+                        Color(hex: "880E4F")  // Very dark pink
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Pink",
+                    primary: Color(hex: "C2185B"),      // Dark pink
+                    secondary: Color(hex: "E91E63"),    // Medium pink
+                    accent: Color(hex: "F48FB1"),      // Light pink
+                    background: Color(hex: "FCE4EC"),   // Very light pink
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "880E4F"),  // Very dark pink
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "F8BBD9"),      // Light pink
+                    highlight: Color(hex: "C2185B"),   // Dark pink
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "880E4F"), // Very dark pink
+                        Color(hex: "C2185B"), // Dark pink
+                        Color(hex: "E91E63"), // Medium pink
+                        Color(hex: "F48FB1")  // Light pink
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .teal:
+            // Monochromatic teal theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Teal",
+                    primary: Color(hex: "4DB6AC"),      // Light teal
+                    secondary: Color(hex: "009688"),    // Medium teal
+                    accent: Color(hex: "00695C"),      // Dark teal
+                    background: Color(hex: "004D40"),   // Very dark teal
+                    surface: Color(hex: "00695C"),     // Dark teal
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "B2DFDB"), // Light teal
+                    border: Color(hex: "4DB6AC"),      // Light teal
+                    highlight: Color(hex: "009688"),   // Medium teal
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "4DB6AC"), // Light teal
+                        Color(hex: "009688"), // Medium teal
+                        Color(hex: "00695C"), // Dark teal
+                        Color(hex: "004D40")  // Very dark teal
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Teal",
+                    primary: Color(hex: "00695C"),      // Dark teal
+                    secondary: Color(hex: "009688"),    // Medium teal
+                    accent: Color(hex: "4DB6AC"),      // Light teal
+                    background: Color(hex: "E0F2F1"),   // Very light teal
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "004D40"),  // Very dark teal
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "B2DFDB"),      // Light teal
+                    highlight: Color(hex: "00695C"),   // Dark teal
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "004D40"), // Very dark teal
+                        Color(hex: "00695C"), // Dark teal
+                        Color(hex: "009688"), // Medium teal
+                        Color(hex: "4DB6AC")  // Light teal
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .indigo:
+            // Monochromatic indigo theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Indigo",
+                    primary: Color(hex: "7986CB"),      // Light indigo
+                    secondary: Color(hex: "3F51B5"),    // Medium indigo
+                    accent: Color(hex: "283593"),      // Dark indigo
+                    background: Color(hex: "1A237E"),   // Very dark indigo
+                    surface: Color(hex: "283593"),     // Dark indigo
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "C5CAE9"), // Light indigo
+                    border: Color(hex: "7986CB"),      // Light indigo
+                    highlight: Color(hex: "3F51B5"),   // Medium indigo
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "7986CB"), // Light indigo
+                        Color(hex: "3F51B5"), // Medium indigo
+                        Color(hex: "283593"), // Dark indigo
+                        Color(hex: "1A237E")  // Very dark indigo
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Indigo",
+                    primary: Color(hex: "283593"),      // Dark indigo
+                    secondary: Color(hex: "3F51B5"),    // Medium indigo
+                    accent: Color(hex: "7986CB"),      // Light indigo
+                    background: Color(hex: "E8EAF6"),   // Very light indigo
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "1A237E"),  // Very dark indigo
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "C5CAE9"),      // Light indigo
+                    highlight: Color(hex: "283593"),   // Dark indigo
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "1A237E"), // Very dark indigo
+                        Color(hex: "283593"), // Dark indigo
+                        Color(hex: "3F51B5"), // Medium indigo
+                        Color(hex: "7986CB")  // Light indigo
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .magenta:
+            // Monochromatic magenta theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Magenta",
+                    primary: Color(hex: "E1BEE7"),      // Light magenta
+                    secondary: Color(hex: "BA68C8"),    // Medium magenta
+                    accent: Color(hex: "8E24AA"),      // Dark magenta
+                    background: Color(hex: "6A1B9A"),   // Very dark magenta
+                    surface: Color(hex: "8E24AA"),     // Dark magenta
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "F3E5F5"), // Light magenta
+                    border: Color(hex: "E1BEE7"),      // Light magenta
+                    highlight: Color(hex: "BA68C8"),   // Medium magenta
+                    gridLine: Color.white.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "E1BEE7"), // Light magenta
+                        Color(hex: "BA68C8"), // Medium magenta
+                        Color(hex: "8E24AA"), // Dark magenta
+                        Color(hex: "6A1B9A")  // Very dark magenta
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Magenta",
+                    primary: Color(hex: "8E24AA"),      // Dark magenta
+                    secondary: Color(hex: "BA68C8"),    // Medium magenta
+                    accent: Color(hex: "E1BEE7"),      // Light magenta
+                    background: Color(hex: "F3E5F5"),   // Very light magenta
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "6A1B9A"),  // Very dark magenta
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "F3E5F5"),      // Light magenta
+                    highlight: Color(hex: "8E24AA"),   // Dark magenta
+                    gridLine: Color.black.opacity(0.8),
+                    eventColors: [
+                        Color(hex: "6A1B9A"), // Very dark magenta
+                        Color(hex: "8E24AA"), // Dark magenta
+                        Color(hex: "BA68C8"), // Medium magenta
+                        Color(hex: "E1BEE7")  // Light magenta
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+
+        case .black:
+            // Monochromatic black/white theme
+            if colorScheme == .dark {
+                return ColorPalette(
+                    name: "Black",
+                    primary: Color(hex: "BDBDBD"),      // Light gray
+                    secondary: Color(hex: "757575"),    // Medium gray
+                    accent: Color(hex: "424242"),      // Dark gray
+                    background: Color(hex: "000000"),   // Pure black
+                    surface: Color(hex: "212121"),     // Very dark gray
+                    textPrimary: Color(hex: "FFFFFF"),  // White
+                    textSecondary: Color(hex: "E0E0E0"), // Light gray
+                    border: Color(hex: "BDBDBD"),      // Light gray
+                    highlight: Color(hex: "757575"),   // Medium gray
+                    gridLine: Color.white.opacity(0.9),
+                    eventColors: [
+                        Color(hex: "BDBDBD"), // Light gray
+                        Color(hex: "757575"), // Medium gray
+                        Color(hex: "424242"), // Dark gray
+                        Color(hex: "212121")  // Very dark gray
+                    ],
+                    icon: "circle.fill"
+                )
+            } else {
+                return ColorPalette(
+                    name: "Black",
+                    primary: Color(hex: "424242"),      // Dark gray
+                    secondary: Color(hex: "616161"),    // Medium gray
+                    accent: Color(hex: "BDBDBD"),      // Light gray
+                    background: Color(hex: "FAFAFA"),   // Very light gray
+                    surface: Color(hex: "FFFFFF"),     // White
+                    textPrimary: Color(hex: "212121"),  // Very dark gray
+                    textSecondary: Color(hex: "757575"), // Gray
+                    border: Color(hex: "E0E0E0"),      // Light gray
+                    highlight: Color(hex: "424242"),   // Dark gray
+                    gridLine: Color.black.opacity(0.9),
+                    eventColors: [
+                        Color(hex: "212121"), // Very dark gray
+                        Color(hex: "424242"), // Dark gray
+                        Color(hex: "616161"), // Medium gray
+                        Color(hex: "BDBDBD")  // Light gray
+                    ],
+                    icon: "circle.fill"
+                )
+            }
+        default:
+            // Fallback to ocean theme
+            return ColorTheme.ocean.palette(for: colorScheme)
         }
     }
 
@@ -1246,10 +1976,14 @@ class ThemeManager: ObservableObject {
 
     init() {
         let savedThemeRaw = UserDefaults.standard.integer(forKey: themeKey)
+        #if os(tvOS)
+        self.currentTheme = ColorTheme(rawValue: savedThemeRaw) ?? .system
+        #else
         self.currentTheme = ColorTheme(rawValue: savedThemeRaw) ?? .default
+        #endif
 
-        // Default to light mode - users can restart app to see correct theme
-        // TODO: Implement proper system color scheme detection
+        // Default to light mode initially - will be updated by ContentView when it appears
+        // System color scheme detection is now handled by ContentView's onChange modifier
         self.currentColorScheme = .light
     }
 

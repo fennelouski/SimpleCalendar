@@ -267,6 +267,7 @@ class DaylightManager {
     /// Get sunrise time for a date and location
     func sunriseTime(for date: Date, latitude: Double, longitude: Double) -> Date? {
         let calendar = Calendar.current
+        let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
         
@@ -278,9 +279,15 @@ class DaylightManager {
         // Apply equation of time correction
         let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0 // Convert minutes to hours
         let longitudeCorrection = longitude / 15.0 // 15 degrees per hour
-        let correctedHour = hour - eqTime - longitudeCorrection
         
-        // Get the date at midnight
+        // Get timezone offset in hours
+        let timezoneOffset = Double(timezone.secondsFromGMT(for: date)) / 3600.0
+        
+        // Calculate local mean time, then convert to timezone
+        let localMeanTime = hour - eqTime - longitudeCorrection
+        let correctedHour = localMeanTime + timezoneOffset
+        
+        // Get the date at midnight in local timezone
         let startOfDay = calendar.startOfDay(for: date)
         
         // Add the calculated hours
@@ -291,6 +298,7 @@ class DaylightManager {
     /// Get sunset time for a date and location
     func sunsetTime(for date: Date, latitude: Double, longitude: Double) -> Date? {
         let calendar = Calendar.current
+        let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
         
@@ -302,9 +310,15 @@ class DaylightManager {
         // Apply equation of time correction
         let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0 // Convert minutes to hours
         let longitudeCorrection = longitude / 15.0 // 15 degrees per hour
-        let correctedHour = hour - eqTime - longitudeCorrection
         
-        // Get the date at midnight
+        // Get timezone offset in hours
+        let timezoneOffset = Double(timezone.secondsFromGMT(for: date)) / 3600.0
+        
+        // Calculate local mean time, then convert to timezone
+        let localMeanTime = hour - eqTime - longitudeCorrection
+        let correctedHour = localMeanTime + timezoneOffset
+        
+        // Get the date at midnight in local timezone
         let startOfDay = calendar.startOfDay(for: date)
         
         // Add the calculated hours
@@ -315,6 +329,7 @@ class DaylightManager {
     /// Get astronomical twilight start time (sun at -18 degrees)
     func astronomicalTwilightStart(for date: Date, latitude: Double, longitude: Double) -> Date? {
         let calendar = Calendar.current
+        let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
         
@@ -324,7 +339,9 @@ class DaylightManager {
         
         let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
         let longitudeCorrection = longitude / 15.0
-        let correctedHour = hour - eqTime - longitudeCorrection
+        let timezoneOffset = Double(timezone.secondsFromGMT(for: date)) / 3600.0
+        let localMeanTime = hour - eqTime - longitudeCorrection
+        let correctedHour = localMeanTime + timezoneOffset
         
         let startOfDay = calendar.startOfDay(for: date)
         return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
@@ -334,6 +351,7 @@ class DaylightManager {
     /// Get astronomical twilight end time (sun at -18 degrees)
     func astronomicalTwilightEnd(for date: Date, latitude: Double, longitude: Double) -> Date? {
         let calendar = Calendar.current
+        let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
         
@@ -343,7 +361,9 @@ class DaylightManager {
         
         let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
         let longitudeCorrection = longitude / 15.0
-        let correctedHour = hour - eqTime - longitudeCorrection
+        let timezoneOffset = Double(timezone.secondsFromGMT(for: date)) / 3600.0
+        let localMeanTime = hour - eqTime - longitudeCorrection
+        let correctedHour = localMeanTime + timezoneOffset
         
         let startOfDay = calendar.startOfDay(for: date)
         return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
@@ -353,6 +373,7 @@ class DaylightManager {
     /// Get nautical twilight start time (sun at -12 degrees)
     func nauticalTwilightStart(for date: Date, latitude: Double, longitude: Double) -> Date? {
         let calendar = Calendar.current
+        let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
         
@@ -362,7 +383,9 @@ class DaylightManager {
         
         let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
         let longitudeCorrection = longitude / 15.0
-        let correctedHour = hour - eqTime - longitudeCorrection
+        let timezoneOffset = Double(timezone.secondsFromGMT(for: date)) / 3600.0
+        let localMeanTime = hour - eqTime - longitudeCorrection
+        let correctedHour = localMeanTime + timezoneOffset
         
         let startOfDay = calendar.startOfDay(for: date)
         return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
@@ -372,6 +395,7 @@ class DaylightManager {
     /// Get nautical twilight end time (sun at -12 degrees)
     func nauticalTwilightEnd(for date: Date, latitude: Double, longitude: Double) -> Date? {
         let calendar = Calendar.current
+        let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
         
@@ -381,7 +405,9 @@ class DaylightManager {
         
         let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
         let longitudeCorrection = longitude / 15.0
-        let correctedHour = hour - eqTime - longitudeCorrection
+        let timezoneOffset = Double(timezone.secondsFromGMT(for: date)) / 3600.0
+        let localMeanTime = hour - eqTime - longitudeCorrection
+        let correctedHour = localMeanTime + timezoneOffset
         
         let startOfDay = calendar.startOfDay(for: date)
         return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
@@ -391,6 +417,7 @@ class DaylightManager {
     /// Get civil twilight start time (sun at -6 degrees)
     func civilTwilightStart(for date: Date, latitude: Double, longitude: Double) -> Date? {
         let calendar = Calendar.current
+        let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
         
@@ -400,7 +427,9 @@ class DaylightManager {
         
         let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
         let longitudeCorrection = longitude / 15.0
-        let correctedHour = hour - eqTime - longitudeCorrection
+        let timezoneOffset = Double(timezone.secondsFromGMT(for: date)) / 3600.0
+        let localMeanTime = hour - eqTime - longitudeCorrection
+        let correctedHour = localMeanTime + timezoneOffset
         
         let startOfDay = calendar.startOfDay(for: date)
         return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?
@@ -410,6 +439,7 @@ class DaylightManager {
     /// Get civil twilight end time (sun at -6 degrees)
     func civilTwilightEnd(for date: Date, latitude: Double, longitude: Double) -> Date? {
         let calendar = Calendar.current
+        let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
         
@@ -419,7 +449,9 @@ class DaylightManager {
         
         let eqTime = equationOfTime(dayOfYear: dayOfYear) / 60.0
         let longitudeCorrection = longitude / 15.0
-        let correctedHour = hour - eqTime - longitudeCorrection
+        let timezoneOffset = Double(timezone.secondsFromGMT(for: date)) / 3600.0
+        let localMeanTime = hour - eqTime - longitudeCorrection
+        let correctedHour = localMeanTime + timezoneOffset
         
         let startOfDay = calendar.startOfDay(for: date)
         return calendar.date(byAdding: .hour, value: Int(correctedHour), to: startOfDay)?

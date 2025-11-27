@@ -1,0 +1,16 @@
+{
+  "source": "/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/EventMapView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Location",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 168
+        }
+      }
+    ]
+  },
+  "version": 1
+}
