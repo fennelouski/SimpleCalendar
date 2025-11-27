@@ -47,7 +47,7 @@ class CalendarViewModel: ObservableObject {
                 currentDate = newDate
             }
         case .week:
-            if let newDate = calendar.date(byAdding: .weekOfYear, value: multiplier, to: currentDate) {
+            if let newDate = calendar.date(byAdding: .day, value: 7 * multiplier, to: currentDate) {
                 currentDate = newDate
             }
         case .month:
@@ -248,10 +248,19 @@ class CalendarViewModel: ObservableObject {
     }
 
     func navigateToToday() {
-        currentDate = Date()
-        selectedDate = Date()
+        let today = Date()
+        // Update selection animation ID to trigger animations
+        selectionAnimationId = UUID()
+        // Set selected date first, which will trigger proper alignment
+        selectedDate = today
+        // Align currentDate with the selection (this handles month/year view alignment)
+        alignCurrentDateWithSelectionIfNeeded(today)
+        // Load events for the new date range
         loadAllEvents()
-        preloadHolidaysForDate(Date())
+        // Preload holidays for smooth navigation
+        preloadHolidaysForDate(today)
+        // Post notification to refresh calendar view
+        NotificationCenter.default.post(name: Notification.Name("RefreshCalendar"), object: nil)
     }
     
     /// Preload holidays for a given date to ensure smooth navigation
@@ -277,13 +286,13 @@ class CalendarViewModel: ObservableObject {
     }
 
     func moveSelectedDate(_ direction: CursorDirection) {
-        let calendar = Calendar.current
         guard let currentSelectedDate = selectedDate else {
             // If no date is selected, select today
             selectDate(Date())
             return
         }
 
+        let calendar = Calendar.current
         var newDate: Date
 
         switch direction {
@@ -297,18 +306,8 @@ class CalendarViewModel: ObservableObject {
             newDate = calendar.date(byAdding: .day, value: 7, to: currentSelectedDate) ?? currentSelectedDate
         }
 
-        selectDate(newDate)
-
-        // Update currentDate to match the month of the selected date (for tvOS navigation)
-        let currentMonth = calendar.component(.month, from: currentDate)
-        let currentYear = calendar.component(.year, from: currentDate)
-        let selectedMonth = calendar.component(.month, from: newDate)
-        let selectedYear = calendar.component(.year, from: newDate)
-
-        if currentMonth != selectedMonth || currentYear != selectedYear {
-            // Selected date is in a different month/year, update currentDate to show that month
-            currentDate = newDate
-        }
+        self.selectedDate = newDate
+        ensureSelectedDateIsVisible()
     }
 
     func setViewMode(_ mode: CalendarViewMode) {

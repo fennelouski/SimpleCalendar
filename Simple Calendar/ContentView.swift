@@ -2955,11 +2955,12 @@ struct DayDetailSlideOut: View {
                     
                     // Slide-out content
                     DayDetailView(date: date)
-                        .frame(width: isFullScreen ? geometry.size.width : (geometry.size.width / 3))
+                        .frame(width: isFullScreen ? geometry.size.width : (geometry.size.width / 3) - 16) // Account for 8pt inset on each side
                         .frame(maxHeight: isFullScreen ? .infinity : .infinity)
                         .background(dayDetailBackground)
-                        .roundedCorners(isFullScreen ? .none : .medium)
+                        .clipShape(RoundedRectangle(cornerRadius: isFullScreen ? 0 : 10)) // Increased from 6pt to 10pt
                         .shadow(radius: isFullScreen ? 0 : 10)
+                        .padding(isFullScreen ? 0 : 8) // 8pt inset on all sides
                         .offset(x: isOnRightSide ? slideOffset : -slideOffset)
                     #if !os(tvOS)
                     .gesture(
