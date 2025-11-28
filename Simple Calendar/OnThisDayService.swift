@@ -80,7 +80,7 @@ class OnThisDayService: ObservableObject {
     // MARK: - Private Methods
 
     private func fetchFromAPI(for date: Date) async throws -> OnThisDayData {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let components = calendar.dateComponents([.month, .day], from: date)
         guard let month = components.month, let day = components.day else {
             throw OnThisDayError.invalidDate
@@ -120,7 +120,7 @@ class OnThisDayService: ObservableObject {
     }
 
     private func cacheKey(for date: Date) -> String {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let components = calendar.dateComponents([.month, .day], from: date)
         return "\(cacheKeyPrefix)\(components.month ?? 0)_\(components.day ?? 0)"
     }

@@ -74,7 +74,14 @@ class FeatureFlags: ObservableObject {
         didSet { UserDefaults.standard.set(monthlyThemesEnabled, forKey: "feature_monthlyThemesEnabled") }
     }
 
-    @Published var onThisDayEnabled: Bool = false {
+    @Published var useMonthlyThemeMode: Bool = true {
+        didSet {
+            UserDefaults.standard.set(useMonthlyThemeMode, forKey: "feature_useMonthlyThemeMode")
+            UserDefaults.standard.synchronize()
+        }
+    }
+
+    @Published var onThisDayEnabled: Bool = true {
         didSet {
             UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
             // Also sync to iCloud
@@ -83,7 +90,7 @@ class FeatureFlags: ObservableObject {
         }
     }
 
-    @Published var weekendTintingEnabled: Bool = false {
+    @Published var weekendTintingEnabled: Bool = true {
         didSet {
             UserDefaults.standard.set(weekendTintingEnabled, forKey: "feature_weekendTintingEnabled")
             // Also sync to iCloud
@@ -198,6 +205,11 @@ class FeatureFlags: ObservableObject {
             monthlyThemesEnabled = false // Default to false to not surprise users
         }
 
+        useMonthlyThemeMode = UserDefaults.standard.bool(forKey: "feature_useMonthlyThemeMode")
+        if useMonthlyThemeMode == false && UserDefaults.standard.object(forKey: "feature_useMonthlyThemeMode") == nil {
+            useMonthlyThemeMode = false // Default to false
+        }
+
         onThisDayEnabled = getOnThisDayFlag()
         weekendTintingEnabled = getWeekendTintingFlag()
         holidayDisplayEnabled = getHolidayDisplayFlag()
@@ -264,6 +276,7 @@ class FeatureFlags: ObservableObject {
         daylightVisualizationCalendar = true
         daylightVisualizationDayView = true
         monthlyThemesEnabled = false  // Default to off (opt-in feature)
+        useMonthlyThemeMode = false  // Default to off
         onThisDayEnabled = false  // Default to off
         weekendTintingEnabled = true   // Default to on for all platforms
         holidayDisplayEnabled = true  // Default to on
@@ -291,6 +304,7 @@ class FeatureFlags: ObservableObject {
         UserDefaults.standard.set(daylightVisualizationCalendar, forKey: "feature_daylightVisualizationCalendar")
         UserDefaults.standard.set(daylightVisualizationDayView, forKey: "feature_daylightVisualizationDayView")
         UserDefaults.standard.set(monthlyThemesEnabled, forKey: "feature_monthlyThemesEnabled")
+        UserDefaults.standard.set(useMonthlyThemeMode, forKey: "feature_useMonthlyThemeMode")
         UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
         UserDefaults.standard.set(weekendTintingEnabled, forKey: "feature_weekendTintingEnabled")
         UserDefaults.standard.set(holidayDisplayEnabled, forKey: "feature_holidayDisplayEnabled")

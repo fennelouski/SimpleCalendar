@@ -154,7 +154,7 @@ class GoogleCalendarAPI {
         }
 
         // For all-day events, adjust end date
-        let adjustedEndDate = isAllDay ? Calendar.current.date(byAdding: .day, value: -1, to: end) ?? end : end
+        let adjustedEndDate = isAllDay ? Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: end) ?? end : end
 
         let location = json["location"] as? String
         let description = json["description"] as? String

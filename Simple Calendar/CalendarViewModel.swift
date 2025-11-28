@@ -38,7 +38,7 @@ class CalendarViewModel: ObservableObject {
     }
 
     func navigateDate(by unit: NavigationUnit, direction: NavigationDirection) {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let multiplier = direction == .forward ? 1 : -1
 
         switch unit {
@@ -122,6 +122,8 @@ class CalendarViewModel: ObservableObject {
         if selectedDate == nil {
             selectDate(Date()) // Select today by default on tvOS
         }
+        // Apply monthly theme if enabled
+        applyMonthlyThemeIfEnabled()
         #endif
     }
 
@@ -156,8 +158,8 @@ class CalendarViewModel: ObservableObject {
     #if !os(tvOS)
     private func loadSystemEvents() {
         let calendars = eventStore.calendars(for: .event)
-        let startDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
-        let endDate = Calendar.current.date(byAdding: .month, value: 2, to: currentDate)!
+        let startDate = Calendar(identifier: .gregorian).date(byAdding: .month, value: -1, to: currentDate)!
+        let endDate = Calendar(identifier: .gregorian).date(byAdding: .month, value: 2, to: currentDate)!
 
         let predicate = eventStore.predicateForEvents(withStart: startDate, end: endDate, calendars: calendars)
 
@@ -188,8 +190,8 @@ class CalendarViewModel: ObservableObject {
     private func loadGoogleEvents() {
         guard googleOAuthManager.isAuthenticated else { return }
 
-        let startDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
-        let endDate = Calendar.current.date(byAdding: .month, value: 2, to: currentDate)!
+        let startDate = Calendar(identifier: .gregorian).date(byAdding: .month, value: -1, to: currentDate)!
+        let endDate = Calendar(identifier: .gregorian).date(byAdding: .month, value: 2, to: currentDate)!
 
         googleCalendarAPI.fetchEvents(from: startDate, to: endDate) { [weak self] googleEvents in
             guard let self = self, let googleEvents = googleEvents else { return }
@@ -211,40 +213,60 @@ class CalendarViewModel: ObservableObject {
         if viewMode == .year {
             navigateToNextYear()
         } else {
-            if let newDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate) {
+            if let newDate = Calendar(identifier: .gregorian).date(byAdding: .month, value: 1, to: currentDate) {
                 currentDate = newDate
                 loadAllEvents()
                 preloadHolidaysForDate(newDate)
             }
         }
+        
+        // Apply monthly theme if enabled (tvOS only)
+        #if os(tvOS)
+        applyMonthlyThemeIfEnabled()
+        #endif
     }
 
     func navigateToPreviousMonth() {
         if viewMode == .year {
             navigateToPreviousYear()
         } else {
-            if let newDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate) {
+            if let newDate = Calendar(identifier: .gregorian).date(byAdding: .month, value: -1, to: currentDate) {
                 currentDate = newDate
                 loadAllEvents()
                 preloadHolidaysForDate(newDate)
             }
         }
+        
+        // Apply monthly theme if enabled (tvOS only)
+        #if os(tvOS)
+        applyMonthlyThemeIfEnabled()
+        #endif
     }
 
     func navigateToNextYear() {
-        if let newDate = Calendar.current.date(byAdding: .year, value: 1, to: currentDate) {
+        if let newDate = Calendar(identifier: .gregorian).date(byAdding: .year, value: 1, to: currentDate) {
             currentDate = newDate
             loadAllEvents()
             preloadHolidaysForDate(newDate)
         }
+        
+        // Apply monthly theme if enabled (tvOS only)
+        #if os(tvOS)
+        applyMonthlyThemeIfEnabled()
+        #endif
     }
 
     func navigateToPreviousYear() {
-        if let newDate = Calendar.current.date(byAdding: .year, value: -1, to: currentDate) {
+        if let newDate = Calendar(identifier: .gregorian).date(byAdding: .year, value: -1, to: currentDate) {
             currentDate = newDate
             loadAllEvents()
             preloadHolidaysForDate(newDate)
         }
+        
+        // Apply monthly theme if enabled (tvOS only)
+        #if os(tvOS)
+        applyMonthlyThemeIfEnabled()
+        #endif
     }
 
     func navigateToToday() {
@@ -261,20 +283,31 @@ class CalendarViewModel: ObservableObject {
         preloadHolidaysForDate(today)
         // Post notification to refresh calendar view
         NotificationCenter.default.post(name: Notification.Name("RefreshCalendar"), object: nil)
+        
+        // Apply monthly theme if enabled (tvOS only)
+        #if os(tvOS)
+        applyMonthlyThemeIfEnabled()
+        #endif
     }
     
     /// Preload holidays for a given date to ensure smooth navigation
     private func preloadHolidaysForDate(_ date: Date) {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let year = calendar.component(.year, from: date)
         HolidayManager.shared.preloadHolidaysForYearRange(centerYear: year, range: 2)
     }
 
     func selectDate(_ date: Date) {
-        selectedDate = date
+        // Normalize to start of day for consistent focus/selection matching
+        let calendar = Calendar(identifier: .gregorian)
+        let normalizedDate = calendar.startOfDay(for: date)
+        selectedDate = normalizedDate
         // Change animation ID to cancel any previous animations and start fresh
         selectionAnimationId = UUID()
-        alignCurrentDateWithSelectionIfNeeded(date)
+        alignCurrentDateWithSelectionIfNeeded(normalizedDate)
+#if os(tvOS)
+        applyMonthlyThemeIfEnabled()
+#endif
     }
 
     func toggleDayDetail() {
@@ -292,7 +325,7 @@ class CalendarViewModel: ObservableObject {
             return
         }
 
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         var newDate: Date
 
         switch direction {
@@ -306,7 +339,8 @@ class CalendarViewModel: ObservableObject {
             newDate = calendar.date(byAdding: .day, value: 7, to: currentSelectedDate) ?? currentSelectedDate
         }
 
-        self.selectedDate = newDate
+        // Normalize to start of day for consistent focus/selection matching
+        self.selectedDate = calendar.startOfDay(for: newDate)
         ensureSelectedDateIsVisible()
     }
 
@@ -331,33 +365,43 @@ class CalendarViewModel: ObservableObject {
     }
 
     func moveUpOneWeek() {
+        fatalError()
+        let calendar = Calendar(identifier: .gregorian)
         if let selectedDate = selectedDate,
-           let newDate = Calendar.current.date(byAdding: .day, value: -7, to: selectedDate) {
-            self.selectedDate = newDate
+           let newDate = calendar.date(byAdding: .day, value: -7, to: selectedDate) {
+            // Normalize to start of day for consistent focus/selection matching
+            self.selectedDate = calendar.startOfDay(for: newDate)
             ensureSelectedDateIsVisible()
         }
     }
 
     func moveDownOneWeek() {
+        fatalError()
+        let calendar = Calendar(identifier: .gregorian)
         if let selectedDate = selectedDate,
-           let newDate = Calendar.current.date(byAdding: .day, value: 7, to: selectedDate) {
-            self.selectedDate = newDate
+           let newDate = calendar.date(byAdding: .day, value: 7, to: selectedDate) {
+            // Normalize to start of day for consistent focus/selection matching
+            self.selectedDate = calendar.startOfDay(for: newDate)
             ensureSelectedDateIsVisible()
         }
     }
 
     func moveLeftOneDay() {
+        let calendar = Calendar(identifier: .gregorian)
         if let selectedDate = selectedDate,
-           let newDate = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) {
-            self.selectedDate = newDate
+           let newDate = calendar.date(byAdding: .day, value: -1, to: selectedDate) {
+            // Normalize to start of day for consistent focus/selection matching
+            self.selectedDate = calendar.startOfDay(for: newDate)
             ensureSelectedDateIsVisible()
         }
     }
 
     func moveRightOneDay() {
+        let calendar = Calendar(identifier: .gregorian)
         if let selectedDate = selectedDate,
-           let newDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) {
-            self.selectedDate = newDate
+           let newDate = calendar.date(byAdding: .day, value: 1, to: selectedDate) {
+            // Normalize to start of day for consistent focus/selection matching
+            self.selectedDate = calendar.startOfDay(for: newDate)
             ensureSelectedDateIsVisible()
         }
     }
@@ -366,10 +410,13 @@ class CalendarViewModel: ObservableObject {
     private func ensureSelectedDateIsVisible() {
         guard let selectedDate = selectedDate else { return }
         alignCurrentDateWithSelectionIfNeeded(selectedDate)
+#if os(tvOS)
+        applyMonthlyThemeIfEnabled()
+#endif
     }
 
     private func alignCurrentDateWithSelectionIfNeeded(_ date: Date) {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
 
         switch viewMode {
         case .month:
@@ -394,10 +441,25 @@ class CalendarViewModel: ObservableObject {
             }
 
         default:
-            // For day-based views, ensure currentDate matches the selection
-            if !calendar.isDate(currentDate, inSameDayAs: date) {
-                currentDate = date
-                loadAllEvents()
+            // For day-based views, only change currentDate if selection is outside visible range
+            let dayCount = viewMode.dayCount
+            if dayCount == 1 || dayCount == 0 {
+                // For single day or agenda view, always match currentDate to selection
+                if !calendar.isDate(currentDate, inSameDayAs: date) {
+                    currentDate = date
+                    loadAllEvents()
+                }
+            } else {
+                // For multi-day views, check if selection is within visible range
+                let rangeDays = dayCount / 2  // e.g., for 14 days, range = 7
+                let rangeStart = calendar.date(byAdding: .day, value: -rangeDays, to: currentDate)!
+                let rangeEnd = calendar.date(byAdding: .day, value: rangeDays, to: currentDate)!
+
+                // Change currentDate only if selection is outside the visible range
+                if date < rangeStart || date > rangeEnd {
+                    currentDate = date
+                    loadAllEvents()
+                }
             }
         }
     }
@@ -465,4 +527,39 @@ class CalendarViewModel: ObservableObject {
     deinit {
         syncTimer?.invalidate()
     }
+    
+    // MARK: - Monthly Theme Support (tvOS only)
+    
+    /// Get the ColorTheme for a given month (1-12)
+    static func monthlyThemeForMonth(_ month: Int) -> ColorTheme {
+        switch month {
+        case 1: return .january
+        case 2: return .february
+        case 3: return .march
+        case 4: return .april
+        case 5: return .may
+        case 6: return .june
+        case 7: return .july
+        case 8: return .august
+        case 9: return .september
+        case 10: return .october
+        case 11: return .november
+        case 12: return .december
+        default: return .january
+        }
+    }
+    
+    #if os(tvOS)
+    /// Apply the monthly theme if monthly theme mode is enabled
+    private func applyMonthlyThemeIfEnabled() {
+        let featureFlags = FeatureFlags.shared
+        guard featureFlags.useMonthlyThemeMode else { return }
+        
+        let calendar = Calendar(identifier: .gregorian)
+        let month = calendar.component(.month, from: currentDate)
+        let monthlyTheme = CalendarViewModel.monthlyThemeForMonth(month)
+        
+        ThemeManager.shared.setTheme(monthlyTheme)
+    }
+    #endif
 }

@@ -209,7 +209,7 @@ struct EventCreationView: View {
             id: "local_\(UUID().uuidString)",
             title: title,
             startDate: startDate,
-            endDate: isAllDay ? Calendar.current.date(byAdding: .day, value: 1, to: startDate) ?? endDate : endDate,
+            endDate: isAllDay ? Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: startDate) ?? endDate : endDate,
             location: location.isEmpty ? nil : location,
             notes: notes.isEmpty ? nil : notes,
             calendarIdentifier: "local",
@@ -228,7 +228,7 @@ struct EventCreationView: View {
                 let event = EKEvent(eventStore: self.eventStore)
                 event.title = self.title
                 event.startDate = self.startDate
-                event.endDate = self.isAllDay ? Calendar.current.date(byAdding: .day, value: 1, to: self.startDate) ?? self.endDate : self.endDate
+                event.endDate = self.isAllDay ? Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: self.startDate) ?? self.endDate : self.endDate
                 event.location = self.location.isEmpty ? nil : self.location
                 event.notes = self.notes.isEmpty ? nil : self.notes
                 event.isAllDay = self.isAllDay

@@ -29,7 +29,7 @@ struct CalendarHoliday: Identifiable, Hashable {
 
     /// Check if this holiday occurs on the given date
     func occursOn(_ date: Date) -> Bool {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         // For both recurring and fixed holidays, check if they occur on the same day
         // Each holiday instance already has the correct date set for its specific year
         return calendar.isDate(self.date, inSameDayAs: date)
@@ -44,12 +44,12 @@ struct CalendarHoliday: Identifiable, Hashable {
                 return thanksgivingDate(for: year)
             case "Black Friday":
                 if let thanksgiving = thanksgivingDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: 1, to: thanksgiving)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: thanksgiving)
                 }
                 return nil
             case "Cyber Monday":
                 if let thanksgiving = thanksgivingDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: 4, to: thanksgiving)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: 4, to: thanksgiving)
                 }
                 return nil
             case "Martin Luther King Jr. Day":
@@ -75,67 +75,67 @@ struct CalendarHoliday: Identifiable, Hashable {
                 return easterDate(for: year)
             case "Good Friday":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: -2, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -2, to: easter)
                 }
                 return nil
             case "Palm Sunday":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: -7, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -7, to: easter)
                 }
                 return nil
             case "Maundy Thursday", "Holy Thursday":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: -3, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -3, to: easter)
                 }
                 return nil
             case "Holy Saturday", "Easter Saturday":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: -1, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: easter)
                 }
                 return nil
             case "Easter Monday":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: 1, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: easter)
                 }
                 return nil
             case "Ascension Day":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: 39, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: 39, to: easter)
                 }
                 return nil
             case "Pentecost", "Whitsunday":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: 49, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: 49, to: easter)
                 }
                 return nil
             case "Whit Monday":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: 50, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: 50, to: easter)
                 }
                 return nil
             case "Trinity Sunday":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: 56, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: 56, to: easter)
                 }
                 return nil
             case "Corpus Christi":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: 60, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: 60, to: easter)
                 }
                 return nil
             case "Mardi Gras", "Fat Tuesday", "Shrove Tuesday":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: -47, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -47, to: easter)
                 }
                 return nil
             case "Ash Wednesday":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: -46, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -46, to: easter)
                 }
                 return nil
             case "Lent Begins":
                 if let easter = easterDate(for: year) {
-                    return Calendar.current.date(byAdding: .day, value: -46, to: easter)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -46, to: easter)
                 }
                 return nil
             case "First Sunday of Advent":
@@ -144,10 +144,10 @@ struct CalendarHoliday: Identifiable, Hashable {
                 components.year = year
                 components.month = 11
                 components.day = 30
-                if let nov30 = Calendar.current.date(from: components) {
-                    let weekday = Calendar.current.component(.weekday, from: nov30)
+                if let nov30 = Calendar(identifier: .gregorian).date(from: components) {
+                    let weekday = Calendar(identifier: .gregorian).component(.weekday, from: nov30)
                     let daysToSubtract = (weekday - Weekday.sunday.rawValue + 7) % 7
-                    return Calendar.current.date(byAdding: .day, value: -daysToSubtract, to: nov30)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -daysToSubtract, to: nov30)
                 }
                 return nil
             case "Groundhog Day":
@@ -170,9 +170,9 @@ struct CalendarHoliday: Identifiable, Hashable {
                 // First Sunday after Labor Day (first Monday of September)
                 if let laborDay = nthWeekdayOfMonth(year: year, month: 9, weekday: .monday, n: 1) {
                     // Find the following Sunday
-                    let weekday = Calendar.current.component(.weekday, from: laborDay)
+                    let weekday = Calendar(identifier: .gregorian).component(.weekday, from: laborDay)
                     let daysToSunday = (Weekday.sunday.rawValue - weekday + 7) % 7
-                    return Calendar.current.date(byAdding: .day, value: daysToSunday, to: laborDay)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: daysToSunday, to: laborDay)
                 }
                 return nil
             case "National Ice Cream Day":
@@ -193,11 +193,11 @@ struct CalendarHoliday: Identifiable, Hashable {
                     components.year = year
                     components.month = 1
                     components.day = 20
-                    if let jan20 = Calendar.current.date(from: components) {
-                        let weekday = Calendar.current.component(.weekday, from: jan20)
+                    if let jan20 = Calendar(identifier: .gregorian).date(from: components) {
+                        let weekday = Calendar(identifier: .gregorian).component(.weekday, from: jan20)
                         // If January 20 is a Sunday, move to Monday
                         if weekday == Weekday.sunday.rawValue {
-                            return Calendar.current.date(byAdding: .day, value: 1, to: jan20)
+                            return Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: jan20)
                         }
                         return jan20
                     }
@@ -212,7 +212,7 @@ struct CalendarHoliday: Identifiable, Hashable {
             case "Election Day":
                 // First Tuesday after the first Monday in November
                 if let firstMonday = nthWeekdayOfMonth(year: year, month: 11, weekday: .monday, n: 1) {
-                    return Calendar.current.date(byAdding: .day, value: 1, to: firstMonday)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: firstMonday)
                 }
                 return nil
             case "Teacher Appreciation Day":
@@ -221,24 +221,24 @@ struct CalendarHoliday: Identifiable, Hashable {
             case "Mother's Day Weekend":
                 // The Saturday before Mother's Day
                 if let mothersDay = nthWeekdayOfMonth(year: year, month: 5, weekday: .sunday, n: 2) {
-                    return Calendar.current.date(byAdding: .day, value: -1, to: mothersDay)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: mothersDay)
                 }
                 return nil
             case "Memorial Day Weekend":
                 // The Saturday before Memorial Day (last Monday of May)
                 if let memorialDay = lastWeekdayOfMonth(year: year, month: 5, weekday: .monday) {
-                    return Calendar.current.date(byAdding: .day, value: -2, to: memorialDay)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -2, to: memorialDay)
                 }
                 return nil
             case "Labor Day Weekend":
                 // The Saturday before Labor Day (first Monday of September)
                 if let laborDay = nthWeekdayOfMonth(year: year, month: 9, weekday: .monday, n: 1) {
-                    return Calendar.current.date(byAdding: .day, value: -2, to: laborDay)
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: -2, to: laborDay)
                 }
                 return nil
             default:
                 // For other recurring holidays, use the stored date but update the year
-                let calendar = Calendar.current
+                let calendar = Calendar(identifier: .gregorian)
                 var components = calendar.dateComponents([.month, .day], from: self.date)
                 components.year = year
                 return calendar.date(from: components)
@@ -266,7 +266,7 @@ struct CalendarHoliday: Identifiable, Hashable {
         components.year = year
         components.month = month
         components.day = day
-        return Calendar.current.date(from: components)
+        return Calendar(identifier: .gregorian).date(from: components)
     }
 
     /// Calculate Thanksgiving date (fourth Thursday of November)
@@ -296,12 +296,12 @@ struct CalendarHoliday: Identifiable, Hashable {
         components.year = year
         components.month = month
         components.day = day
-        return Calendar.current.date(from: components)
+        return Calendar(identifier: .gregorian).date(from: components)
     }
 
     /// Find the nth weekday of a given month and year
     private func nthWeekdayOfMonth(year: Int, month: Int, weekday: Weekday, n: Int) -> Date? {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
 
         // Start of the month
         var components = DateComponents()
@@ -324,7 +324,7 @@ struct CalendarHoliday: Identifiable, Hashable {
 
     /// Find the last weekday of a given month and year
     private func lastWeekdayOfMonth(year: Int, month: Int, weekday: Weekday) -> Date? {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
 
         // Start of next month
         var nextMonthComponents = DateComponents()
@@ -975,7 +975,7 @@ extension CalendarHoliday {
     static let sukkot = CalendarHoliday(
         name: "Sukkot",
         date: createDate(month: 10, day: 16, year: 2025), // Approximate start - varies by Hebrew calendar
-        emoji: "🏕️",
+        emoji: "🌿",
         description: "Jewish harvest festival commemorating the 40 years Israelites spent in the desert.",
         unsplashSearchTerm: "sukkot sukkah",
         isRecurring: true,
@@ -1633,6 +1633,6 @@ extension CalendarHoliday {
         components.year = year
         components.month = month
         components.day = day
-        return Calendar.current.date(from: components) ?? Date()
+        return Calendar(identifier: .gregorian).date(from: components) ?? Date()
     }
 }

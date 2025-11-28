@@ -11,7 +11,7 @@ import SwiftData
 @main
 struct Simple_CalendarApp: App {
     @StateObject private var calendarViewModel = CalendarViewModel()
-    @StateObject private var themeManager = ThemeManager()
+    @StateObject private var themeManager = ThemeManager.shared
     @StateObject private var uiConfig = UIConfiguration()
     @StateObject private var featureFlags = FeatureFlags.shared
     @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared

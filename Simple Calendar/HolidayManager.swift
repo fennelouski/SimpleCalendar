@@ -161,7 +161,7 @@ class HolidayManager: ObservableObject {
 
     /// Load holidays for initial range around current year asynchronously
     private func loadHolidaysForInitialRangeAsync() {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let currentYear = calendar.component(.year, from: Date())
         let startYear = max(Self.minYear, currentYear - 2)
         let endYear = min(Self.maxYear, currentYear + 2)
@@ -287,7 +287,7 @@ class HolidayManager: ObservableObject {
 
     /// Get holidays that occur on a specific date
     func holidaysOn(_ date: Date) -> [CalendarHoliday] {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let year = calendar.component(.year, from: date)
         
         // Ensure we have holidays loaded for this year (async, won't block)
@@ -321,7 +321,7 @@ class HolidayManager: ObservableObject {
         // Return cached holidays for this year if available
         if let yearHolidays = cachedHolidays[year] {
             return yearHolidays.filter { holiday in
-                let components = Calendar.current.dateComponents([.month, .year], from: holiday.date)
+                let components = Calendar(identifier: .gregorian).dateComponents([.month, .year], from: holiday.date)
                 return components.month == month && components.year == year
             }
         }
@@ -355,7 +355,7 @@ class HolidayManager: ObservableObject {
 
     /// Refresh holidays for new years as needed
     func refreshHolidaysIfNeeded() {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let currentYear = calendar.component(.year, from: Date())
         
         // Ensure we have holidays for current year and adjacent years

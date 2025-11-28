@@ -71,11 +71,11 @@ struct VerticalDaylightVisualizationView: View {
         let targetDate: Date
         switch dayOffset {
         case 0:
-            targetDate = Calendar.current.date(byAdding: .day, value: -1, to: date) ?? date
+            targetDate = Calendar(identifier: .gregorian).date(byAdding: .day, value: -1, to: date) ?? date
         case 1:
             targetDate = date
         case 2:
-            targetDate = Calendar.current.date(byAdding: .day, value: 1, to: date) ?? date
+            targetDate = Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: date) ?? date
         default:
             targetDate = date
         }

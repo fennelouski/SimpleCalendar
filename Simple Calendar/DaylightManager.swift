@@ -70,7 +70,7 @@ class DaylightManager {
         // For simplicity, we'll use approximate sunrise/sunset times
         // In a real app, you'd use astronomical calculations or an API
 
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         _ = calendar.dateComponents([.month, .day], from: date)
         let dayOfYear = dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
@@ -161,7 +161,7 @@ class DaylightManager {
 
     /// Calculate day of year (1-365)
     private func dayOfYear(from date: Date) -> Int {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         return calendar.ordinality(of: .day, in: .year, for: date) ?? 1
     }
 
@@ -266,7 +266,7 @@ class DaylightManager {
     
     /// Get sunrise time for a date and location
     func sunriseTime(for date: Date, latitude: Double, longitude: Double) -> Date? {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
@@ -297,7 +297,7 @@ class DaylightManager {
     
     /// Get sunset time for a date and location
     func sunsetTime(for date: Date, latitude: Double, longitude: Double) -> Date? {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
@@ -328,7 +328,7 @@ class DaylightManager {
     
     /// Get astronomical twilight start time (sun at -18 degrees)
     func astronomicalTwilightStart(for date: Date, latitude: Double, longitude: Double) -> Date? {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
@@ -350,7 +350,7 @@ class DaylightManager {
     
     /// Get astronomical twilight end time (sun at -18 degrees)
     func astronomicalTwilightEnd(for date: Date, latitude: Double, longitude: Double) -> Date? {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
@@ -372,7 +372,7 @@ class DaylightManager {
     
     /// Get nautical twilight start time (sun at -12 degrees)
     func nauticalTwilightStart(for date: Date, latitude: Double, longitude: Double) -> Date? {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
@@ -394,7 +394,7 @@ class DaylightManager {
     
     /// Get nautical twilight end time (sun at -12 degrees)
     func nauticalTwilightEnd(for date: Date, latitude: Double, longitude: Double) -> Date? {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
@@ -416,7 +416,7 @@ class DaylightManager {
     
     /// Get civil twilight start time (sun at -6 degrees)
     func civilTwilightStart(for date: Date, latitude: Double, longitude: Double) -> Date? {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
@@ -438,7 +438,7 @@ class DaylightManager {
     
     /// Get civil twilight end time (sun at -6 degrees)
     func civilTwilightEnd(for date: Date, latitude: Double, longitude: Double) -> Date? {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let timezone = TimeZone.current
         let dayOfYear = self.dayOfYear(from: date)
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)

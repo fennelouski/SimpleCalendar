@@ -26,6 +26,22 @@ struct ContentView: View {
     @State private var currentFontSize: Double = 14.0
     @State private var refreshTrigger: UUID = UUID()
     @FocusState private var focusedDate: Date?
+    
+    // Guard flag to prevent re-entrant focus/selection updates that cause double navigation
+    @State private var isUpdatingFocusSelection: Bool = false
+    
+    // Track the selected date at the START of navigation to detect if SwiftUI already moved
+    @State private var navigationStartDate: Date? = nil
+    
+    #if os(tvOS)
+    // Date format rotation for tvOS month view
+    @State private var dateFormatIndex: Int = 0
+    @State private var lastSelectedDate: Date?
+    @State private var rotationTask: Task<Void, Never>?
+    // Current time for display
+    @State private var currentTime: Date = Date()
+    @State private var timeUpdateTask: Task<Void, Never>?
+    #endif
 
 
     private var mainContentView: some View {
@@ -97,21 +113,54 @@ struct ContentView: View {
         )
         .onMoveCommand { direction in
             #if os(tvOS)
-            guard shouldHandleMoveCommand(direction) else { return }
-            #endif
-            // Handle arrow key navigation on tvOS when focus can't move further
+            // Set guard flag to prevent any re-entrant updates
+            isUpdatingFocusSelection = true
+            
+            // Use navigationStartDate if available (set by onChange of focusedDate),
+            // otherwise use current selectedDate. This is the position BEFORE any
+            // SwiftUI focus changes happened.
+            let calendar = Calendar(identifier: .gregorian)
+            let startDate = navigationStartDate ?? calendarViewModel.selectedDate ?? Date()
+            
+            // Calculate where we expect to end up based on the START position
+            let expectedDestination: Date?
             switch direction {
             case .left:
-                calendarViewModel.moveSelectedDate(.left)
+                expectedDestination = calendar.date(byAdding: .day, value: -1, to: startDate)
             case .right:
-                calendarViewModel.moveSelectedDate(.right)
+                expectedDestination = calendar.date(byAdding: .day, value: 1, to: startDate)
             case .up:
-                calendarViewModel.moveSelectedDate(.up)
+                expectedDestination = calendar.date(byAdding: .day, value: -7, to: startDate)
             case .down:
-                calendarViewModel.moveSelectedDate(.down)
+                expectedDestination = calendar.date(byAdding: .day, value: 7, to: startDate)
             @unknown default:
-                break
+                expectedDestination = nil
             }
+            
+            if let destination = expectedDestination {
+                let normalizedDestination = calendar.startOfDay(for: destination)
+                
+                // Check if SwiftUI focus already moved to the destination
+                if let focused = focusedDate, calendar.isDate(focused, inSameDayAs: normalizedDestination) {
+                    // SwiftUI already moved focus - just sync selectedDate
+                    calendarViewModel.selectDate(focused)
+                } else {
+                    // SwiftUI didn't move focus (we're at an edge or focus failed)
+                    // Navigate from the START position
+                    calendarViewModel.selectDate(normalizedDestination)
+                    // Update focusedDate to match
+                    focusedDate = normalizedDestination
+                }
+            }
+            
+            // Clear navigation start date
+            navigationStartDate = nil
+            
+            // Reset guard flag after a brief delay to let SwiftUI's focus system settle
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                isUpdatingFocusSelection = false
+            }
+            #endif
         }
         .onExitCommand {
             // Back/Menu button opens settings on tvOS
@@ -131,6 +180,8 @@ struct ContentView: View {
             calendarViewModel.navigateToToday()
             currentFontSize = uiConfig.dayNumberFontSize // Initialize with current value
             focusedDate = normalizedDate(calendarViewModel.selectedDate) // Initialize focus to selected date
+            // Initialize theme color scheme on app launch
+            themeManager.currentColorScheme = colorScheme
         }
         .onChange(of: colorScheme) { newColorScheme in
             themeManager.currentColorScheme = newColorScheme
@@ -143,14 +194,75 @@ struct ContentView: View {
             refreshTrigger = UUID()
         }
         .onChange(of: focusedDate) { newFocusedDate in
-            if let date = newFocusedDate {
-                calendarViewModel.selectDate(date)
+            // Guard against re-entrant updates that cause double navigation
+            guard !isUpdatingFocusSelection else { return }
+            guard let date = newFocusedDate else { return }
+            
+            // On tvOS, DON'T update selectedDate from focus changes caused by arrow keys.
+            // Arrow key navigation is handled entirely by onMoveCommand.
+            // This onChange should only handle programmatic focus changes or initialization.
+            // The button action handlers handle tap selection directly.
+            #if os(tvOS)
+            // Save the selected date before focus changed - this will be used by onMoveCommand
+            // to determine if SwiftUI already handled the navigation
+            if navigationStartDate == nil {
+                navigationStartDate = calendarViewModel.selectedDate
             }
+            // Don't update selectedDate here - let onMoveCommand handle it
+            #else
+            // On other platforms, sync selectedDate with focusedDate
+            let normalizedSelected = normalizedDate(calendarViewModel.selectedDate)
+            if date != normalizedSelected {
+                isUpdatingFocusSelection = true
+                calendarViewModel.selectDate(date)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    isUpdatingFocusSelection = false
+                }
+            }
+            #endif
         }
         .onChange(of: calendarViewModel.selectedDate) { newSelectedDate in
+            // Guard against re-entrant updates that cause double navigation
+            guard !isUpdatingFocusSelection else { return }
             guard let normalized = normalizedDate(newSelectedDate) else { return }
+            
+            // In month view, if the selected date is in a different month than currentDate,
+            // defer focus update until currentDate changes (handled by onChange of currentDate)
+            if calendarViewModel.viewMode == .month {
+                let calendar = Calendar(identifier: .gregorian)
+                let currentComponents = calendar.dateComponents([.year, .month], from: calendarViewModel.currentDate)
+                let selectedComponents = calendar.dateComponents([.year, .month], from: normalized)
+                
+                // If dates are in different months, skip immediate focus update
+                // It will be handled when currentDate changes
+                if currentComponents != selectedComponents {
+                    return
+                }
+            }
+            
             if normalized != focusedDate {
+                isUpdatingFocusSelection = true
                 focusedDate = normalized
+                // Use a longer delay to ensure SwiftUI's focus system has settled
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    isUpdatingFocusSelection = false
+                }
+            }
+        }
+        .onChange(of: calendarViewModel.currentDate) { _ in
+            // When currentDate changes (e.g., navigating to different month), 
+            // update focus after a brief delay to let the grid regenerate
+            if calendarViewModel.viewMode == .month,
+               let normalized = normalizedDate(calendarViewModel.selectedDate) {
+                isUpdatingFocusSelection = true
+                // Delay focus update to ensure grid has regenerated
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    focusedDate = normalized
+                    // Reset guard after another brief delay
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        isUpdatingFocusSelection = false
+                    }
+                }
             }
         }
         .onChange(of: calendarViewModel.showDayDetail) { isShowing in
@@ -181,6 +293,8 @@ struct ContentView: View {
             calendarViewModel.navigateToToday()
             currentFontSize = uiConfig.dayNumberFontSize // Initialize with current value
             focusedDate = normalizedDate(calendarViewModel.selectedDate) // Initialize focus to selected date
+            // Initialize theme color scheme on app launch
+            themeManager.currentColorScheme = colorScheme
         }
         .onChange(of: colorScheme) { newColorScheme in
             themeManager.currentColorScheme = newColorScheme
@@ -219,6 +333,8 @@ struct ContentView: View {
             calendarViewModel.navigateToToday()
             currentFontSize = uiConfig.dayNumberFontSize // Initialize with current value
             focusedDate = normalizedDate(calendarViewModel.selectedDate) // Initialize focus to selected date
+            // Initialize theme color scheme on app launch
+            themeManager.currentColorScheme = colorScheme
         }
         .onChange(of: colorScheme) { newColorScheme in
             themeManager.currentColorScheme = newColorScheme
@@ -262,6 +378,18 @@ struct ContentView: View {
         }
         #if os(tvOS)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay(
+            // Date display in top left corner for month view
+            Group {
+                if calendarViewModel.viewMode == .month {
+                    selectedDateDisplay
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .padding(.top, 20)
+            .padding(.leading, 40),
+            alignment: .topLeading
+        )
         #elseif os(iOS)
         .ignoresSafeArea(.container, edges: []) // Respect safe areas for calendar content
         .gesture(
@@ -411,13 +539,216 @@ struct ContentView: View {
     }
 
     private var yearDisplay: some View {
-        let year = Calendar.current.component(.year, from: calendarViewModel.currentDate)
+        let year = Calendar(identifier: .gregorian).component(.year, from: calendarViewModel.currentDate)
         let clampedYear = max(-6000, min(9999, year))
         return Text(String(clampedYear))
             .font(uiConfig.yearTitleFont)
             .foregroundColor(themeManager.currentPalette.yearText)
             .lineLimit(1) // Ensure it never wraps to multiple lines
     }
+
+    #if os(tvOS)
+    // Check if locale uses day-first (European) or month-first (American) date format
+    private var isEuropeanLocale: Bool {
+        let locale = Locale.current
+        // Check region code for common European countries
+        let europeanRegionCodes = ["GB", "IE", "FR", "DE", "IT", "ES", "PT", "NL", "BE", "AT", "CH", "SE", "NO", "DK", "FI", "PL", "CZ", "HU", "GR", "RO", "BG", "HR", "SK", "SI", "EE", "LV", "LT", "MT", "CY", "LU", "IS"]
+        
+        if let regionCode = locale.region?.identifier {
+            return europeanRegionCodes.contains(regionCode)
+        }
+        
+        // Fallback: check date format pattern
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.dateStyle = .short
+        let pattern = formatter.dateFormat ?? ""
+        // European formats typically start with "d" (day), American with "M" (month)
+        return pattern.hasPrefix("d") || pattern.hasPrefix("dd")
+    }
+    
+    // Date format options for rotation (locale-aware, starting with numeric formats)
+    private var dateFormats: [(Date) -> String] {
+        var formats: [(Date) -> String] = []
+        
+        if isEuropeanLocale {
+            // European formats (day-first)
+            formats.append(contentsOf: [
+                { date in 
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "dd/MM/yyyy"
+                    return formatter.string(from: date)
+                }, // "15/01/2024" (DD/MM/YYYY)
+                { date in 
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "d/M/yyyy"
+                    return formatter.string(from: date)
+                }, // "15/1/2024" (D/M/YYYY no leading zeros)
+                { date in 
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "dd-MM-yyyy"
+                    return formatter.string(from: date)
+                }, // "15-01-2024" (DD-MM-YYYY)
+                { date in 
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "dd.MM.yyyy"
+                    return formatter.string(from: date)
+                }, // "15.01.2024" (DD.MM.YYYY)
+            ])
+        } else {
+            // American formats (month-first)
+            formats.append(contentsOf: [
+                { date in date.formatted(.dateTime.month(.twoDigits).day(.twoDigits).year()) }, // "01/15/2024" (MM/DD/YYYY)
+                { date in 
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "M/d/yyyy"
+                    return formatter.string(from: date)
+                }, // "1/15/2024" (M/D/YYYY no leading zeros)
+                { date in 
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "MM-dd-yyyy"
+                    return formatter.string(from: date)
+                }, // "01-15-2024" (MM-DD-YYYY)
+                { date in 
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "MM.dd.yyyy"
+                    return formatter.string(from: date)
+                }, // "01.15.2024" (MM.DD.YYYY)
+            ])
+        }
+        
+        // Universal formats (all locales)
+        formats.append(contentsOf: [
+            { date in 
+                let formatter = DateFormatter()
+                formatter.dateFormat = "yyyy-MM-dd"
+                return formatter.string(from: date)
+            }, // "2024-01-15" (YYYY-MM-DD ISO)
+            // Text formats
+            { date in date.formatted(.dateTime.month(.wide).day().year()) }, // "January 15, 2024"
+            { date in date.formatted(.dateTime.month(.abbreviated).day().year()) }, // "Jan 15, 2024"
+            { date in date.formatted(.dateTime.weekday(.wide).month(.wide).day().year()) }, // "Monday, January 15, 2024"
+            { date in date.formatted(.dateTime.month(.wide).day()) }, // "January 15"
+            { date in date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day().year()) }, // "Mon, Jan 15, 2024"
+        ])
+        
+        return formats
+    }
+    
+    private var selectedDateDisplay: some View {
+        Group {
+            if let selectedDate = calendarViewModel.selectedDate {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(formatDate(selectedDate))
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.monthText)
+                        .lineLimit(1)
+                    
+                    Text(formatTime(currentTime))
+                        .font(.system(size: 20, weight: .regular))
+                        .foregroundColor(themeManager.currentPalette.monthText.opacity(0.8))
+                        .lineLimit(1)
+                }
+            }
+        }
+        .onAppear {
+            startFormatRotationTimer()
+            startTimeUpdateTimer()
+        }
+        .onDisappear {
+            stopFormatRotationTimer()
+            stopTimeUpdateTimer()
+        }
+        .onChange(of: calendarViewModel.selectedDate) { newDate in
+            resetFormatRotation()
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatIndex = dateFormatIndex % dateFormats.count
+        return dateFormats[formatIndex](date)
+    }
+    
+    private func formatTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .medium // Includes seconds and respects user's locale settings
+        return formatter.string(from: date)
+    }
+    
+    private func startTimeUpdateTimer() {
+        // Stop any existing task
+        stopTimeUpdateTimer()
+        
+        // Update immediately
+        currentTime = Date()
+        
+        // Create a task that updates every second
+        timeUpdateTask = Task { @MainActor in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                guard !Task.isCancelled else { return }
+                currentTime = Date()
+            }
+        }
+    }
+    
+    private func stopTimeUpdateTimer() {
+        timeUpdateTask?.cancel()
+        timeUpdateTask = nil
+    }
+    
+    private func startFormatRotationTimer() {
+        // Stop any existing task
+        stopFormatRotationTimer()
+        
+        // Reset to first format
+        dateFormatIndex = 0
+        lastSelectedDate = calendarViewModel.selectedDate
+        
+        // Start rotation task
+        rotationTask = Task { @MainActor in
+            // Wait for initial 15 second delay
+            try? await Task.sleep(nanoseconds: 15_000_000_000)
+            
+            // Check if task was cancelled
+            guard !Task.isCancelled else { return }
+            
+            // Start rotating every 15 seconds
+            while !Task.isCancelled {
+                // Check if date selection has changed by comparing with current state
+                let currentLastDate = lastSelectedDate
+                let currentSelectedDate = calendarViewModel.selectedDate
+                
+                if let lastDate = currentLastDate,
+                   let selectedDate = currentSelectedDate,
+                   Calendar.current.isDate(lastDate, inSameDayAs: selectedDate) {
+                    // Date hasn't changed, rotate format
+                    dateFormatIndex = (dateFormatIndex + 1) % dateFormats.count
+                } else {
+                    // Date changed, reset and restart
+                    resetFormatRotation()
+                    return
+                }
+                
+                // Wait 15 seconds before next rotation
+                try? await Task.sleep(nanoseconds: 15_000_000_000)
+            }
+        }
+    }
+    
+    private func stopFormatRotationTimer() {
+        rotationTask?.cancel()
+        rotationTask = nil
+    }
+    
+    private func resetFormatRotation() {
+        dateFormatIndex = 0
+        lastSelectedDate = calendarViewModel.selectedDate
+        // Restart timer with new delay
+        stopFormatRotationTimer()
+        startFormatRotationTimer()
+    }
+    #endif
 
     private var calendarGrid: some View {
         GeometryReader { geometry in
@@ -571,7 +902,7 @@ struct ContentView: View {
 
     private func normalizedDate(_ date: Date?) -> Date? {
         guard let date else { return nil }
-        return Calendar.current.startOfDay(for: date)
+        return Calendar(identifier: .gregorian).startOfDay(for: date)
     }
 
     #if os(tvOS)
@@ -587,7 +918,7 @@ struct ContentView: View {
             return false
         }
 
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let days = generateCalendarDays()
         guard let index = days.firstIndex(where: { calendar.isDate($0.date, inSameDayAs: selectedDate) }) else {
             return false
@@ -596,10 +927,20 @@ struct ContentView: View {
         let columns = daysPerRow
         switch direction {
         case .up:
+            // Need manual handling if on first row
             return index < columns
         case .down:
+            // Need manual handling if on last row
             return index >= days.count - columns
-        default:
+        case .left:
+            // Need manual handling if at left edge of row (first column)
+            // This allows navigation to previous week's last day
+            return index % columns == 0
+        case .right:
+            // Need manual handling if at right edge of row (last column)
+            // This allows navigation to next week's first day
+            return (index % columns) == (columns - 1)
+        @unknown default:
             return false
         }
     }
@@ -686,7 +1027,7 @@ struct ContentView: View {
     }
 
     private func generateYearDays(for date: Date) -> [CalendarDay] {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let year = calendar.component(.year, from: date)
 
         var days: [CalendarDay] = []
@@ -699,9 +1040,11 @@ struct ContentView: View {
             components.day = 1
 
             if let monthDate = calendar.date(from: components) {
+                // Normalize to start of day for consistent focus matching
+                let normalizedMonthDate = calendar.startOfDay(for: monthDate)
                 let calendarDay = CalendarDay(
-                    id: monthDate,
-                    date: monthDate,
+                    id: normalizedMonthDate,
+                    date: normalizedMonthDate,
                     isToday: false,
                     isSelected: false,
                     events: [], // Year view doesn't show events
@@ -715,7 +1058,7 @@ struct ContentView: View {
     }
 
     private func generateMonthDays(for date: Date) -> [CalendarDay] {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let components = calendar.dateComponents([.year, .month], from: date)
 
         guard let startOfMonth = calendar.date(from: components),
@@ -779,7 +1122,7 @@ struct ContentView: View {
     }
 
     private func generateTwoWeekDays(for date: Date) -> [CalendarDay] {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         guard let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)) else {
             return []
         }
@@ -796,7 +1139,7 @@ struct ContentView: View {
     }
 
     private func generateWeekDays(for date: Date) -> [CalendarDay] {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let referenceDate = calendarViewModel.selectedDate ?? date
 
         // Find the start of the week containing the reference date
@@ -821,7 +1164,7 @@ struct ContentView: View {
     }
 
     private func generateDayRangeDays(for date: Date, days: Int) -> [CalendarDay] {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let startDate = calendarViewModel.selectedDate ?? date
 
         var calendarDays: [CalendarDay] = []
@@ -836,7 +1179,7 @@ struct ContentView: View {
     }
 
     private func createCalendarDay(for date: Date, isCurrentMonth: Bool) -> CalendarDay {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let today = calendar.startOfDay(for: Date())
         let dayStart = calendar.startOfDay(for: date)
 
@@ -845,9 +1188,10 @@ struct ContentView: View {
             return eventStart == dayStart
         }
 
+        // Use normalized date (dayStart) for id and date to ensure focus matching works correctly
         return CalendarDay(
-            id: date,
-            date: date,
+            id: dayStart,
+            date: dayStart,
             isToday: dayStart == today,
             isSelected: calendarViewModel.selectedDate.map { calendar.startOfDay(for: $0) == dayStart } ?? false,
             events: events,
@@ -865,7 +1209,7 @@ struct ContentView: View {
     }
 
     private func monthFont(for date: Date) -> String {
-        let month = Calendar.current.component(.month, from: date)
+        let month = Calendar(identifier: .gregorian).component(.month, from: date)
         let fonts = [
             "Arial", "Helvetica", "Times New Roman", "Courier", "Georgia",
             "Verdana", "Trebuchet MS", "Impact", "Comic Sans MS", "Lucida Grande",
@@ -875,7 +1219,7 @@ struct ContentView: View {
     }
 
     private func exportDayEvents(_ events: [CalendarEvent]) {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let startOfDay = calendar.startOfDay(for: calendarViewModel.selectedDate ?? Date())
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
 
@@ -904,7 +1248,7 @@ struct DayView: View {
 
     private var monthlyPalette: ColorPalette {
         if featureFlags.monthlyThemesEnabled {
-            let month = Calendar.current.component(.month, from: day.date)
+            let month = Calendar(identifier: .gregorian).component(.month, from: day.date)
             let monthlyTheme = monthlyThemeManager.theme(for: month)
             return monthlyTheme.palette(for: themeManager.currentColorScheme)
         } else {
@@ -926,6 +1270,7 @@ struct DayView: View {
     }
 
     private var holidaysOnThisDay: [CalendarHoliday] {
+        guard featureFlags.holidayDisplayEnabled else { return [] }
         return holidayManager.holidaysOn(day.date)
     }
 
@@ -1126,7 +1471,7 @@ struct DayView: View {
     }
 
     private var isWeekend: Bool {
-        let weekday = Calendar.current.component(.weekday, from: day.date)
+        let weekday = Calendar(identifier: .gregorian).component(.weekday, from: day.date)
         // weekday 1 = Sunday, 7 = Saturday in Gregorian calendar
         return weekday == 1 || weekday == 7
     }
@@ -1215,7 +1560,7 @@ struct DayDetailView: View {
             ScrollViewWithFade {
                 VStack(alignment: .leading, spacing: 16) {
                     let dayEvents = calendarViewModel.events.filter { event in
-                        Calendar.current.isDate(event.startDate, inSameDayAs: date)
+                        Calendar(identifier: .gregorian).isDate(event.startDate, inSameDayAs: date)
                     }
 
                     let holidaysOnThisDay = featureFlags.holidayDisplayEnabled ? holidayManager.holidaysOn(date) : []
@@ -1239,11 +1584,13 @@ struct DayDetailView: View {
                                     Text(holiday.name)
                                         .font(.system(size: 42, weight: .bold))
                                         .foregroundColor(themeManager.currentPalette.accent)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.3)
                                         .frame(maxWidth: .infinity, alignment: .center)
                                     
                                     // HUGE emoji beneath the name
                                     Text(holiday.emoji)
-                                        .font(.system(size: 160)) // Massive emoji for TV viewing
+                                        .font(.system(size: 144)) // Massive emoji for TV viewing
                                     
                                     // Description beneath the emoji
                                     Text(holiday.description)
@@ -1284,7 +1631,6 @@ struct DayDetailView: View {
                     if dayEvents.isEmpty && holidaysOnThisDay.isEmpty {
                         Text("No events for this day")
                             .foregroundColor(themeManager.currentPalette.textSecondary)
-                            .font(uiConfig.eventDetailFont)
                             .standardPadding()
                     } else {
                         ForEach(Array(groupedEvents.enumerated()), id: \.offset) { index, eventGroup in
@@ -1462,334 +1808,6 @@ struct OnThisDayCategoryView: View {
     }
 }
 
-// MARK: - Astronomical Information Section (tvOS)
-#if os(tvOS)
-struct AstronomicalInfoSection: View {
-    let date: Date
-    let eventCount: Int
-    @EnvironmentObject var themeManager: ThemeManager
-    @EnvironmentObject var uiConfig: UIConfiguration
-    
-    private let daylightManager = DaylightManager.shared
-    private let locationApproximator = LocationApproximator.shared
-    
-    private var location: CLLocationCoordinate2D {
-        locationApproximator.approximateLocation()
-    }
-    
-    private var astronomicalData: AstronomicalData? {
-        calculateAstronomicalData()
-    }
-    
-    var body: some View {
-        Group {
-            // Don't show if 2+ events
-            if eventCount >= 2 {
-                EmptyView()
-            } else if let data = astronomicalData {
-                // If 1 event, only show sunrise/sunset
-                if eventCount == 1 {
-                    VStack(alignment: .leading, spacing: 16) {
-                        // Sunrise and Sunset (side by side)
-                        HStack(spacing: 16) {
-                            AstronomicalInfoRow(
-                                icon: "sunrise.fill",
-                                title: "Sunrise",
-                                time: data.sunrise,
-                                color: .orange
-                            )
-                            
-                            AstronomicalInfoRow(
-                                icon: "sunset.fill",
-                                title: "Sunset",
-                                time: data.sunset,
-                                color: .orange
-                            )
-                        }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 16)
-                        .background(themeManager.currentPalette.surface.opacity(0.7))
-                        .cornerRadius(12)
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                } else if eventCount == 0 {
-                    // If 0 events, show full information including Daily Progression
-                    VStack(alignment: .leading, spacing: 16) {
-                // Sunrise and Sunset (side by side)
-                HStack(spacing: 16) {
-                    AstronomicalInfoRow(
-                        icon: "sunrise.fill",
-                        title: "Sunrise",
-                        time: data.sunrise,
-                        color: .orange
-                    )
-                    
-                    AstronomicalInfoRow(
-                        icon: "sunset.fill",
-                        title: "Sunset",
-                        time: data.sunset,
-                        color: .orange
-                    )
-                }
-                .padding(.vertical, 12)
-                .padding(.horizontal, 16)
-                .background(themeManager.currentPalette.surface.opacity(0.7))
-                .cornerRadius(12)
-                
-                // Daylight and Night Duration (side by side)
-                HStack(spacing: 16) {
-                    // Daylight Duration
-                    VStack(spacing: 8) {
-                        HStack {
-                            Image(systemName: "sun.max.fill")
-                                .font(.system(size: 20))
-                                .foregroundColor(.yellow)
-                            Text("Daylight")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(themeManager.currentPalette.textPrimary)
-                        }
-                        Text(data.daylightDuration)
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(themeManager.currentPalette.accent)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(themeManager.currentPalette.surface.opacity(0.7))
-                    .cornerRadius(12)
-                    
-                    // Night Duration
-                    VStack(spacing: 8) {
-                        HStack {
-                            Image(systemName: "moon.stars.fill")
-                                .font(.system(size: 20))
-                                .foregroundColor(.indigo)
-                            Text("Night")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundColor(themeManager.currentPalette.textPrimary)
-                        }
-                        Text(data.nightDuration)
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundColor(themeManager.currentPalette.accent)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(themeManager.currentPalette.surface.opacity(0.7))
-                    .cornerRadius(12)
-                }
-                
-                // Daily Progression - Only shown when eventCount == 0 (we're already in that block)
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Daily Progression")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(themeManager.currentPalette.textPrimary)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding(.bottom, 4)
-                        
-                        // Morning progression: Astronomical -> Nautical -> Civil -> Sunrise
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Morning")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(themeManager.currentPalette.textSecondary)
-                                .padding(.bottom, 2)
-                            
-                            TwilightTransitionRow(
-                                label: "Astronomical Twilight Begins",
-                                time: data.astronomicalTwilightStart,
-                                color: .purple
-                            )
-                            
-                            TwilightTransitionRow(
-                                label: "Nautical Twilight Begins",
-                                time: data.nauticalTwilightStart,
-                                color: .blue
-                            )
-                            
-                            TwilightTransitionRow(
-                                label: "Civil Twilight Begins",
-                                time: data.civilTwilightStart,
-                                color: .cyan
-                            )
-                            
-                            TwilightTransitionRow(
-                                label: "Sunrise",
-                                time: data.sunrise,
-                                color: .orange
-                            )
-                        }
-                        
-                        Divider()
-                            .padding(.vertical, 8)
-                        
-                        // Evening progression: Sunset -> Civil -> Nautical -> Astronomical
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Evening")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundColor(themeManager.currentPalette.textSecondary)
-                                .padding(.bottom, 2)
-                            
-                            TwilightTransitionRow(
-                                label: "Sunset",
-                                time: data.sunset,
-                                color: .orange
-                            )
-                            
-                            TwilightTransitionRow(
-                                label: "Civil Twilight Ends",
-                                time: data.civilTwilightEnd,
-                                color: .cyan
-                            )
-                            
-                            TwilightTransitionRow(
-                                label: "Nautical Twilight Ends",
-                                time: data.nauticalTwilightEnd,
-                                color: .blue
-                            )
-                            
-                            TwilightTransitionRow(
-                                label: "Astronomical Twilight Ends",
-                                time: data.astronomicalTwilightEnd,
-                                color: .purple
-                            )
-                        }
-                }
-                .padding(.vertical, 16)
-                .padding(.horizontal, 16)
-                .background(themeManager.currentPalette.surface.opacity(0.7))
-                .cornerRadius(12)
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                }
-            } else {
-                EmptyView()
-            }
-        }
-    }
-    
-    private func calculateAstronomicalData() -> AstronomicalData? {
-        let latitude = location.latitude
-        let longitude = location.longitude
-        
-        guard let sunrise = daylightManager.sunriseTime(for: date, latitude: latitude, longitude: longitude),
-              let sunset = daylightManager.sunsetTime(for: date, latitude: latitude, longitude: longitude) else {
-            return nil
-        }
-        
-        let astronomicalStart = daylightManager.astronomicalTwilightStart(for: date, latitude: latitude, longitude: longitude)
-        let astronomicalEnd = daylightManager.astronomicalTwilightEnd(for: date, latitude: latitude, longitude: longitude)
-        let nauticalStart = daylightManager.nauticalTwilightStart(for: date, latitude: latitude, longitude: longitude)
-        let nauticalEnd = daylightManager.nauticalTwilightEnd(for: date, latitude: latitude, longitude: longitude)
-        let civilStart = daylightManager.civilTwilightStart(for: date, latitude: latitude, longitude: longitude)
-        let civilEnd = daylightManager.civilTwilightEnd(for: date, latitude: latitude, longitude: longitude)
-        
-        // Calculate daylight duration
-        let daylightHours = daylightManager.durationInHours(from: sunrise, to: sunset)
-        let daylightDuration = daylightManager.formatDuration(daylightHours)
-        
-        // Calculate night duration (from sunset to sunrise next day)
-        let calendar = Calendar.current
-        let nextDay = calendar.date(byAdding: .day, value: 1, to: date)!
-        let nextDaySunrise = daylightManager.sunriseTime(for: nextDay, latitude: latitude, longitude: longitude) ?? sunset
-        let nightHours = daylightManager.durationInHours(from: sunset, to: nextDaySunrise)
-        let nightDuration = daylightManager.formatDuration(nightHours)
-        
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.timeZone = TimeZone.current
-        
-        return AstronomicalData(
-            sunrise: formatter.string(from: sunrise),
-            sunset: formatter.string(from: sunset),
-            daylightDuration: daylightDuration,
-            nightDuration: nightDuration,
-            astronomicalTwilightStart: astronomicalStart.map { formatter.string(from: $0) } ?? "N/A",
-            astronomicalTwilightEnd: astronomicalEnd.map { formatter.string(from: $0) } ?? "N/A",
-            nauticalTwilightStart: nauticalStart.map { formatter.string(from: $0) } ?? "N/A",
-            nauticalTwilightEnd: nauticalEnd.map { formatter.string(from: $0) } ?? "N/A",
-            civilTwilightStart: civilStart.map { formatter.string(from: $0) } ?? "N/A",
-            civilTwilightEnd: civilEnd.map { formatter.string(from: $0) } ?? "N/A"
-        )
-    }
-}
-
-struct AstronomicalData {
-    let sunrise: String
-    let sunset: String
-    let daylightDuration: String
-    let nightDuration: String
-    let astronomicalTwilightStart: String
-    let astronomicalTwilightEnd: String
-    let nauticalTwilightStart: String
-    let nauticalTwilightEnd: String
-    let civilTwilightStart: String
-    let civilTwilightEnd: String
-}
-
-struct AstronomicalInfoRow: View {
-    let icon: String
-    let title: String
-    let time: String
-    let color: Color
-    
-    @EnvironmentObject var themeManager: ThemeManager
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.system(size: 28))
-                .foregroundColor(color)
-                .frame(width: 40)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(themeManager.currentPalette.textSecondary)
-                Text(time)
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(themeManager.currentPalette.textPrimary)
-            }
-            
-            Spacer()
-        }
-    }
-}
-
-struct TwilightTransitionRow: View {
-    let label: String
-    let time: String
-    let color: Color
-    
-    @EnvironmentObject var themeManager: ThemeManager
-    
-    var body: some View {
-        HStack(spacing: 12) {
-            Text(time)
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(color)
-                .frame(width: 80, alignment: .leading)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-            
-            Circle()
-                .fill(color)
-                .frame(width: 8, height: 8)
-            
-            Text(label)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(themeManager.currentPalette.textPrimary)
-                .lineLimit(1)
-            
-            Spacer()
-        }
-        .padding(.vertical, 6)
-        .padding(.horizontal, 8)
-        .background(themeManager.currentPalette.surface.opacity(0.4))
-        .cornerRadius(8)
-    }
-}
-#endif
-
 struct EventDetailView: View {
     let event: CalendarEvent
     @EnvironmentObject var calendarViewModel: CalendarViewModel
@@ -1835,8 +1853,8 @@ struct EventDetailView: View {
             Text(event.title)
                 .font(.system(size: 36, weight: .bold))
                 .foregroundColor(themeManager.currentPalette.textPrimary)
-                .lineLimit(2)
-                .minimumScaleFactor(0.6)
+                .lineLimit(1)
+                .minimumScaleFactor(0.3)
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.bottom, 8)
             
@@ -1845,11 +1863,11 @@ struct EventDetailView: View {
                 // Huge emoji (144pt+) positioned beneath title
                 if let eventEmoji = EventIconManager.emojiForEvent(event.title) {
                     Text(eventEmoji)
-                        .font(.system(size: 160)) // Extra large for TV viewing
+                        .font(.system(size: 144)) // Extra large for TV viewing
                 } else {
                     // Fallback: Large clock icon
                     Image(systemName: "calendar.badge.clock")
-                        .font(.system(size: 120))
+                        .font(.system(size: 104))
                         .foregroundColor(themeManager.currentPalette.accent)
                 }
 
@@ -2117,7 +2135,7 @@ struct MonthMiniView: View {
 
     private var monthlyPalette: ColorPalette {
         if featureFlags.monthlyThemesEnabled {
-            let month = Calendar.current.component(.month, from: monthDate)
+            let month = Calendar(identifier: .gregorian).component(.month, from: monthDate)
             let monthlyTheme = monthlyThemeManager.theme(for: month)
             return monthlyTheme.palette(for: themeManager.currentColorScheme)
         } else {
@@ -2160,7 +2178,7 @@ struct MonthMiniView: View {
     }
 
     private func generateMiniMonthDays(for date: Date) -> [CalendarDay] {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let components = calendar.dateComponents([.year, .month], from: date)
 
         guard let startOfMonth = calendar.date(from: components),
@@ -2181,8 +2199,9 @@ struct MonthMiniView: View {
 
             for i in (daysInPreviousMonth - daysFromPreviousMonth + 1)...daysInPreviousMonth {
                 if let date = calendar.date(bySetting: .day, value: i, of: previousMonth) {
-                    let isSelected = calendarViewModel.selectedDate.map { calendar.startOfDay(for: $0) == calendar.startOfDay(for: date) } ?? false
-                    days.append(CalendarDay(id: date, date: date, isToday: false, isSelected: isSelected, events: [], isCurrentMonth: false))
+                    let dayStart = calendar.startOfDay(for: date)
+                    let isSelected = calendarViewModel.selectedDate.map { calendar.startOfDay(for: $0) == dayStart } ?? false
+                    days.append(CalendarDay(id: dayStart, date: dayStart, isToday: false, isSelected: isSelected, events: [], isCurrentMonth: false))
                 }
             }
         }
@@ -2190,9 +2209,10 @@ struct MonthMiniView: View {
         // Current month days
         for day in 1...range.count {
             if let date = calendar.date(bySetting: .day, value: day, of: startOfMonth) {
+                let dayStart = calendar.startOfDay(for: date)
                 let isToday = calendar.isDateInToday(date)
-                let isSelected = calendarViewModel.selectedDate.map { calendar.startOfDay(for: $0) == calendar.startOfDay(for: date) } ?? false
-                days.append(CalendarDay(id: date, date: date, isToday: isToday, isSelected: isSelected, events: [], isCurrentMonth: true))
+                let isSelected = calendarViewModel.selectedDate.map { calendar.startOfDay(for: $0) == dayStart } ?? false
+                days.append(CalendarDay(id: dayStart, date: dayStart, isToday: isToday, isSelected: isSelected, events: [], isCurrentMonth: true))
             }
         }
 
@@ -2202,8 +2222,9 @@ struct MonthMiniView: View {
 
         for day in 1...remainingCells {
             if let date = calendar.date(bySetting: .day, value: day, of: nextMonth) {
-                let isSelected = calendarViewModel.selectedDate.map { calendar.startOfDay(for: $0) == calendar.startOfDay(for: date) } ?? false
-                days.append(CalendarDay(id: date, date: date, isToday: false, isSelected: isSelected, events: [], isCurrentMonth: false))
+                let dayStart = calendar.startOfDay(for: date)
+                let isSelected = calendarViewModel.selectedDate.map { calendar.startOfDay(for: $0) == dayStart } ?? false
+                days.append(CalendarDay(id: dayStart, date: dayStart, isToday: false, isSelected: isSelected, events: [], isCurrentMonth: false))
             }
         }
 
@@ -2224,7 +2245,7 @@ struct MonthMiniView: View {
     }
 
     private func dayName(for columnIndex: Int, availableWidth: CGFloat? = nil) -> String {
-    let calendar = Calendar.current
+    let calendar = Calendar(identifier: .gregorian)
 
     // Calculate which weekday this column represents
     // calendar.firstWeekday is 1-based (1 = Sunday in US locale)
@@ -2869,7 +2890,7 @@ struct DayDetailSlideOut: View {
 
     // Calculate the column index (0-6) for the selected date in the calendar grid
     private var columnIndex: Int {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let weekday = calendar.component(.weekday, from: date) // 1 = Sunday, 7 = Saturday
         let firstWeekday = calendar.firstWeekday // 1 = Sunday in US, 2 = Monday elsewhere
         return (weekday - firstWeekday + 7) % 7
@@ -2960,7 +2981,7 @@ struct DayDetailSlideOut: View {
                         .background(dayDetailBackground)
                         .clipShape(RoundedRectangle(cornerRadius: isFullScreen ? 0 : 10)) // Increased from 6pt to 10pt
                         .shadow(radius: isFullScreen ? 0 : 10)
-                        .padding(isFullScreen ? 0 : 8) // 8pt inset on all sides
+                        .padding(isFullScreen ? 0 : 16) // 16pt inset on all sides
                         .offset(x: isOnRightSide ? slideOffset : -slideOffset)
                     #if !os(tvOS)
                     .gesture(

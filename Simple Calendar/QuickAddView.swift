@@ -118,8 +118,8 @@ struct QuickAddView: View {
         let event = CalendarEvent(
             id: UUID().uuidString,
             title: title,
-            startDate: isAllDay ? Calendar.current.startOfDay(for: selectedDate) : combineDateAndTime(selectedDate, time: startTime),
-            endDate: isAllDay ? Calendar.current.startOfDay(for: selectedDate.addingTimeInterval(24 * 60 * 60)) : combineDateAndTime(selectedDate, time: endTime),
+            startDate: isAllDay ? Calendar(identifier: .gregorian).startOfDay(for: selectedDate) : combineDateAndTime(selectedDate, time: startTime),
+            endDate: isAllDay ? Calendar(identifier: .gregorian).startOfDay(for: selectedDate.addingTimeInterval(24 * 60 * 60)) : combineDateAndTime(selectedDate, time: endTime),
             location: location.isEmpty ? nil : location,
             notes: nil,
             calendarIdentifier: "quick_add",
@@ -132,7 +132,7 @@ struct QuickAddView: View {
     }
 
     private func combineDateAndTime(_ date: Date, time: Date) -> Date {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
         let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
 

@@ -319,7 +319,7 @@ struct EventCreationFromTemplateView: View {
                 let ekEvent = EKEvent(eventStore: self.eventStore)
                 ekEvent.title = self.event.title
                 ekEvent.startDate = self.event.startDate
-                ekEvent.endDate = self.event.isAllDay ? Calendar.current.date(byAdding: .day, value: 1, to: self.event.startDate) ?? self.event.endDate : self.event.endDate
+                ekEvent.endDate = self.event.isAllDay ? Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: self.event.startDate) ?? self.event.endDate : self.event.endDate
                 ekEvent.location = self.event.location
                 ekEvent.notes = self.event.notes
                 ekEvent.isAllDay = self.event.isAllDay

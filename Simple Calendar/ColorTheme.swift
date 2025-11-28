@@ -142,7 +142,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "4FC3F7"),      // Light blue (more visible in dark)
                     secondary: Color(hex: "81D4FA"),    // Lighter blue
                     accent: Color(hex: "FFD54F"),      // Sandy yellow (same for contrast)
-                    background: Color(hex: "0D47A1"),   // Dark blue background
+                    background: Color(hex: "0A3A7A"),   // Dark blue background
                     surface: Color(hex: "1E3A5F"),     // Dark surface
                     textPrimary: Color(hex: "FFFFFF"),  // White text
                     textSecondary: Color(hex: "B3E5FC"), // Light blue text
@@ -187,7 +187,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "66BB6A"),      // Light green (more visible in dark)
                     secondary: Color(hex: "81C784"),    // Lighter green
                     accent: Color(hex: "FFD54F"),      // Sunshine yellow (same for contrast)
-                    background: Color(hex: "1B5E20"),   // Dark green background
+                    background: Color(hex: "144A18"),   // Dark green background
                     surface: Color(hex: "2E4D33"),     // Dark surface
                     textPrimary: Color(hex: "FFFFFF"),  // White text
                     textSecondary: Color(hex: "C8E6C9"), // Light green text
@@ -232,7 +232,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "FB8C00"),      // Orange (more visible in dark)
                     secondary: Color(hex: "FF9800"),    // Lighter orange
                     accent: Color(hex: "FFD54F"),      // Yellow (same for contrast)
-                    background: Color(hex: "BF360C"),   // Dark red background
+                    background: Color(hex: "992B0A"),   // Dark red background
                     surface: Color(hex: "D84315"),     // Dark surface
                     textPrimary: Color(hex: "FFFFFF"),  // White text
                     textSecondary: Color(hex: "FFCCBC"), // Light orange text
@@ -277,7 +277,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "7C4DFF"),      // Light purple (more visible in dark)
                     secondary: Color(hex: "9575CD"),    // Lighter purple
                     accent: Color(hex: "FFD54F"),      // Star yellow (same for contrast)
-                    background: Color(hex: "311B92"),   // Dark purple background
+                    background: Color(hex: "281575"),   // Dark purple background
                     surface: Color(hex: "4527A0"),     // Dark surface
                     textPrimary: Color(hex: "FFFFFF"),  // White text
                     textSecondary: Color(hex: "CE93D8"), // Light purple text
@@ -322,7 +322,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "FF4081"),      // Light pink (more visible in dark)
                     secondary: Color(hex: "F48FB1"),    // Lighter pink
                     accent: Color(hex: "FFD54F"),      // Yellow (same for contrast)
-                    background: Color(hex: "880E4F"),   // Dark pink background
+                    background: Color(hex: "6D0B3F"),   // Dark pink background
                     surface: Color(hex: "C2185B"),     // Dark surface
                     textPrimary: Color(hex: "FFFFFF"),  // White text
                     textSecondary: Color(hex: "F8BBD9"), // Light pink text
@@ -367,7 +367,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "EF6C00"),      // Light orange (more visible in dark)
                     secondary: Color(hex: "F57C00"),    // Lighter orange
                     accent: Color(hex: "FFD54F"),      // Yellow (same for contrast)
-                    background: Color(hex: "BF360C"),   // Dark orange background
+                    background: Color(hex: "992B0A"),   // Dark orange background
                     surface: Color(hex: "D84315"),     // Dark surface
                     textPrimary: Color(hex: "FFFFFF"),  // White text
                     textSecondary: Color(hex: "FFCCBC"), // Light orange text
@@ -412,7 +412,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "42A5F5"),      // Light blue (more visible in dark)
                     secondary: Color(hex: "64B5F6"),    // Lighter blue
                     accent: Color(hex: "E3F2FD"),      // Very light blue (same for contrast)
-                    background: Color(hex: "0D47A1"),   // Dark blue background
+                    background: Color(hex: "0A3A7A"),   // Dark blue background
                     surface: Color(hex: "1976D2"),     // Dark surface
                     textPrimary: Color(hex: "FFFFFF"),  // White text
                     textSecondary: Color(hex: "B3E5FC"), // Light blue text
@@ -457,7 +457,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "FF6B9D"),      // Light pink (more visible in dark)
                     secondary: Color(hex: "FFB74D"),    // Light orange
                     accent: Color(hex: "FFD54F"),      // Yellow (same for contrast)
-                    background: Color(hex: "F57C00"),   // Dark orange background
+                    background: Color(hex: "C46300"),   // Dark orange background
                     surface: Color(hex: "E65100"),     // Dark surface
                     textPrimary: Color(hex: "FFFFFF"),  // White text
                     textSecondary: Color(hex: "FFF9C4"), // Light yellow text
@@ -617,8 +617,8 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "42A5F5"),      // Light blue
                     secondary: Color(hex: "64B5F6"),    // Lighter blue
                     accent: Color(hex: "E3F2FD"),      // Very light blue
-                    background: Color(hex: "0D47A1"),   // Dark blue
-                    surface: Color(hex: "1976D2"),     // Medium blue
+                    background: Color(hex: "0A3A7A"),   // Dark blue
+                    surface: Color(hex: "2996F2"),     // Medium blue
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "B3E5FC"), // Light blue
                     border: Color(hex: "42A5F5"),      // Blue border
@@ -663,8 +663,8 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "E91E63"),      // Pink
                     secondary: Color(hex: "F48FB1"),    // Light pink
                     accent: Color(hex: "FCE4EC"),      // Very light pink
-                    background: Color(hex: "880E4F"),   // Dark pink
-                    surface: Color(hex: "C2185B"),     // Medium pink
+                    background: Color(hex: "3D0B1F"),   // Dark pink
+                    surface: Color(hex: "D2486B"),     // Medium pink
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "F8BBD9"), // Light pink
                     border: Color(hex: "E91E63"),      // Pink border
@@ -709,8 +709,8 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "66BB6A"),      // Light green
                     secondary: Color(hex: "81C784"),    // Lighter green
                     accent: Color(hex: "FFF9C4"),      // Light yellow
-                    background: Color(hex: "1B5E20"),   // Dark green
-                    surface: Color(hex: "2E4D33"),     // Medium green
+                    background: Color(hex: "072A09"),   // Dark green
+                    surface: Color(hex: "6EBD93"),     // Medium green
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "C8E6C9"), // Light green
                     border: Color(hex: "66BB6A"),      // Green border
@@ -755,8 +755,8 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "7C4DFF"),      // Purple
                     secondary: Color(hex: "9575CD"),    // Light purple
                     accent: Color(hex: "E1BEE7"),      // Pale purple
-                    background: Color(hex: "311B92"),   // Dark purple
-                    surface: Color(hex: "4527A0"),     // Medium purple
+                    background: Color(hex: "140835"),   // Dark purple
+                    surface: Color(hex: "6547C0"),     // Medium purple
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "CE93D8"), // Light purple
                     border: Color(hex: "7C4DFF"),      // Purple border
@@ -801,8 +801,8 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "4CAF50"),      // Green
                     secondary: Color(hex: "66BB6A"),    // Light green
                     accent: Color(hex: "FFF176"),      // Yellow
-                    background: Color(hex: "1B5E20"),   // Dark green
-                    surface: Color(hex: "2E4D33"),     // Medium green
+                    background: Color(hex: "072A09"),   // Dark green
+                    surface: Color(hex: "6E9D63"),     // Medium green
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "C8E6C9"), // Light green
                     border: Color(hex: "4CAF50"),      // Green border
@@ -847,7 +847,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "2196F3"),      // Blue
                     secondary: Color(hex: "42A5F5"),    // Light blue
                     accent: Color(hex: "FFF176"),      // Yellow
-                    background: Color(hex: "0D47A1"),   // Dark blue
+                    background: Color(hex: "0A2A5A"),   // Dark blue
                     surface: Color(hex: "1976D2"),     // Medium blue
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "B3E5FC"), // Light blue
@@ -893,7 +893,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "F44336"),      // Red
                     secondary: Color(hex: "42A5F5"),    // Blue
                     accent: Color(hex: "FFFFFF"),      // White
-                    background: Color(hex: "B71C1C"),   // Dark red
+                    background: Color(hex: "521010"),   // Dark red
                     surface: Color(hex: "D32F2F"),     // Medium red
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "FFCDD2"), // Light red
@@ -939,7 +939,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "FFB74D"),      // Orange
                     secondary: Color(hex: "4FC3F7"),    // Light blue
                     accent: Color(hex: "FFF9C4"),      // Light yellow
-                    background: Color(hex: "E65100"),   // Dark orange
+                    background: Color(hex: "482100"),   // Dark orange
                     surface: Color(hex: "EF6C00"),     // Medium orange
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "FFE0B2"), // Light orange
@@ -985,8 +985,8 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "3F51B5"),      // Indigo
                     secondary: Color(hex: "7986CB"),    // Light indigo
                     accent: Color(hex: "FFF9C4"),      // Light yellow
-                    background: Color(hex: "1A237E"),   // Dark indigo
-                    surface: Color(hex: "283593"),     // Medium indigo
+                    background: Color(hex: "101045"),   // Dark indigo
+                    surface: Color(hex: "4855A3"),     // Medium indigo
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "C5CAE9"), // Light indigo
                     border: Color(hex: "3F51B5"),      // Indigo border
@@ -1031,8 +1031,8 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "FF5722"),      // Deep orange
                     secondary: Color(hex: "9C27B0"),    // Purple
                     accent: Color(hex: "FFEB3B"),      // Yellow
-                    background: Color(hex: "BF360C"),   // Dark orange
-                    surface: Color(hex: "D84315"),     // Medium orange
+                    background: Color(hex: "59200A"),   // Dark orange
+                    surface: Color(hex: "F86345"),     // Medium orange
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "FFCCBC"), // Light orange
                     border: Color(hex: "FF5722"),      // Deep orange border
@@ -1077,8 +1077,8 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "8D6E63"),      // Brown
                     secondary: Color(hex: "A1887F"),    // Light brown
                     accent: Color(hex: "FF8A65"),      // Orange
-                    background: Color(hex: "3E2723"),   // Dark brown
-                    surface: Color(hex: "4E342E"),     // Medium brown
+                    background: Color(hex: "321F1C"),   // Dark brown
+                    surface: Color(hex: "8E645E"),     // Medium brown
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "D7CCC8"), // Light brown
                     border: Color(hex: "8D6E63"),      // Brown border
@@ -1123,8 +1123,8 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "E53935"),      // Red
                     secondary: Color(hex: "43A047"),    // Green
                     accent: Color(hex: "FFD54F"),      // Gold
-                    background: Color(hex: "B71C1C"),   // Dark red
-                    surface: Color(hex: "C62828"),     // Medium red
+                    background: Color(hex: "521212"),   // Dark red
+                    surface: Color(hex: "E65858"),     // Medium red
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "EF9A9A"), // Light red
                     border: Color(hex: "E53935"),      // Red border
@@ -1168,7 +1168,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                 primary: Color(hex: "BB86FC"),      // Light purple
                 secondary: Color(hex: "03DAC6"),    // Teal
                 accent: Color(hex: "CF6679"),      // Pink
-                background: Color(hex: "121212"),   // Very dark gray
+                background: Color(hex: "0E0E0E"),   // Very dark gray
                 surface: Color(hex: "1E1E1E"),     // Dark gray
                 textPrimary: Color(hex: "FFFFFF"),  // White
                 textSecondary: Color(hex: "B0B0B0"), // Light gray
@@ -1215,7 +1215,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "FF8A80"),      // Light red
                     secondary: Color(hex: "FF5252"),    // Medium red
                     accent: Color(hex: "FF1744"),      // Dark red
-                    background: Color(hex: "B71C1C"),   // Very dark red
+                    background: Color(hex: "921616"),   // Very dark red
                     surface: Color(hex: "D32F2F"),     // Dark red
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "FFCDD2"), // Light red
@@ -1261,7 +1261,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "FFB74D"),      // Light orange
                     secondary: Color(hex: "FF9800"),    // Medium orange
                     accent: Color(hex: "E65100"),      // Dark orange
-                    background: Color(hex: "E65100"),   // Very dark orange
+                    background: Color(hex: "B84100"),   // Very dark orange
                     surface: Color(hex: "EF6C00"),     // Dark orange
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "FFE0B2"), // Light orange
@@ -1307,7 +1307,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "FFF176"),      // Light yellow
                     secondary: Color(hex: "FFEB3B"),    // Medium yellow
                     accent: Color(hex: "F57F17"),      // Dark yellow
-                    background: Color(hex: "F57F17"),   // Very dark yellow
+                    background: Color(hex: "C46612"),   // Very dark yellow
                     surface: Color(hex: "F9A825"),     // Dark yellow
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "FFF9C4"), // Light yellow
@@ -1353,7 +1353,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "81C784"),      // Light green
                     secondary: Color(hex: "4CAF50"),    // Medium green
                     accent: Color(hex: "2E7D32"),      // Dark green
-                    background: Color(hex: "1B5E20"),   // Very dark green
+                    background: Color(hex: "144A18"),   // Very dark green
                     surface: Color(hex: "2E7D32"),     // Dark green
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "C8E6C9"), // Light green
@@ -1399,7 +1399,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "64B5F6"),      // Light blue
                     secondary: Color(hex: "2196F3"),    // Medium blue
                     accent: Color(hex: "0D47A1"),      // Dark blue
-                    background: Color(hex: "0D47A1"),   // Very dark blue
+                    background: Color(hex: "0A3A7A"),   // Very dark blue
                     surface: Color(hex: "1565C0"),     // Dark blue
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "BBDEFB"), // Light blue
@@ -1445,7 +1445,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "BA68C8"),      // Light purple
                     secondary: Color(hex: "9C27B0"),    // Medium purple
                     accent: Color(hex: "4A148C"),      // Dark purple
-                    background: Color(hex: "4A148C"),   // Very dark purple
+                    background: Color(hex: "3B1070"),   // Very dark purple
                     surface: Color(hex: "6A1B9A"),     // Dark purple
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "E1BEE7"), // Light purple
@@ -1491,7 +1491,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "A1887F"),      // Light brown
                     secondary: Color(hex: "795548"),    // Medium brown
                     accent: Color(hex: "3E2723"),      // Dark brown
-                    background: Color(hex: "3E2723"),   // Very dark brown
+                    background: Color(hex: "321F1C"),   // Very dark brown
                     surface: Color(hex: "4E342E"),     // Dark brown
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "D7CCC8"), // Light brown
@@ -1583,7 +1583,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "F48FB1"),      // Light pink
                     secondary: Color(hex: "E91E63"),    // Medium pink
                     accent: Color(hex: "C2185B"),      // Dark pink
-                    background: Color(hex: "880E4F"),   // Very dark pink
+                    background: Color(hex: "6D0B3F"),   // Very dark pink
                     surface: Color(hex: "C2185B"),     // Dark pink
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "F8BBD9"), // Light pink
@@ -1629,7 +1629,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "4DB6AC"),      // Light teal
                     secondary: Color(hex: "009688"),    // Medium teal
                     accent: Color(hex: "00695C"),      // Dark teal
-                    background: Color(hex: "004D40"),   // Very dark teal
+                    background: Color(hex: "003E33"),   // Very dark teal
                     surface: Color(hex: "00695C"),     // Dark teal
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "B2DFDB"), // Light teal
@@ -1675,7 +1675,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "7986CB"),      // Light indigo
                     secondary: Color(hex: "3F51B5"),    // Medium indigo
                     accent: Color(hex: "283593"),      // Dark indigo
-                    background: Color(hex: "1A237E"),   // Very dark indigo
+                    background: Color(hex: "151C65"),   // Very dark indigo
                     surface: Color(hex: "283593"),     // Dark indigo
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "C5CAE9"), // Light indigo
@@ -1721,7 +1721,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     primary: Color(hex: "E1BEE7"),      // Light magenta
                     secondary: Color(hex: "BA68C8"),    // Medium magenta
                     accent: Color(hex: "8E24AA"),      // Dark magenta
-                    background: Color(hex: "6A1B9A"),   // Very dark magenta
+                    background: Color(hex: "55167B"),   // Very dark magenta
                     surface: Color(hex: "8E24AA"),     // Dark magenta
                     textPrimary: Color(hex: "FFFFFF"),  // White
                     textSecondary: Color(hex: "F3E5F5"), // Light magenta
@@ -1973,6 +1973,26 @@ class ThemeManager: ObservableObject {
     }
 
     private let themeKey = "selectedColorTheme"
+    private let lastManualThemeKey = "lastManualColorTheme"
+    
+    // Store the last manually selected theme (before monthly theme mode was enabled)
+    var lastManualTheme: ColorTheme? {
+        get {
+            let savedThemeRaw = UserDefaults.standard.integer(forKey: lastManualThemeKey)
+            if savedThemeRaw == 0 && UserDefaults.standard.object(forKey: lastManualThemeKey) == nil {
+                return nil
+            }
+            return ColorTheme(rawValue: savedThemeRaw)
+        }
+        set {
+            if let theme = newValue {
+                UserDefaults.standard.set(theme.rawValue, forKey: lastManualThemeKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: lastManualThemeKey)
+            }
+            UserDefaults.standard.synchronize()
+        }
+    }
 
     init() {
         let savedThemeRaw = UserDefaults.standard.integer(forKey: themeKey)
@@ -1988,7 +2008,37 @@ class ThemeManager: ObservableObject {
     }
 
     func setTheme(_ theme: ColorTheme) {
-        currentTheme = theme
+        // Ensure we're on the main thread for UI updates
+        if Thread.isMainThread {
+            currentTheme = theme
+        } else {
+            DispatchQueue.main.async { [weak self] in
+                self?.currentTheme = theme
+            }
+        }
+    }
+    
+    /// Save the current theme as the last manually selected theme
+    func saveCurrentThemeAsManual() {
+        // Only save if the current theme is not a monthly theme (january through december)
+        if currentTheme.rawValue < 9 || currentTheme.rawValue > 20 {
+            lastManualTheme = currentTheme
+        }
+    }
+    
+    /// Save a specific theme as the last manually selected theme
+    func saveThemeAsManual(_ theme: ColorTheme) {
+        // Only save if the theme is not a monthly theme (january through december)
+        if theme.rawValue < 9 || theme.rawValue > 20 {
+            lastManualTheme = theme
+        }
+    }
+    
+    /// Restore the last manually selected theme
+    func restoreLastManualTheme() {
+        if let manualTheme = lastManualTheme {
+            setTheme(manualTheme)
+        }
     }
 
     private func saveTheme() {

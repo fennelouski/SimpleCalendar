@@ -47,7 +47,7 @@ Simple CalendarTests/
 @Test func testDescriptiveName() async throws {
     // Given - Set up test preconditions
     let viewModel = CalendarViewModel()
-    let calendar = Calendar.current
+    let calendar = Calendar(identifier: .gregorian)
     let testDate = calendar.date(from: DateComponents(year: 2025, month: 12, day: 8))!
 
     // When - Execute the code being tested
@@ -173,7 +173,7 @@ Tests should be run as part of your development workflow:
 
 ### Testing Date/Time Logic
 ```swift
-let calendar = Calendar.current
+let calendar = Calendar(identifier: .gregorian)
 let testDate = calendar.date(from: DateComponents(year: 2025, month: 12, day: 8))!
 let expectedDate = calendar.date(from: DateComponents(year: 2025, month: 12, day: 1))!
 
@@ -223,7 +223,7 @@ viewModel.navigateDate(by: .week, direction: .backward)
 - Use appropriate expectations for async behavior
 
 #### Date/timezone issues
-- Use Calendar.current for consistent date calculations
+- Use Calendar(identifier: .gregorian) for consistent date calculations
 - Be aware of timezone differences in date comparisons
 
 ### Debugging Tests
@@ -271,3 +271,4 @@ If you encounter issues with tests:
 - Update documentation as testing practices evolve
 - Share knowledge about effective testing techniques
 - Consider adding integration tests for complex workflows
+

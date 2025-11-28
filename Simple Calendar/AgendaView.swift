@@ -145,7 +145,7 @@ struct AgendaView: View {
     }
 
     private func generateAgendaItems() -> [AgendaItem] {
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         let startDate = calendar.startOfDay(for: selectedDate)
         let endDate = calendar.date(byAdding: .month, value: 2, to: startDate)!
 
@@ -188,11 +188,11 @@ struct AgendaView: View {
     }
 
     private func moveToPreviousWeek() {
-        selectedDate = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: selectedDate) ?? selectedDate
+        selectedDate = Calendar(identifier: .gregorian).date(byAdding: .weekOfYear, value: -1, to: selectedDate) ?? selectedDate
     }
 
     private func moveToNextWeek() {
-        selectedDate = Calendar.current.date(byAdding: .weekOfYear, value: 1, to: selectedDate) ?? selectedDate
+        selectedDate = Calendar(identifier: .gregorian).date(byAdding: .weekOfYear, value: 1, to: selectedDate) ?? selectedDate
     }
 
     private func scrollToDate() {
@@ -271,7 +271,7 @@ struct AgendaItemView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, MMMM d"
 
-        let calendar = Calendar.current
+        let calendar = Calendar(identifier: .gregorian)
         if calendar.isDate(date, inSameDayAs: Date()) {
             return "Today"
         } else if calendar.isDate(date, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: Date())!) {
