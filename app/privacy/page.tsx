@@ -1,7 +1,7 @@
 export const metadata = {
-  title: "Calendar Play – Privacy Policy",
+  title: "Calendar Play – Apple TV Privacy Policy",
   description:
-    "Privacy policy for Calendar Play by 100 Apps Studio, explaining what data is collected and how it is used."
+    "Apple TV privacy policy for Calendar Play by 100 Apps Studio, explaining what data is accessed and how it is used."
 };
 
 export default function PrivacyPage() {
@@ -50,7 +50,7 @@ export default function PrivacyPage() {
               margin: 0
             }}
           >
-            Calendar Play – Privacy Policy
+            Calendar Play – Apple TV Privacy Policy
           </h1>
         </header>
 
@@ -65,8 +65,11 @@ export default function PrivacyPage() {
           }}
         >
           <p style={{ margin: 0 }}>
-            This privacy policy explains how Calendar Play (the &quot;App&quot;), developed
-            by 100 Apps Studio (&quot;we&quot;, &quot;us&quot;), handles your data.
+            Effective Date: <strong>November 28, 2024</strong>
+          </p>
+          <p style={{ margin: 0 }}>
+            This Privacy Policy explains how Calendar Play (&quot;the App&quot;) handles
+            your information on Apple TV.
           </p>
 
           <div>
@@ -78,14 +81,120 @@ export default function PrivacyPage() {
                 color: "#e5e7eb"
               }}
             >
-              Data We Collect
+              1. Data We Access
+            </h2>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: "1.25rem",
+                listStyleType: "disc"
+              }}
+            >
+              <li>
+                <strong>Calendar data</strong>: If you grant permission, the App
+                can read your calendar events and associated metadata (such as
+                titles, dates, times, locations, and notes) solely to display
+                them within the App.
+              </li>
+              <li>
+                <strong>Location data</strong>: If enabled, the App may use your
+                approximate location to display local sunrise/sunset times and
+                weather information.
+              </li>
+              <li>
+                <strong>Settings and preferences</strong>: Themes, filters, and
+                display options are stored locally on your device.
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h2
+              style={{
+                fontSize: "1.05rem",
+                margin: 0,
+                marginBottom: "0.4rem",
+                color: "#e5e7eb"
+              }}
+            >
+              2. How Your Data Is Used
+            </h2>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: "1.25rem",
+                listStyleType: "disc"
+              }}
+            >
+              <li>
+                <strong>Display and features</strong>: Calendar and location data
+                are used only to present events, holidays, historical
+                information, day details, and weather within the App.
+              </li>
+              <li>
+                <strong>No advertising</strong>: The App does not display ads and
+                does not use your data for advertising or marketing purposes.
+              </li>
+              <li>
+                <strong>No tracking</strong>: The App does not track users in any
+                way. It does not use analytics, tracking identifiers, or data
+                collection to follow users across apps, devices, or websites.
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h2
+              style={{
+                fontSize: "1.05rem",
+                margin: 0,
+                marginBottom: "0.4rem",
+                color: "#e5e7eb"
+              }}
+            >
+              3. Data Storage and Sharing
+            </h2>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: "1.25rem",
+                listStyleType: "disc"
+              }}
+            >
+              <li>
+                <strong>On-device processing</strong>: Calendar data and app
+                settings are processed and stored locally on your device where
+                possible.
+              </li>
+              <li>
+                <strong>Third-party services</strong>: If the App uses external
+                services (such as weather, image, or holiday APIs), only the
+                minimum information required for that feature (for example, a
+                coarse location or date range) is shared. These services operate
+                under their own privacy policies.
+              </li>
+              <li>
+                <strong>No sale of data</strong>: The App does not sell, rent, or
+                share your personal data.
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h2
+              style={{
+                fontSize: "1.05rem",
+                margin: 0,
+                marginBottom: "0.4rem",
+                color: "#e5e7eb"
+              }}
+            >
+              4. Children and Families
             </h2>
             <p style={{ margin: 0 }}>
-              Calendar Play primarily stores your data on your device and in your
-              own calendar accounts (such as iCloud or Google Calendar) as
-              configured in the App. We do not collect personally identifiable
-              information from you for our own servers when you simply use the App
-              as a local calendar viewer.
+              The App is designed to be suitable for families and children. It
+              relies primarily on user-provided calendar content and does not
+              knowingly collect personal information from children.
             </p>
           </div>
 
@@ -98,13 +207,40 @@ export default function PrivacyPage() {
                 color: "#e5e7eb"
               }}
             >
-              Calendar and Event Data
+              5. Your Choices
+            </h2>
+            <ul
+              style={{
+                margin: 0,
+                paddingLeft: "1.25rem",
+                listStyleType: "disc"
+              }}
+            >
+              <li>
+                You can manage calendar and location permissions at any time in
+                your device&apos;s system settings.
+              </li>
+              <li>
+                You can remove the App to delete all locally stored settings.
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h2
+              style={{
+                fontSize: "1.05rem",
+                margin: 0,
+                marginBottom: "0.4rem",
+                color: "#e5e7eb"
+              }}
+            >
+              6. Changes to This Policy
             </h2>
             <p style={{ margin: 0 }}>
-              The App may request permission to access your calendar data in order
-              to display events and reminders. This data remains under the control
-              of your device and calendar providers. We do not transmit your
-              personal calendar contents to our own servers.
+              We may update this Privacy Policy from time to time. The most
+              current version will be available with the App submission and
+              within the App where applicable.
             </p>
           </div>
 
@@ -117,105 +253,11 @@ export default function PrivacyPage() {
                 color: "#e5e7eb"
               }}
             >
-              Third-Party Services
+              7. Contact
             </h2>
             <p style={{ margin: 0 }}>
-              Calendar Play may integrate with third-party services (for example,
-              calendar providers or image/weather APIs) to provide certain
-              features. Any data shared with those services is governed by their
-              respective privacy policies. We recommend reviewing those policies
-              when you connect third-party accounts.
-            </p>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              Analytics and Diagnostics
-            </h2>
-            <p style={{ margin: 0 }}>
-              The App may use platform-provided, privacy-focused analytics and
-              crash reporting (such as Apple&apos;s anonymous diagnostics) to help us
-              understand performance and improve stability. This information does
-              not include your calendar contents.
-            </p>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              Children&apos;s Privacy
-            </h2>
-            <p style={{ margin: 0 }}>
-              Calendar Play is not directed to children under the age of 13. We do
-              not knowingly collect personal information from children.
-            </p>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              Your Choices
-            </h2>
-            <p style={{ margin: 0 }}>
-              You can control access to your calendars and other device data
-              through the system privacy settings on your device. You can disable
-              permissions at any time, though some features of the App may no
-              longer function correctly if access is removed.
-            </p>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              Changes to This Policy
-            </h2>
-            <p style={{ margin: 0 }}>
-              We may update this privacy policy from time to time to reflect
-              improvements to the App or changes in legal requirements. When we
-              make material changes, we may update this page and adjust the
-              &quot;last updated&quot; date.
-            </p>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              Contact
-            </h2>
-            <p style={{ margin: 0 }}>
-              If you have any questions about this privacy policy, please contact
-              us at{" "}
+              If you have questions about this Privacy Policy, please contact us
+              at{" "}
               <a
                 href="mailto:support@100apps.studio"
                 style={{ color: "#38bdf8", textDecoration: "none" }}
@@ -234,7 +276,7 @@ export default function PrivacyPage() {
               color: "#9ca3af"
             }}
           >
-            Last updated: {new Date().getFullYear()}
+            Last updated: 2024
           </p>
         </section>
       </article>
