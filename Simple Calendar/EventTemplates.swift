@@ -1,6 +1,6 @@
 //
 //  EventTemplates.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //

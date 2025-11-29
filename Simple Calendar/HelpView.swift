@@ -1,6 +1,6 @@
 //
 //  HelpView.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -38,7 +38,7 @@ struct HelpView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Text("Simple Calendar Help")
+                Text("Calendar Play Help")
                     .font(.title)
                     .fontWeight(.bold)
                 Spacer()
@@ -113,11 +113,11 @@ struct HelpView: View {
 
     private var gettingStartedContent: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Welcome to Simple Calendar!")
+            Text("Welcome to Calendar Play!")
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("Simple Calendar is designed to help you and your kids understand how calendars work. It provides an intuitive interface for viewing and managing events with beautiful images and comprehensive features.")
+            Text("Calendar Play is designed to help you and your kids understand how calendars work. It provides an intuitive interface for viewing and managing events with beautiful images and comprehensive features.")
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 12) {
@@ -214,7 +214,7 @@ struct HelpView: View {
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("Add beautiful images to your events to make them more engaging and memorable. Simple Calendar integrates with Unsplash to provide high-quality, royalty-free images.")
+            Text("Add beautiful images to your events to make them more engaging and memorable. Calendar Play integrates with Unsplash to provide high-quality, royalty-free images.")
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 12) {
@@ -281,7 +281,7 @@ struct HelpView: View {
                 Text("Features:")
                     .font(.headline)
 
-                FeatureRow(icon: "arrow.triangle.2.circlepath", title: "Two-Way Sync", description: "Events sync between Simple Calendar and Google Calendar")
+                FeatureRow(icon: "arrow.triangle.2.circlepath", title: "Two-Way Sync", description: "Events sync between Calendar Play and Google Calendar")
                 FeatureRow(icon: "calendar.badge.plus", title: "Multiple Calendars", description: "Support for multiple Google Calendar accounts")
                 FeatureRow(icon: "bell.badge", title: "Notifications", description: "Receive reminders from Google Calendar events")
             }
@@ -352,7 +352,7 @@ struct HelpView: View {
                 .font(.title2)
                 .fontWeight(.bold)
 
-            Text("Customize Simple Calendar to work the way you want it to.")
+            Text("Customize Calendar Play to work the way you want it to.")
                 .fixedSize(horizontal: false, vertical: true)
 
             VStack(alignment: .leading, spacing: 12) {

@@ -1,6 +1,6 @@
 //
 //  AgendaView.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -41,7 +41,7 @@ struct AgendaView: View {
                 #else
                 DatePicker("", selection: $selectedDate, displayedComponents: [.date])
                     .labelsHidden()
-                    .onChange(of: selectedDate) { newDate in
+                    .onChange(of: selectedDate) {
                         scrollToDate()
                     }
                     .frame(maxWidth: 200)
@@ -80,7 +80,7 @@ struct AgendaView: View {
 
                 DatePicker("", selection: $selectedDate, displayedComponents: [.date])
                     .labelsHidden()
-                    .onChange(of: selectedDate) { newDate in
+                    .onChange(of: selectedDate) {
                         scrollToDate()
                     }
 
@@ -137,7 +137,7 @@ struct AgendaView: View {
                 .onAppear {
                     scrollToDate(scrollView)
                 }
-                .onChange(of: selectedDate) { newDate in
+                .onChange(of: selectedDate) {
                     scrollToDate(scrollView)
                 }
             }

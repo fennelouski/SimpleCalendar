@@ -1,6 +1,6 @@
 //
 //  Simple_CalendarUITests.swift
-//  Simple CalendarUITests
+//  Calendar PlayUITests
 //
 //  Created by Nathan Fennel on 11/23/25.
 //

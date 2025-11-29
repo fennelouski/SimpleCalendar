@@ -1,6 +1,6 @@
 //
 //  DaylightManager.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -66,7 +66,12 @@ class DaylightManager {
     private init() {}
 
     /// Calculate daylight periods for a given date and location
-    func daylightPeriods(for date: Date, latitude: Double = 40.7128, longitude: Double = -74.0060) -> [DaylightPeriod] {
+    /// Uses improved location from LocationApproximator if coordinates not provided
+    func daylightPeriods(for date: Date, latitude: Double? = nil, longitude: Double? = nil) -> [DaylightPeriod] {
+        // Use improved location if coordinates not provided
+        let location = LocationApproximator.shared.approximateLocation()
+        let lat = latitude ?? location.latitude
+        let _ = longitude ?? location.longitude
         // For simplicity, we'll use approximate sunrise/sunset times
         // In a real app, you'd use astronomical calculations or an API
 
@@ -76,7 +81,7 @@ class DaylightManager {
         let solarDeclination = calculateSolarDeclination(dayOfYear: dayOfYear)
 
         // Approximate sunrise/sunset hours (simplified calculation)
-        let sunriseHour = calculateSunriseHour(latitude: latitude, solarDeclination: solarDeclination)
+        let sunriseHour = calculateSunriseHour(latitude: lat, solarDeclination: solarDeclination)
         let sunsetHour = 24.0 - sunriseHour
 
         // Define daylight phases with approximate durations
@@ -98,8 +103,9 @@ class DaylightManager {
     }
 
     /// Get color for a specific hour of the day with smooth interpolation between phases
-    func colorForHour(_ hour: Double, date: Date) -> DaylightColor {
-        let periods = daylightPeriods(for: date)
+    /// Uses improved location from LocationApproximator
+    func colorForHour(_ hour: Double, date: Date, latitude: Double? = nil, longitude: Double? = nil) -> DaylightColor {
+        let periods = daylightPeriods(for: date, latitude: latitude, longitude: longitude)
 
         // Find the current period and interpolate with the next period for smooth transitions
         for (index, period) in periods.enumerated() {

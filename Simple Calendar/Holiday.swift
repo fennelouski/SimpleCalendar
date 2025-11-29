@@ -1,6 +1,6 @@
 //
 //  Holiday.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -18,13 +18,18 @@ struct CalendarHoliday: Identifiable, Hashable {
     let isRecurring: Bool
     let category: CalendarHolidayCategory
 
-    enum CalendarHolidayCategory: String, CaseIterable {
-        case religious = "Religious"
-        case cultural = "Cultural"
-        case national = "National"
-        case seasonal = "Seasonal"
-        case educational = "Educational"
-        case other = "Other"
+    enum CalendarHolidayCategory: String, CaseIterable, Codable {
+        case bankHolidays = "Bank Holidays"
+        case uniqueHolidays = "Unique Holidays"
+        case awarenessDays = "Awareness Days"
+        case seasons = "Seasons"
+        case christianHolidays = "Christian Holidays"
+        case jewishHolidays = "Jewish Holidays"
+        case otherHolidays = "Other Holidays"
+        
+        var displayName: String {
+            return self.rawValue
+        }
     }
 
     /// Check if this holiday occurs on the given date
@@ -56,7 +61,7 @@ struct CalendarHoliday: Identifiable, Hashable {
                 return nthWeekdayOfMonth(year: year, month: 1, weekday: .monday, n: 3)
             case "Presidents' Day", "Washington's Birthday":
                 return nthWeekdayOfMonth(year: year, month: 2, weekday: .monday, n: 3)
-            case "Indigenous Peoples' Day", "Columbus Day":
+            case "Indigenous Peoples' Day":
                 return nthWeekdayOfMonth(year: year, month: 10, weekday: .monday, n: 2)
             case "Memorial Day":
                 return lastWeekdayOfMonth(year: year, month: 5, weekday: .monday)
@@ -236,6 +241,33 @@ struct CalendarHoliday: Identifiable, Hashable {
                     return Calendar(identifier: .gregorian).date(byAdding: .day, value: -2, to: laborDay)
                 }
                 return nil
+            case "Earth Hour":
+                // Last Saturday of March
+                return lastWeekdayOfMonth(year: year, month: 3, weekday: .saturday)
+            case "National Ice Cream for Breakfast Day":
+                // First Saturday in February
+                return nthWeekdayOfMonth(year: year, month: 2, weekday: .saturday, n: 1)
+            case "National Parks Day":
+                // Fourth Saturday in April
+                return nthWeekdayOfMonth(year: year, month: 4, weekday: .saturday, n: 4)
+            case "Batman Day":
+                // Third Saturday in September
+                return nthWeekdayOfMonth(year: year, month: 9, weekday: .saturday, n: 3)
+            case "World Smile Day":
+                // First Friday in October
+                return nthWeekdayOfMonth(year: year, month: 10, weekday: .friday, n: 1)
+            case "National Bring Your Pet to Work Day":
+                // Friday after Father's Day (third Sunday in June)
+                if let fathersDay = nthWeekdayOfMonth(year: year, month: 6, weekday: .sunday, n: 3) {
+                    // Find the following Friday
+                    let weekday = Calendar(identifier: .gregorian).component(.weekday, from: fathersDay)
+                    let daysToFriday = (Weekday.friday.rawValue - weekday + 7) % 7
+                    if daysToFriday == 0 {
+                        return Calendar(identifier: .gregorian).date(byAdding: .day, value: 5, to: fathersDay)
+                    }
+                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: daysToFriday, to: fathersDay)
+                }
+                return nil
             default:
                 // For other recurring holidays, use the stored date but update the year
                 let calendar = Calendar(identifier: .gregorian)
@@ -344,6 +376,73 @@ struct CalendarHoliday: Identifiable, Hashable {
 
         return lastWeekday
     }
+    
+    /// Calculate approximate new moon date for a given year
+    /// Uses a simplified calculation based on known new moon dates
+    private func newMoonDate(for year: Int) -> Date? {
+        // Known new moon: January 11, 2024 at 11:57 UTC
+        // Lunar cycle is approximately 29.53 days
+        let referenceDate = createDateForYear(month: 1, day: 11, year: 2024)
+        guard let refDate = referenceDate else { return nil }
+        
+        let calendar = Calendar(identifier: .gregorian)
+        let targetYearStart = createDateForYear(month: 1, day: 1, year: year)
+        guard let yearStart = targetYearStart else { return nil }
+        
+        // Calculate days from reference date to start of target year
+        let daysDiff = calendar.dateComponents([.day], from: refDate, to: yearStart).day ?? 0
+        
+        // Calculate approximate new moon cycles passed
+        let lunarCycleDays = 29.53058867
+        let cycles = Double(daysDiff) / lunarCycleDays
+        let cyclesPassed = Int(cycles)
+        let remainingDays = cycles - Double(cyclesPassed)
+        
+        // Find the first new moon of the year (approximately)
+        let approximateDays = Int(remainingDays * lunarCycleDays)
+        if let firstNewMoon = calendar.date(byAdding: .day, value: approximateDays, to: yearStart) {
+            // Adjust to get closer to actual new moon (this is an approximation)
+            return firstNewMoon
+        }
+        
+        // Fallback: approximate new moon dates (roughly every 29.5 days)
+        // January new moon approximation
+        return createDateForYear(month: 1, day: 11, year: year)
+    }
+    
+    /// Calculate approximate full moon date for a given year
+    private func fullMoonDate(for year: Int) -> Date? {
+        // Full moon is approximately 14.77 days after new moon
+        if let newMoon = newMoonDate(for: year) {
+            return Calendar(identifier: .gregorian).date(byAdding: .day, value: 15, to: newMoon)
+        }
+        // Fallback approximation
+        return createDateForYear(month: 1, day: 25, year: year)
+    }
+    
+    /// Calculate blue moon date (when there are two full moons in a month)
+    /// This is rare and occurs roughly every 2-3 years
+    private func blueMoonDate(for year: Int) -> Date? {
+        // Blue moons are rare - this is a simplified check
+        // Actual blue moons need proper astronomical calculation
+        // Known blue moons: August 31, 2023; May 31, 2026
+        
+        // Approximate check: blue moons often occur in months with 31 days
+        // This is a very simplified approximation
+        let knownBlueMoons: [Int: (month: Int, day: Int)] = [
+            2024: (8, 19),
+            2026: (5, 31),
+            2028: (12, 31),
+            2031: (9, 30)
+        ]
+        
+        if let blueMoon = knownBlueMoons[year] {
+            return createDateForYear(month: blueMoon.month, day: blueMoon.day, year: year)
+        }
+        
+        // Return nil if not a known blue moon year (most years won't have one)
+        return nil
+    }
 
     enum Weekday: Int {
         case sunday = 1
@@ -365,7 +464,7 @@ extension CalendarHoliday {
         description: "A holiday celebrating gratitude and harvest, traditionally involving a feast with turkey and family gatherings.",
         unsplashSearchTerm: "thanksgiving dinner",
         isRecurring: true,
-        category: .cultural
+        category: .bankHolidays
     )
 
     static let blackFriday = CalendarHoliday(
@@ -375,7 +474,7 @@ extension CalendarHoliday {
         description: "The day after Thanksgiving, known for major shopping deals and the start of the holiday shopping season.",
         unsplashSearchTerm: "black friday shopping",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
 
     static let christmasEve = CalendarHoliday(
@@ -385,7 +484,7 @@ extension CalendarHoliday {
         description: "The evening before Christmas Day, often celebrated with family gatherings and preparations for Christmas.",
         unsplashSearchTerm: "christmas eve",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
 
     static let christmasDay = CalendarHoliday(
@@ -395,7 +494,7 @@ extension CalendarHoliday {
         description: "A Christian holiday celebrating the birth of Jesus Christ, celebrated with gift-giving and family time.",
         unsplashSearchTerm: "christmas morning",
         isRecurring: true,
-        category: .religious
+        category: .bankHolidays
     )
 
     static let boxingDay = CalendarHoliday(
@@ -405,7 +504,7 @@ extension CalendarHoliday {
         description: "Celebrated in many countries, traditionally a day for giving gifts to those who have helped throughout the year.",
         unsplashSearchTerm: "boxing day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
 
     static let newYearsEve = CalendarHoliday(
@@ -415,7 +514,7 @@ extension CalendarHoliday {
         description: "The last day of the year, celebrated with parties and fireworks as people welcome the new year.",
         unsplashSearchTerm: "new years eve celebration",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
 
     static let newYearsDay = CalendarHoliday(
@@ -425,7 +524,7 @@ extension CalendarHoliday {
         description: "The first day of the new year, celebrated with resolutions, parades, and family gatherings.",
         unsplashSearchTerm: "new years day",
         isRecurring: true,
-        category: .cultural
+        category: .bankHolidays
     )
 
     static let martinLutherKingJrDay = CalendarHoliday(
@@ -435,7 +534,7 @@ extension CalendarHoliday {
         description: "Honoring Dr. Martin Luther King Jr., celebrating his legacy of civil rights and equality.",
         unsplashSearchTerm: "martin luther king jr memorial",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
 
     static let valentinesDay = CalendarHoliday(
@@ -445,7 +544,7 @@ extension CalendarHoliday {
         description: "A day celebrating love and affection, often involving cards, flowers, and romantic gestures.",
         unsplashSearchTerm: "valentines day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
 
     static let presidentsDay = CalendarHoliday(
@@ -455,7 +554,7 @@ extension CalendarHoliday {
         description: "Honoring all U.S. presidents, originally Washington's Birthday, now a federal holiday.",
         unsplashSearchTerm: "presidents day",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
 
     static let indigenousPeoplesDay = CalendarHoliday(
@@ -465,7 +564,7 @@ extension CalendarHoliday {
         description: "Celebrating the history, culture, and resilience of Indigenous peoples of the Americas.",
         unsplashSearchTerm: "indigenous peoples day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
 
     static let piDay = CalendarHoliday(
@@ -475,7 +574,7 @@ extension CalendarHoliday {
         description: "Celebrating the mathematical constant π (pi), often with pie-eating and math activities.",
         unsplashSearchTerm: "pi day celebration",
         isRecurring: true,
-        category: .educational
+        category: .uniqueHolidays
     )
 
     static let firstDayOfSpring = CalendarHoliday(
@@ -485,7 +584,7 @@ extension CalendarHoliday {
         description: "The vernal equinox, marking the beginning of spring and longer days.",
         unsplashSearchTerm: "spring flowers blooming",
         isRecurring: true,
-        category: .seasonal
+        category: .seasons
     )
 
     static let firstDayOfSummer = CalendarHoliday(
@@ -495,7 +594,7 @@ extension CalendarHoliday {
         description: "The summer solstice, the longest day of the year and beginning of summer.",
         unsplashSearchTerm: "summer solstice",
         isRecurring: true,
-        category: .seasonal
+        category: .seasons
     )
 
     static let fourthOfJuly = CalendarHoliday(
@@ -505,9 +604,9 @@ extension CalendarHoliday {
         description: "Celebrating America's independence with fireworks, parades, and patriotic activities.",
         unsplashSearchTerm: "fourth of july fireworks",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
-
+    
     static let memorialDay = CalendarHoliday(
         name: "Memorial Day",
         date: createDate(month: 5, day: 26, year: 2025), // Last Monday of May
@@ -515,9 +614,9 @@ extension CalendarHoliday {
         description: "Honoring those who died serving in the U.S. military, traditionally the start of summer.",
         unsplashSearchTerm: "memorial day parade",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
-
+    
     static let veteransDay = CalendarHoliday(
         name: "Veterans Day",
         date: createDate(month: 11, day: 11, year: 2025),
@@ -525,7 +624,7 @@ extension CalendarHoliday {
         description: "Honoring all veterans who have served in the U.S. military.",
         unsplashSearchTerm: "veterans day memorial",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
 
     static let halloween = CalendarHoliday(
@@ -535,7 +634,7 @@ extension CalendarHoliday {
         description: "A fun holiday involving costumes, trick-or-treating, and spooky decorations.",
         unsplashSearchTerm: "halloween pumpkin",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
 
     static let easter = CalendarHoliday(
@@ -545,7 +644,7 @@ extension CalendarHoliday {
         description: "Christian holiday celebrating the resurrection of Jesus Christ, with egg hunts and spring themes.",
         unsplashSearchTerm: "easter eggs",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
 
     static let mothersDay = CalendarHoliday(
@@ -555,7 +654,7 @@ extension CalendarHoliday {
         description: "A day to honor mothers and mother figures with cards, flowers, and special activities.",
         unsplashSearchTerm: "mothers day flowers",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
 
     static let fathersDay = CalendarHoliday(
@@ -565,7 +664,7 @@ extension CalendarHoliday {
         description: "A day to honor fathers and father figures with cards, gifts, and special activities.",
         unsplashSearchTerm: "fathers day grill",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     // MARK: - Government/Banking Holidays (National)
@@ -577,17 +676,7 @@ extension CalendarHoliday {
         description: "Honoring the contributions of American workers and the labor movement.",
         unsplashSearchTerm: "labor day parade",
         isRecurring: true,
-        category: .national
-    )
-    
-    static let columbusDay = CalendarHoliday(
-        name: "Columbus Day",
-        date: createDate(month: 10, day: 14, year: 2024), // Second Monday of October
-        emoji: "🚢",
-        description: "Commemorating Christopher Columbus's arrival in the Americas in 1492.",
-        unsplashSearchTerm: "columbus day",
-        isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let patriotDay = CalendarHoliday(
@@ -597,7 +686,7 @@ extension CalendarHoliday {
         description: "Remembering the victims of the September 11, 2001 terrorist attacks.",
         unsplashSearchTerm: "patriot day memorial",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let electionDay = CalendarHoliday(
@@ -607,17 +696,17 @@ extension CalendarHoliday {
         description: "Election Day for federal offices, held on the first Tuesday after the first Monday in November.",
         unsplashSearchTerm: "election day voting",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let juneteenth = CalendarHoliday(
         name: "Juneteenth",
         date: createDate(month: 6, day: 19, year: 2025),
-        emoji: "🆓",
+        emoji: "🎉",
         description: "Commemorating the emancipation of enslaved African Americans in the United States.",
         unsplashSearchTerm: "juneteenth celebration",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let washingtonsBirthday = CalendarHoliday(
@@ -627,7 +716,7 @@ extension CalendarHoliday {
         description: "Honoring the first president of the United States, George Washington.",
         unsplashSearchTerm: "george washington",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let lincolnsBirthday = CalendarHoliday(
@@ -637,7 +726,7 @@ extension CalendarHoliday {
         description: "Commemorating the birth of Abraham Lincoln, the 16th president of the United States.",
         unsplashSearchTerm: "abraham lincoln",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let flagDay = CalendarHoliday(
@@ -647,7 +736,7 @@ extension CalendarHoliday {
         description: "Commemorating the adoption of the flag of the United States on June 14, 1777.",
         unsplashSearchTerm: "american flag",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let constitutionDay = CalendarHoliday(
@@ -657,7 +746,7 @@ extension CalendarHoliday {
         description: "Commemorating the signing of the United States Constitution on September 17, 1787.",
         unsplashSearchTerm: "constitution day",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let pearlHarborDay = CalendarHoliday(
@@ -667,7 +756,7 @@ extension CalendarHoliday {
         description: "Commemorating the attack on Pearl Harbor on December 7, 1941.",
         unsplashSearchTerm: "pearl harbor memorial",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let arborDay = CalendarHoliday(
@@ -677,7 +766,7 @@ extension CalendarHoliday {
         description: "A holiday encouraging tree planting and environmental awareness.",
         unsplashSearchTerm: "tree planting",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     // MARK: - Religious Holidays
@@ -689,7 +778,7 @@ extension CalendarHoliday {
         description: "Christian holiday commemorating the crucifixion of Jesus Christ.",
         unsplashSearchTerm: "good friday",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let palmSunday = CalendarHoliday(
@@ -699,7 +788,7 @@ extension CalendarHoliday {
         description: "Christian holiday marking the beginning of Holy Week, commemorating Jesus's entry into Jerusalem.",
         unsplashSearchTerm: "palm sunday",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let maundyThursday = CalendarHoliday(
@@ -709,7 +798,7 @@ extension CalendarHoliday {
         description: "Christian holiday commemorating the Last Supper of Jesus Christ with the Apostles.",
         unsplashSearchTerm: "last supper",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let holySaturday = CalendarHoliday(
@@ -719,7 +808,7 @@ extension CalendarHoliday {
         description: "The day before Easter Sunday, commemorating the day Jesus's body lay in the tomb.",
         unsplashSearchTerm: "holy saturday",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let easterMonday = CalendarHoliday(
@@ -729,7 +818,7 @@ extension CalendarHoliday {
         description: "The day after Easter Sunday, a continuation of the Easter celebration.",
         unsplashSearchTerm: "easter monday",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let ascensionDay = CalendarHoliday(
@@ -739,7 +828,7 @@ extension CalendarHoliday {
         description: "Christian holiday commemorating the ascension of Jesus Christ into heaven.",
         unsplashSearchTerm: "ascension day",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let pentecost = CalendarHoliday(
@@ -749,7 +838,7 @@ extension CalendarHoliday {
         description: "Christian holiday commemorating the descent of the Holy Spirit upon the Apostles.",
         unsplashSearchTerm: "pentecost",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let whitMonday = CalendarHoliday(
@@ -759,7 +848,7 @@ extension CalendarHoliday {
         description: "The day after Pentecost, also known as Monday of the Holy Spirit.",
         unsplashSearchTerm: "whit monday",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let trinitySunday = CalendarHoliday(
@@ -769,7 +858,7 @@ extension CalendarHoliday {
         description: "Christian feast day honoring the Holy Trinity: the Father, the Son, and the Holy Spirit.",
         unsplashSearchTerm: "trinity sunday",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let corpusChristi = CalendarHoliday(
@@ -779,7 +868,7 @@ extension CalendarHoliday {
         description: "Christian feast day honoring the Eucharist and the body of Christ.",
         unsplashSearchTerm: "corpus christi",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let mardiGras = CalendarHoliday(
@@ -789,7 +878,7 @@ extension CalendarHoliday {
         description: "Fat Tuesday, the last day of Carnival before Lent begins.",
         unsplashSearchTerm: "mardi gras celebration",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let ashWednesday = CalendarHoliday(
@@ -799,7 +888,7 @@ extension CalendarHoliday {
         description: "The first day of Lent in Western Christianity, marked by the placing of ashes.",
         unsplashSearchTerm: "ash wednesday",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let lentBegins = CalendarHoliday(
@@ -809,7 +898,7 @@ extension CalendarHoliday {
         description: "The beginning of the 40-day period of fasting and prayer before Easter.",
         unsplashSearchTerm: "lent",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let epiphany = CalendarHoliday(
@@ -819,7 +908,7 @@ extension CalendarHoliday {
         description: "Christian feast day commemorating the visit of the Magi to the infant Jesus.",
         unsplashSearchTerm: "epiphany three kings",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let threeKingsDay = CalendarHoliday(
@@ -829,7 +918,7 @@ extension CalendarHoliday {
         description: "Celebrating the visit of the three wise men to the baby Jesus.",
         unsplashSearchTerm: "three kings day",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let candlemas = CalendarHoliday(
@@ -839,7 +928,7 @@ extension CalendarHoliday {
         description: "Christian feast day commemorating the presentation of Jesus at the Temple.",
         unsplashSearchTerm: "candlemas",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let allSaintsDay = CalendarHoliday(
@@ -849,7 +938,7 @@ extension CalendarHoliday {
         description: "Christian feast day honoring all saints, known and unknown.",
         unsplashSearchTerm: "all saints day",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let allSoulsDay = CalendarHoliday(
@@ -859,7 +948,7 @@ extension CalendarHoliday {
         description: "Christian day of prayer and remembrance for the faithful departed.",
         unsplashSearchTerm: "all souls day",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let immaculateConception = CalendarHoliday(
@@ -869,7 +958,7 @@ extension CalendarHoliday {
         description: "Catholic feast day celebrating the conception of the Virgin Mary without original sin.",
         unsplashSearchTerm: "immaculate conception",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let feastOfTheAssumption = CalendarHoliday(
@@ -879,7 +968,7 @@ extension CalendarHoliday {
         description: "Catholic feast day celebrating the assumption of Mary into heaven.",
         unsplashSearchTerm: "assumption of mary",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let firstSundayOfAdvent = CalendarHoliday(
@@ -889,7 +978,7 @@ extension CalendarHoliday {
         description: "The beginning of the Advent season, a time of preparation for Christmas.",
         unsplashSearchTerm: "advent wreath",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let stNicholasDay = CalendarHoliday(
@@ -899,7 +988,7 @@ extension CalendarHoliday {
         description: "Christian feast day honoring St. Nicholas, a patron saint of children and gift-giving.",
         unsplashSearchTerm: "saint nicholas",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let stPatricksDay = CalendarHoliday(
@@ -909,7 +998,7 @@ extension CalendarHoliday {
         description: "Cultural and religious holiday celebrating Irish heritage and St. Patrick.",
         unsplashSearchTerm: "st patricks day parade",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let stValentinesDay = CalendarHoliday(
@@ -919,7 +1008,7 @@ extension CalendarHoliday {
         description: "Originally a Christian feast day honoring St. Valentine, now celebrated as a day of love.",
         unsplashSearchTerm: "valentines day",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let roshHashanah = CalendarHoliday(
@@ -929,7 +1018,7 @@ extension CalendarHoliday {
         description: "Jewish New Year, a time of reflection and the beginning of the High Holy Days.",
         unsplashSearchTerm: "rosh hashanah",
         isRecurring: true,
-        category: .religious
+        category: .jewishHolidays
     )
     
     static let yomKippur = CalendarHoliday(
@@ -939,7 +1028,7 @@ extension CalendarHoliday {
         description: "The Day of Atonement, the holiest day in Judaism, marked by fasting and prayer.",
         unsplashSearchTerm: "yom kippur",
         isRecurring: true,
-        category: .religious
+        category: .jewishHolidays
     )
     
     static let hanukkah = CalendarHoliday(
@@ -949,7 +1038,7 @@ extension CalendarHoliday {
         description: "The Festival of Lights, an eight-day Jewish holiday celebrating the rededication of the Second Temple.",
         unsplashSearchTerm: "hanukkah menorah",
         isRecurring: true,
-        category: .religious
+        category: .jewishHolidays
     )
     
     static let passover = CalendarHoliday(
@@ -959,7 +1048,7 @@ extension CalendarHoliday {
         description: "Jewish holiday commemorating the liberation of the Israelites from Egyptian slavery.",
         unsplashSearchTerm: "passover seder",
         isRecurring: true,
-        category: .religious
+        category: .jewishHolidays
     )
     
     static let purim = CalendarHoliday(
@@ -969,7 +1058,7 @@ extension CalendarHoliday {
         description: "Jewish holiday commemorating the saving of the Jewish people from Haman.",
         unsplashSearchTerm: "purim celebration",
         isRecurring: true,
-        category: .religious
+        category: .jewishHolidays
     )
     
     static let sukkot = CalendarHoliday(
@@ -979,7 +1068,7 @@ extension CalendarHoliday {
         description: "Jewish harvest festival commemorating the 40 years Israelites spent in the desert.",
         unsplashSearchTerm: "sukkot sukkah",
         isRecurring: true,
-        category: .religious
+        category: .jewishHolidays
     )
     
     static let shavuot = CalendarHoliday(
@@ -989,7 +1078,7 @@ extension CalendarHoliday {
         description: "Jewish holiday marking the giving of the Torah at Mount Sinai.",
         unsplashSearchTerm: "shavuot",
         isRecurring: true,
-        category: .religious
+        category: .jewishHolidays
     )
     
     static let diwali = CalendarHoliday(
@@ -999,7 +1088,7 @@ extension CalendarHoliday {
         description: "Hindu Festival of Lights, celebrating the victory of light over darkness.",
         unsplashSearchTerm: "diwali lights",
         isRecurring: true,
-        category: .religious
+        category: .otherHolidays
     )
     
     // MARK: - Social/Cultural Holidays
@@ -1011,7 +1100,7 @@ extension CalendarHoliday {
         description: "A traditional holiday predicting the arrival of spring based on a groundhog's shadow.",
         unsplashSearchTerm: "groundhog day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let superBowlSunday = CalendarHoliday(
@@ -1021,7 +1110,7 @@ extension CalendarHoliday {
         description: "The annual championship game of the National Football League.",
         unsplashSearchTerm: "super bowl",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let valentinesDayAlternative = CalendarHoliday(
@@ -1031,7 +1120,7 @@ extension CalendarHoliday {
         description: "A day celebrating love and affection, often involving cards, flowers, and romantic gestures.",
         unsplashSearchTerm: "valentines day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let presidentsDayAlternative = CalendarHoliday(
@@ -1041,7 +1130,7 @@ extension CalendarHoliday {
         description: "Honoring all U.S. presidents, originally Washington's Birthday, now a federal holiday.",
         unsplashSearchTerm: "presidents day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let stPatricksDayCultural = CalendarHoliday(
@@ -1051,7 +1140,7 @@ extension CalendarHoliday {
         description: "Celebrating Irish heritage with parades, green attire, and festive celebrations.",
         unsplashSearchTerm: "st patricks day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let aprilFoolsDay = CalendarHoliday(
@@ -1061,7 +1150,7 @@ extension CalendarHoliday {
         description: "A day for playing practical jokes and spreading hoaxes.",
         unsplashSearchTerm: "april fools day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let earthDay = CalendarHoliday(
@@ -1071,7 +1160,7 @@ extension CalendarHoliday {
         description: "A day to demonstrate support for environmental protection and sustainability.",
         unsplashSearchTerm: "earth day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let cincoDeMayo = CalendarHoliday(
@@ -1081,7 +1170,7 @@ extension CalendarHoliday {
         description: "Celebrating Mexican heritage and culture, commemorating the Battle of Puebla.",
         unsplashSearchTerm: "cinco de mayo",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let kentuckyDerby = CalendarHoliday(
@@ -1091,7 +1180,7 @@ extension CalendarHoliday {
         description: "The most famous horse race in America, known as 'The Run for the Roses.'",
         unsplashSearchTerm: "kentucky derby",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let memorialDayWeekend = CalendarHoliday(
@@ -1101,7 +1190,7 @@ extension CalendarHoliday {
         description: "The unofficial start of summer, marked by barbecues and outdoor activities.",
         unsplashSearchTerm: "memorial day weekend",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let fathersDayCultural = CalendarHoliday(
@@ -1111,17 +1200,17 @@ extension CalendarHoliday {
         description: "A day to honor fathers and father figures with cards, gifts, and special activities.",
         unsplashSearchTerm: "fathers day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let canadaDay = CalendarHoliday(
         name: "Canada Day",
         date: createDate(month: 7, day: 1, year: 2025),
-        emoji: "🍁",
+        emoji: "🇨🇦",
         description: "Celebrating the anniversary of Canadian Confederation.",
         unsplashSearchTerm: "canada day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let independenceDayAlternative = CalendarHoliday(
@@ -1131,7 +1220,7 @@ extension CalendarHoliday {
         description: "Celebrating America's independence with fireworks, parades, and patriotic activities.",
         unsplashSearchTerm: "fourth of july",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let bastilleDay = CalendarHoliday(
@@ -1141,7 +1230,7 @@ extension CalendarHoliday {
         description: "French National Day commemorating the Storming of the Bastille.",
         unsplashSearchTerm: "bastille day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let nationalHamburgerDay = CalendarHoliday(
@@ -1151,17 +1240,17 @@ extension CalendarHoliday {
         description: "A day to celebrate one of America's favorite foods: the hamburger.",
         unsplashSearchTerm: "hamburger",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let nationalIceCreamDay = CalendarHoliday(
         name: "National Ice Cream Day",
         date: createDate(month: 7, day: 20, year: 2025), // Third Sunday in July
-        emoji: "🍦",
+        emoji: ["🍦","🍨"].randomElement() ?? "🍨",
         description: "A day to enjoy and celebrate ice cream.",
         unsplashSearchTerm: "ice cream",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let laborDayWeekend = CalendarHoliday(
@@ -1171,7 +1260,7 @@ extension CalendarHoliday {
         description: "The unofficial end of summer, often celebrated with outdoor activities and barbecues.",
         unsplashSearchTerm: "labor day weekend",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let grandparentsDay = CalendarHoliday(
@@ -1181,7 +1270,7 @@ extension CalendarHoliday {
         description: "A day to honor grandparents and their contributions to families and society.",
         unsplashSearchTerm: "grandparents day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let roshHashanahCultural = CalendarHoliday(
@@ -1191,17 +1280,7 @@ extension CalendarHoliday {
         description: "Jewish New Year, celebrated with special meals and traditions.",
         unsplashSearchTerm: "rosh hashanah",
         isRecurring: true,
-        category: .cultural
-    )
-    
-    static let columbusDayCultural = CalendarHoliday(
-        name: "Columbus Day",
-        date: createDate(month: 10, day: 14, year: 2024),
-        emoji: "🚢",
-        description: "Observed in many states, commemorating Christopher Columbus's arrival in the Americas.",
-        unsplashSearchTerm: "columbus day",
-        isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let halloweenCultural = CalendarHoliday(
@@ -1211,7 +1290,7 @@ extension CalendarHoliday {
         description: "A fun holiday involving costumes, trick-or-treating, and spooky decorations.",
         unsplashSearchTerm: "halloween",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let dayOfTheDead = CalendarHoliday(
@@ -1221,7 +1300,7 @@ extension CalendarHoliday {
         description: "Mexican holiday honoring deceased loved ones with altars and celebrations.",
         unsplashSearchTerm: "day of the dead",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let veteransDayCultural = CalendarHoliday(
@@ -1231,7 +1310,7 @@ extension CalendarHoliday {
         description: "Honoring all veterans who have served in the U.S. military.",
         unsplashSearchTerm: "veterans day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let thanksgivingCultural = CalendarHoliday(
@@ -1241,7 +1320,7 @@ extension CalendarHoliday {
         description: "A holiday celebrating gratitude and harvest, traditionally involving a feast with turkey and family gatherings.",
         unsplashSearchTerm: "thanksgiving",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let blackFridayCultural = CalendarHoliday(
@@ -1251,7 +1330,7 @@ extension CalendarHoliday {
         description: "The day after Thanksgiving, known for major shopping deals and the start of the holiday shopping season.",
         unsplashSearchTerm: "black friday",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let cyberMonday = CalendarHoliday(
@@ -1261,7 +1340,7 @@ extension CalendarHoliday {
         description: "The Monday after Thanksgiving, known for online shopping deals.",
         unsplashSearchTerm: "cyber monday shopping",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let hanukkahCultural = CalendarHoliday(
@@ -1271,7 +1350,7 @@ extension CalendarHoliday {
         description: "The Festival of Lights, an eight-day Jewish holiday celebrating the rededication of the Second Temple.",
         unsplashSearchTerm: "hanukkah",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let kwanzaa = CalendarHoliday(
@@ -1281,7 +1360,7 @@ extension CalendarHoliday {
         description: "A week-long celebration honoring African American culture and heritage.",
         unsplashSearchTerm: "kwanzaa celebration",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let newYearsEveCultural = CalendarHoliday(
@@ -1291,7 +1370,7 @@ extension CalendarHoliday {
         description: "The last day of the year, celebrated with parties and fireworks as people welcome the new year.",
         unsplashSearchTerm: "new years eve",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let newYearsDayCultural = CalendarHoliday(
@@ -1301,7 +1380,7 @@ extension CalendarHoliday {
         description: "The first day of the new year, celebrated with resolutions, parades, and family gatherings.",
         unsplashSearchTerm: "new years day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let nationalPizzaDay = CalendarHoliday(
@@ -1311,7 +1390,7 @@ extension CalendarHoliday {
         description: "A day to celebrate one of America's favorite foods: pizza.",
         unsplashSearchTerm: "pizza",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let nationalDonutDay = CalendarHoliday(
@@ -1321,7 +1400,7 @@ extension CalendarHoliday {
         description: "A day to enjoy and celebrate donuts, originally created to honor the Salvation Army.",
         unsplashSearchTerm: "donuts",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let nationalCoffeeDay = CalendarHoliday(
@@ -1331,7 +1410,7 @@ extension CalendarHoliday {
         description: "A day to celebrate coffee and its cultural significance.",
         unsplashSearchTerm: "coffee",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let nationalTacoDay = CalendarHoliday(
@@ -1341,17 +1420,17 @@ extension CalendarHoliday {
         description: "A day to celebrate tacos, one of the most beloved Mexican foods.",
         unsplashSearchTerm: "tacos",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let chineseNewYear = CalendarHoliday(
-        name: "Chinese New Year",
+        name: "Lunar New Year",
         date: createDate(month: 1, day: 29, year: 2025), // Approximate - varies by lunar calendar
         emoji: "🧧",
         description: "The most important Chinese festival, marking the beginning of the lunar new year.",
-        unsplashSearchTerm: "chinese new year",
+        unsplashSearchTerm: "lunar new year",
         isRecurring: true,
-        category: .cultural
+        category: .seasons
     )
     
     static let valentinesDayWeek = CalendarHoliday(
@@ -1361,7 +1440,7 @@ extension CalendarHoliday {
         description: "A week-long celebration leading up to Valentine's Day.",
         unsplashSearchTerm: "valentines day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let summerSolstice = CalendarHoliday(
@@ -1371,7 +1450,7 @@ extension CalendarHoliday {
         description: "The longest day of the year and the official start of summer in the Northern Hemisphere.",
         unsplashSearchTerm: "summer solstice",
         isRecurring: true,
-        category: .seasonal
+        category: .otherHolidays
     )
     
     static let winterSolstice = CalendarHoliday(
@@ -1381,7 +1460,7 @@ extension CalendarHoliday {
         description: "The shortest day of the year and the official start of winter in the Northern Hemisphere.",
         unsplashSearchTerm: "winter solstice",
         isRecurring: true,
-        category: .seasonal
+        category: .otherHolidays
     )
     
     static let autumnalEquinox = CalendarHoliday(
@@ -1391,7 +1470,7 @@ extension CalendarHoliday {
         description: "The autumnal equinox, marking the beginning of fall and shorter days.",
         unsplashSearchTerm: "autumn fall",
         isRecurring: true,
-        category: .seasonal
+        category: .otherHolidays
     )
     
     static let vernalEquinox = CalendarHoliday(
@@ -1401,7 +1480,7 @@ extension CalendarHoliday {
         description: "The vernal equinox, marking the beginning of spring and longer days.",
         unsplashSearchTerm: "spring",
         isRecurring: true,
-        category: .seasonal
+        category: .otherHolidays
     )
     
     // MARK: - Educational Holidays
@@ -1413,7 +1492,7 @@ extension CalendarHoliday {
         description: "Celebrating the mathematical constant π (pi), often with pie-eating and math activities.",
         unsplashSearchTerm: "pi day",
         isRecurring: true,
-        category: .educational
+        category: .uniqueHolidays
     )
     
     static let teachersDay = CalendarHoliday(
@@ -1423,7 +1502,7 @@ extension CalendarHoliday {
         description: "A day to honor teachers and their contributions to education.",
         unsplashSearchTerm: "teacher appreciation",
         isRecurring: true,
-        category: .educational
+        category: .uniqueHolidays
     )
     
     static let bookLoversDay = CalendarHoliday(
@@ -1433,7 +1512,7 @@ extension CalendarHoliday {
         description: "A day to celebrate books and reading.",
         unsplashSearchTerm: "books reading",
         isRecurring: true,
-        category: .educational
+        category: .uniqueHolidays
     )
     
     // MARK: - Additional Holidays
@@ -1445,7 +1524,7 @@ extension CalendarHoliday {
         description: "The day the President of the United States is inaugurated, held every four years.",
         unsplashSearchTerm: "inauguration day",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let leapDay = CalendarHoliday(
@@ -1455,7 +1534,7 @@ extension CalendarHoliday {
         description: "An extra day added to the calendar every four years to keep it synchronized with the seasons.",
         unsplashSearchTerm: "leap day",
         isRecurring: false,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let daylightSavingTimeStarts = CalendarHoliday(
@@ -1465,7 +1544,7 @@ extension CalendarHoliday {
         description: "The day clocks spring forward one hour, marking the start of daylight saving time.",
         unsplashSearchTerm: "daylight saving time",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let daylightSavingTimeEnds = CalendarHoliday(
@@ -1475,7 +1554,7 @@ extension CalendarHoliday {
         description: "The day clocks fall back one hour, marking the end of daylight saving time.",
         unsplashSearchTerm: "daylight saving time",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let taxDay = CalendarHoliday(
@@ -1485,7 +1564,7 @@ extension CalendarHoliday {
         description: "The deadline for filing federal income tax returns in the United States.",
         unsplashSearchTerm: "tax day",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let nationalPetDay = CalendarHoliday(
@@ -1495,7 +1574,7 @@ extension CalendarHoliday {
         description: "A day to celebrate pets and the joy they bring to our lives.",
         unsplashSearchTerm: "pet day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let mayDay = CalendarHoliday(
@@ -1505,7 +1584,7 @@ extension CalendarHoliday {
         description: "A spring festival and celebration of workers' rights, also known as International Workers' Day.",
         unsplashSearchTerm: "may day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let starWarsDay = CalendarHoliday(
@@ -1515,7 +1594,7 @@ extension CalendarHoliday {
         description: "Celebrating the Star Wars franchise with the catchphrase 'May the Fourth be with you.'",
         unsplashSearchTerm: "star wars",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let mothersDayWeekend = CalendarHoliday(
@@ -1525,7 +1604,7 @@ extension CalendarHoliday {
         description: "The weekend celebrating mothers and mother figures.",
         unsplashSearchTerm: "mothers day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let armedForcesDay = CalendarHoliday(
@@ -1535,7 +1614,7 @@ extension CalendarHoliday {
         description: "Honoring all branches of the United States Armed Forces.",
         unsplashSearchTerm: "armed forces day",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let emancipationProclamationDay = CalendarHoliday(
@@ -1545,7 +1624,7 @@ extension CalendarHoliday {
         description: "Commemorating the day President Lincoln issued the Emancipation Proclamation in 1863.",
         unsplashSearchTerm: "emancipation proclamation",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let rosaParksDay = CalendarHoliday(
@@ -1555,7 +1634,7 @@ extension CalendarHoliday {
         description: "Honoring Rosa Parks and her role in the Civil Rights Movement.",
         unsplashSearchTerm: "rosa parks",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let billOfRightsDay = CalendarHoliday(
@@ -1565,7 +1644,7 @@ extension CalendarHoliday {
         description: "Commemorating the ratification of the Bill of Rights, the first ten amendments to the Constitution.",
         unsplashSearchTerm: "bill of rights",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let wrightBrothersDay = CalendarHoliday(
@@ -1575,7 +1654,7 @@ extension CalendarHoliday {
         description: "Commemorating the first successful powered flight by the Wright brothers in 1903.",
         unsplashSearchTerm: "wright brothers",
         isRecurring: true,
-        category: .national
+        category: .bankHolidays
     )
     
     static let nationalFriendshipDay = CalendarHoliday(
@@ -1585,7 +1664,7 @@ extension CalendarHoliday {
         description: "A day to celebrate friendships and the bonds between friends.",
         unsplashSearchTerm: "friendship day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let nationalSiblingsDay = CalendarHoliday(
@@ -1595,7 +1674,7 @@ extension CalendarHoliday {
         description: "A day to honor and celebrate the bond between siblings.",
         unsplashSearchTerm: "siblings day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let nationalWomensDay = CalendarHoliday(
@@ -1605,7 +1684,7 @@ extension CalendarHoliday {
         description: "Celebrating the achievements and contributions of women throughout history.",
         unsplashSearchTerm: "womens day",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
     )
     
     static let stGeorgesDay = CalendarHoliday(
@@ -1615,7 +1694,7 @@ extension CalendarHoliday {
         description: "Christian feast day honoring St. George, the patron saint of England.",
         unsplashSearchTerm: "saint george",
         isRecurring: true,
-        category: .religious
+        category: .christianHolidays
     )
     
     static let walpurgisNight = CalendarHoliday(
@@ -1625,7 +1704,1127 @@ extension CalendarHoliday {
         description: "A European spring festival celebrated on the eve of May Day.",
         unsplashSearchTerm: "walpurgis night",
         isRecurring: true,
-        category: .cultural
+        category: .uniqueHolidays
+    )
+    
+    // MARK: - Additional Unique Holidays
+    
+    static let talkLikeAPirateDay = CalendarHoliday(
+        name: "Talk Like a Pirate Day",
+        date: createDate(month: 9, day: 19, year: 2025),
+        emoji: "🏴‍☠️",
+        description: "A fun holiday where people talk like pirates and celebrate pirate culture.",
+        unsplashSearchTerm: "pirate",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalMargaritaDay = CalendarHoliday(
+        name: "National Margarita Day",
+        date: createDate(month: 2, day: 22, year: 2025),
+        emoji: "🍹",
+        description: "A day to celebrate the popular tequila-based cocktail.",
+        unsplashSearchTerm: "margarita",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalCheeseDay = CalendarHoliday(
+        name: "National Cheese Day",
+        date: createDate(month: 6, day: 4, year: 2025),
+        emoji: "🧀",
+        description: "A day to celebrate and enjoy all varieties of cheese.",
+        unsplashSearchTerm: "cheese",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalChocolateDay = CalendarHoliday(
+        name: "National Chocolate Day",
+        date: createDate(month: 10, day: 28, year: 2025),
+        emoji: "🍫",
+        description: "A day to celebrate and enjoy chocolate in all its forms.",
+        unsplashSearchTerm: "chocolate",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalPancakeDay = CalendarHoliday(
+        name: "National Pancake Day",
+        date: createDate(month: 9, day: 26, year: 2025),
+        emoji: "🥞",
+        description: "A day to celebrate pancakes, a beloved breakfast food.",
+        unsplashSearchTerm: "pancakes",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalSandwichDay = CalendarHoliday(
+        name: "National Sandwich Day",
+        date: createDate(month: 11, day: 3, year: 2025),
+        emoji: "🥪",
+        description: "A day to celebrate the versatile and beloved sandwich.",
+        unsplashSearchTerm: "sandwich",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalCookieDay = CalendarHoliday(
+        name: "National Cookie Day",
+        date: createDate(month: 12, day: 4, year: 2025),
+        emoji: "🍪",
+        description: "A day to celebrate and enjoy cookies of all kinds.",
+        unsplashSearchTerm: "cookies",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalPretzelDay = CalendarHoliday(
+        name: "National Pretzel Day",
+        date: createDate(month: 4, day: 26, year: 2025),
+        emoji: "🥨",
+        description: "A day to celebrate the twisted snack food, pretzels.",
+        unsplashSearchTerm: "pretzel",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalBubbleBathDay = CalendarHoliday(
+        name: "National Bubble Bath Day",
+        date: createDate(month: 1, day: 8, year: 2025),
+        emoji: "🛁",
+        description: "A day to relax and enjoy a soothing bubble bath.",
+        unsplashSearchTerm: "bubble bath",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalPajamaDay = CalendarHoliday(
+        name: "National Pajama Day",
+        date: createDate(month: 4, day: 16, year: 2025),
+        emoji: "🛏️",
+        description: "A fun day to wear pajamas and celebrate comfort.",
+        unsplashSearchTerm: "pajamas",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    // MARK: - Awareness Days
+    
+    static let blackHistoryMonthStart = CalendarHoliday(
+        name: "Black History Month Begins",
+        date: createDate(month: 2, day: 1, year: 2025),
+        emoji: "✊",
+        description: "The beginning of Black History Month, celebrating African American history and achievements.",
+        unsplashSearchTerm: "black history month",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let autismAwarenessDay = CalendarHoliday(
+        name: "World Autism Awareness Day",
+        date: createDate(month: 4, day: 2, year: 2025),
+        emoji: "🧩",
+        description: "A day to raise awareness about autism spectrum disorder and promote acceptance.",
+        unsplashSearchTerm: "autism awareness",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let breastCancerAwarenessMonthStart = CalendarHoliday(
+        name: "Breast Cancer Awareness Month Begins",
+        date: createDate(month: 10, day: 1, year: 2025),
+        emoji: "💗",
+        description: "The beginning of Breast Cancer Awareness Month, promoting awareness and early detection.",
+        unsplashSearchTerm: "breast cancer awareness",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let mentalHealthAwarenessMonthStart = CalendarHoliday(
+        name: "Mental Health Awareness Month Begins",
+        date: createDate(month: 5, day: 1, year: 2025),
+        emoji: "🧠",
+        description: "The beginning of Mental Health Awareness Month, promoting mental health awareness and support.",
+        unsplashSearchTerm: "mental health",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let worldAidsDay = CalendarHoliday(
+        name: "World AIDS Day",
+        date: createDate(month: 12, day: 1, year: 2025),
+        emoji: "🎗️",
+        description: "A day to raise awareness about AIDS and support those affected by HIV/AIDS.",
+        unsplashSearchTerm: "world aids day",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let heartMonthStart = CalendarHoliday(
+        name: "American Heart Month Begins",
+        date: createDate(month: 2, day: 1, year: 2025),
+        emoji: "❤️",
+        description: "The beginning of American Heart Month, promoting heart health awareness.",
+        unsplashSearchTerm: "heart health",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let diabetesAwarenessMonthStart = CalendarHoliday(
+        name: "Diabetes Awareness Month Begins",
+        date: createDate(month: 11, day: 1, year: 2025),
+        emoji: "💙",
+        description: "The beginning of Diabetes Awareness Month, promoting awareness and prevention.",
+        unsplashSearchTerm: "diabetes awareness",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let alzheimersAwarenessMonthStart = CalendarHoliday(
+        name: "Alzheimer's Awareness Month Begins",
+        date: createDate(month: 11, day: 1, year: 2025),
+        emoji: "🧬",
+        description: "The beginning of Alzheimer's Awareness Month, promoting awareness and support.",
+        unsplashSearchTerm: "alzheimers awareness",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let worldCancerDay = CalendarHoliday(
+        name: "World Cancer Day",
+        date: createDate(month: 2, day: 4, year: 2025),
+        emoji: "🎗️",
+        description: "A day to raise awareness about cancer prevention, detection, and treatment.",
+        unsplashSearchTerm: "cancer awareness",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let worldWaterDay = CalendarHoliday(
+        name: "World Water Day",
+        date: createDate(month: 3, day: 22, year: 2025),
+        emoji: "💧",
+        description: "A day to raise awareness about the importance of freshwater and sustainable water management.",
+        unsplashSearchTerm: "water conservation",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let earthHour = CalendarHoliday(
+        name: "Earth Hour",
+        date: createDate(month: 3, day: 29, year: 2025), // Last Saturday of March
+        emoji: "🌍",
+        description: "A global event where people turn off lights for one hour to raise awareness about climate change.",
+        unsplashSearchTerm: "earth hour",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let worldHealthDay = CalendarHoliday(
+        name: "World Health Day",
+        date: createDate(month: 4, day: 7, year: 2025),
+        emoji: "⚕️",
+        description: "A global health awareness day sponsored by the World Health Organization.",
+        unsplashSearchTerm: "world health day",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let arborDayAwareness = CalendarHoliday(
+        name: "Arbor Day",
+        date: createDate(month: 4, day: 26, year: 2025), // Last Friday of April
+        emoji: "🌳",
+        description: "A holiday encouraging tree planting and environmental awareness.",
+        unsplashSearchTerm: "tree planting",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let nationalStrokeAwarenessMonthStart = CalendarHoliday(
+        name: "National Stroke Awareness Month Begins",
+        date: createDate(month: 5, day: 1, year: 2025),
+        emoji: "🧠",
+        description: "The beginning of Stroke Awareness Month, promoting awareness of stroke prevention and symptoms.",
+        unsplashSearchTerm: "stroke awareness",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let nationalSkinCancerAwarenessMonthStart = CalendarHoliday(
+        name: "Skin Cancer Awareness Month Begins",
+        date: createDate(month: 5, day: 1, year: 2025),
+        emoji: "☀️",
+        description: "The beginning of Skin Cancer Awareness Month, promoting sun safety and early detection.",
+        unsplashSearchTerm: "skin cancer awareness",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let worldEnvironmentDay = CalendarHoliday(
+        name: "World Environment Day",
+        date: createDate(month: 6, day: 5, year: 2025),
+        emoji: "🌱",
+        description: "A day to raise awareness and action for environmental protection.",
+        unsplashSearchTerm: "world environment day",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let nationalSuicidePreventionMonthStart = CalendarHoliday(
+        name: "Suicide Prevention Month Begins",
+        date: createDate(month: 9, day: 1, year: 2025),
+        emoji: "💙",
+        description: "The beginning of Suicide Prevention Month, promoting awareness and support for mental health.",
+        unsplashSearchTerm: "suicide prevention",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let worldOceansDay = CalendarHoliday(
+        name: "World Oceans Day",
+        date: createDate(month: 6, day: 8, year: 2025),
+        emoji: "🌊",
+        description: "A day to celebrate and raise awareness about the importance of oceans.",
+        unsplashSearchTerm: "ocean conservation",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let nationalDomesticViolenceAwarenessMonthStart = CalendarHoliday(
+        name: "Domestic Violence Awareness Month Begins",
+        date: createDate(month: 10, day: 1, year: 2025),
+        emoji: "💜",
+        description: "The beginning of Domestic Violence Awareness Month, promoting awareness and support.",
+        unsplashSearchTerm: "domestic violence awareness",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    // MARK: - Additional Other Holidays
+    
+    static let ramadanStart = CalendarHoliday(
+        name: "Ramadan Begins",
+        date: createDate(month: 3, day: 1, year: 2025), // Approximate - varies by Islamic calendar
+        emoji: "🌙",
+        description: "The beginning of Ramadan, a month of fasting, prayer, and reflection for Muslims.",
+        unsplashSearchTerm: "ramadan",
+        isRecurring: true,
+        category: .otherHolidays
+    )
+    
+    static let eidAlFitr = CalendarHoliday(
+        name: "Eid al-Fitr",
+        date: createDate(month: 3, day: 31, year: 2025), // Approximate - varies by Islamic calendar
+        emoji: "🕌",
+        description: "The festival marking the end of Ramadan, celebrated with feasting and prayer.",
+        unsplashSearchTerm: "eid al fitr",
+        isRecurring: true,
+        category: .otherHolidays
+    )
+    
+    static let eidAlAdha = CalendarHoliday(
+        name: "Eid al-Adha",
+        date: createDate(month: 6, day: 16, year: 2025), // Approximate - varies by Islamic calendar
+        emoji: "🕋",
+        description: "The Festival of Sacrifice, one of the most important Islamic holidays.",
+        unsplashSearchTerm: "eid al adha",
+        isRecurring: true,
+        category: .otherHolidays
+    )
+    
+    static let vesak = CalendarHoliday(
+        name: "Vesak",
+        date: createDate(month: 5, day: 12, year: 2025), // Approximate - varies by lunar calendar
+        emoji: "🪷",
+        description: "Buddha's Birthday, celebrating the birth, enlightenment, and death of Buddha.",
+        unsplashSearchTerm: "vesak buddha",
+        isRecurring: true,
+        category: .otherHolidays
+    )
+    
+    static let holi = CalendarHoliday(
+        name: "Holi",
+        date: createDate(month: 3, day: 14, year: 2025), // Approximate - varies by Hindu calendar
+        emoji: "🎨",
+        description: "The Festival of Colors, celebrating spring and the triumph of good over evil.",
+        unsplashSearchTerm: "holi festival",
+        isRecurring: true,
+        category: .otherHolidays
+    )
+    
+    
+    // MARK: - Additional Jewish Holidays
+    
+    static let tuBshevat = CalendarHoliday(
+        name: "Tu B'Shevat",
+        date: createDate(month: 1, day: 17, year: 2025), // Approximate - varies by Hebrew calendar
+        emoji: "🌳",
+        description: "The New Year for Trees, celebrating nature and environmental awareness.",
+        unsplashSearchTerm: "tu bshevat",
+        isRecurring: true,
+        category: .jewishHolidays
+    )
+    
+    static let lagBOmer = CalendarHoliday(
+        name: "Lag B'Omer",
+        date: createDate(month: 5, day: 26, year: 2025), // Approximate - varies by Hebrew calendar
+        emoji: "🔥",
+        description: "A festive day during the counting of the Omer, marked with bonfires and celebrations.",
+        unsplashSearchTerm: "lag bomer",
+        isRecurring: true,
+        category: .jewishHolidays
+    )
+    
+    static let tishaBAv = CalendarHoliday(
+        name: "Tisha B'Av",
+        date: createDate(month: 8, day: 13, year: 2025), // Approximate - varies by Hebrew calendar
+        emoji: "🕯️",
+        description: "A day of mourning commemorating the destruction of the First and Second Temples.",
+        unsplashSearchTerm: "tisha bav",
+        isRecurring: true,
+        category: .jewishHolidays
+    )
+    
+    static let simchatTorah = CalendarHoliday(
+        name: "Simchat Torah",
+        date: createDate(month: 10, day: 17, year: 2025), // Approximate - varies by Hebrew calendar
+        emoji: "📜",
+        description: "The day marking the completion of the annual cycle of reading the Torah.",
+        unsplashSearchTerm: "simchat torah",
+        isRecurring: true,
+        category: .jewishHolidays
+    )
+    
+    static let sheminiAtzeret = CalendarHoliday(
+        name: "Shemini Atzeret",
+        date: createDate(month: 10, day: 16, year: 2025), // Approximate - varies by Hebrew calendar
+        emoji: "🍂",
+        description: "The eighth day of assembly, immediately following Sukkot.",
+        unsplashSearchTerm: "shemini atzeret",
+        isRecurring: true,
+        category: .jewishHolidays
+    )
+    
+    // MARK: - Additional Seasonal Holidays (Lunar Phases)
+    
+    // Note: New Moon and Full Moon dates are approximate and calculated based on a 29.5-day cycle
+    // Actual dates vary and should be calculated using astronomical algorithms
+    
+    static let newMoonJanuary = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 1, day: 11, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonJanuary = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 1, day: 25, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonFebruary = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 2, day: 9, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonFebruary = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 2, day: 24, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonMarch = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 3, day: 10, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonMarch = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 3, day: 25, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonApril = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 4, day: 8, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonApril = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 4, day: 24, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonMay = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 5, day: 8, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonMay = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 5, day: 23, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonJune = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 6, day: 6, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonJune = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 6, day: 22, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonJuly = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 7, day: 5, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonJuly = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 7, day: 21, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonAugust = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 8, day: 4, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonAugust = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 8, day: 19, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonSeptember = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 9, day: 2, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonSeptember = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 9, day: 18, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonOctober = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 10, day: 2, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonOctober = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 10, day: 17, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonNovember = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 11, day: 1, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonNovember = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 11, day: 15, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let newMoonDecember = CalendarHoliday(
+        name: "New Moon",
+        date: createDate(month: 12, day: 1, year: 2025),
+        emoji: "🌑",
+        description: "The phase of the moon when it is not visible from Earth, marking the start of a new lunar cycle.",
+        unsplashSearchTerm: "new moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let fullMoonDecember = CalendarHoliday(
+        name: "Full Moon",
+        date: createDate(month: 12, day: 15, year: 2025),
+        emoji: "🌕",
+        description: "The phase of the moon when it is fully illuminated as seen from Earth.",
+        unsplashSearchTerm: "full moon",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let blueMoon = CalendarHoliday(
+        name: "Blue Moon",
+        date: createDate(month: 5, day: 31, year: 2026), // Known blue moon date
+        emoji: "🔵",
+        description: "A rare occurrence when there are two full moons in a single calendar month.",
+        unsplashSearchTerm: "blue moon",
+        isRecurring: false,
+        category: .seasons
+    )
+    
+    // MARK: - Additional Seasonal Holidays
+    
+    static let firstDayOfWinter = CalendarHoliday(
+        name: "First Day of Winter",
+        date: createDate(month: 12, day: 21, year: 2025), // Winter solstice
+        emoji: "❄️",
+        description: "The winter solstice, the shortest day of the year and beginning of winter.",
+        unsplashSearchTerm: "winter solstice",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    static let firstDayOfFall = CalendarHoliday(
+        name: "First Day of Fall",
+        date: createDate(month: 9, day: 22, year: 2025), // Autumnal equinox
+        emoji: "🍂",
+        description: "The autumnal equinox, marking the beginning of fall and shorter days.",
+        unsplashSearchTerm: "autumn fall",
+        isRecurring: true,
+        category: .seasons
+    )
+    
+    // MARK: - Additional Food Holidays
+    
+    static let nationalGrilledCheeseDay = CalendarHoliday(
+        name: "National Grilled Cheese Day",
+        date: createDate(month: 4, day: 12, year: 2025),
+        emoji: "🥪",
+        description: "A day to celebrate the classic comfort food: grilled cheese sandwiches.",
+        unsplashSearchTerm: "grilled cheese",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalBaconDay = CalendarHoliday(
+        name: "National Bacon Day",
+        date: createDate(month: 12, day: 30, year: 2025),
+        emoji: "🥓",
+        description: "A day to celebrate one of the most beloved breakfast foods: bacon.",
+        unsplashSearchTerm: "bacon",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalApplePieDay = CalendarHoliday(
+        name: "National Apple Pie Day",
+        date: createDate(month: 5, day: 13, year: 2025),
+        emoji: "🥧",
+        description: "A day to celebrate the classic American dessert: apple pie.",
+        unsplashSearchTerm: "apple pie",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalIceCreamForBreakfastDay = CalendarHoliday(
+        name: "National Ice Cream for Breakfast Day",
+        date: createDate(month: 2, day: 1, year: 2025), // First Saturday in February
+        emoji: "🍦",
+        description: "A fun day to start your morning with ice cream.",
+        unsplashSearchTerm: "ice cream breakfast",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    // MARK: - Additional Pet Holidays
+    
+    static let nationalDogDay = CalendarHoliday(
+        name: "National Dog Day",
+        date: createDate(month: 8, day: 26, year: 2025),
+        emoji: "🐕",
+        description: "A day to celebrate dogs and raise awareness about dog adoption.",
+        unsplashSearchTerm: "dog",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalCatDay = CalendarHoliday(
+        name: "National Cat Day",
+        date: createDate(month: 10, day: 29, year: 2025),
+        emoji: "🐱",
+        description: "A day to celebrate cats and raise awareness about cat adoption.",
+        unsplashSearchTerm: "cat",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let adoptAShelterPetDay = CalendarHoliday(
+        name: "Adopt a Shelter Pet Day",
+        date: createDate(month: 4, day: 30, year: 2025),
+        emoji: "🏠",
+        description: "A day to encourage pet adoption from animal shelters and rescues.",
+        unsplashSearchTerm: "shelter pet adoption",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalPuppyDay = CalendarHoliday(
+        name: "National Puppy Day",
+        date: createDate(month: 3, day: 23, year: 2025),
+        emoji: "🐶",
+        description: "A day to celebrate puppies and raise awareness about puppy mills.",
+        unsplashSearchTerm: "puppy",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalAnimalDay = CalendarHoliday(
+        name: "National Animal Day",
+        date: createDate(month: 10, day: 4, year: 2025),
+        emoji: "🐾",
+        description: "A day to celebrate all animals and raise awareness about animal welfare.",
+        unsplashSearchTerm: "animals",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let worldWildlifeDay = CalendarHoliday(
+        name: "World Wildlife Day",
+        date: createDate(month: 3, day: 3, year: 2025),
+        emoji: "🦁",
+        description: "A day to celebrate and raise awareness of the world's wild animals and plants.",
+        unsplashSearchTerm: "wildlife",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let nationalParksDay = CalendarHoliday(
+        name: "National Parks Day",
+        date: createDate(month: 4, day: 27, year: 2025), // Fourth Saturday in April
+        emoji: "🏞️",
+        description: "A day to celebrate and support America's national parks.",
+        unsplashSearchTerm: "national parks",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    // MARK: - Additional Fun/Culture Holidays
+    
+    static let marioDay = CalendarHoliday(
+        name: "Mario Day",
+        date: createDate(month: 3, day: 10, year: 2025), // Mar 10 = MAR10
+        emoji: "🍄",
+        description: "A day celebrating Nintendo's iconic Super Mario character (MAR10 = MARIO).",
+        unsplashSearchTerm: "super mario",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalVideoGameDay = CalendarHoliday(
+        name: "National Video Game Day",
+        date: createDate(month: 9, day: 12, year: 2025),
+        emoji: "🎮",
+        description: "A day to celebrate video games and gaming culture.",
+        unsplashSearchTerm: "video games",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalComicBookDay = CalendarHoliday(
+        name: "National Comic Book Day",
+        date: createDate(month: 9, day: 25, year: 2025),
+        emoji: "📚",
+        description: "A day to celebrate comic books and graphic novels.",
+        unsplashSearchTerm: "comic books",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalMovieDay = CalendarHoliday(
+        name: "National Movie Day",
+        date: createDate(month: 10, day: 11, year: 2025),
+        emoji: "🎬",
+        description: "A day to celebrate movies and cinema.",
+        unsplashSearchTerm: "movies",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let batmanDay = CalendarHoliday(
+        name: "Batman Day",
+        date: createDate(month: 9, day: 21, year: 2025), // Third Saturday in September
+        emoji: "🦇",
+        description: "A day celebrating the iconic DC Comics superhero Batman.",
+        unsplashSearchTerm: "batman",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let pokemonDay = CalendarHoliday(
+        name: "Pokémon Day",
+        date: createDate(month: 2, day: 27, year: 2025),
+        emoji: "⚡",
+        description: "A day celebrating the Pokémon franchise, commemorating the release of the first games.",
+        unsplashSearchTerm: "pokemon",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    // MARK: - Additional Kindness/Mental Health Holidays
+    
+    static let randomActsOfKindnessDay = CalendarHoliday(
+        name: "Random Acts of Kindness Day",
+        date: createDate(month: 2, day: 17, year: 2025),
+        emoji: "💝",
+        description: "A day to encourage and celebrate random acts of kindness.",
+        unsplashSearchTerm: "kindness",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let worldMentalHealthDay = CalendarHoliday(
+        name: "World Mental Health Day",
+        date: createDate(month: 10, day: 10, year: 2025),
+        emoji: "🧠",
+        description: "A day to raise awareness about mental health issues and support mental health care.",
+        unsplashSearchTerm: "mental health",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let nationalKindnessDay = CalendarHoliday(
+        name: "National Kindness Day",
+        date: createDate(month: 11, day: 13, year: 2025),
+        emoji: "❤️",
+        description: "A day to celebrate and encourage acts of kindness.",
+        unsplashSearchTerm: "kindness",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalBestFriendsDay = CalendarHoliday(
+        name: "National Best Friends Day",
+        date: createDate(month: 6, day: 8, year: 2025),
+        emoji: "👯",
+        description: "A day to celebrate and appreciate best friends.",
+        unsplashSearchTerm: "best friends",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let worldSmileDay = CalendarHoliday(
+        name: "World Smile Day",
+        date: createDate(month: 10, day: 4, year: 2025), // First Friday in October
+        emoji: "😊",
+        description: "A day to spread smiles and happiness around the world.",
+        unsplashSearchTerm: "smile",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let worldHappinessDay = CalendarHoliday(
+        name: "World Happiness Day",
+        date: createDate(month: 3, day: 20, year: 2025),
+        emoji: "😊",
+        description: "A day to recognize the importance of happiness in people's lives.",
+        unsplashSearchTerm: "happiness",
+        isRecurring: true,
+        category: .awarenessDays
+    )
+    
+    static let nationalComplimentDay = CalendarHoliday(
+        name: "National Compliment Day",
+        date: createDate(month: 1, day: 24, year: 2025),
+        emoji: "💬",
+        description: "A day to give compliments and spread positivity.",
+        unsplashSearchTerm: "compliment",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalRelaxationDay = CalendarHoliday(
+        name: "National Relaxation Day",
+        date: createDate(month: 8, day: 15, year: 2025),
+        emoji: "🧘",
+        description: "A day dedicated to taking it easy and relaxing.",
+        unsplashSearchTerm: "relaxation",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    // MARK: - Additional Educational Holidays
+    
+    static let nationalSTEMDay = CalendarHoliday(
+        name: "National STEM Day",
+        date: createDate(month: 11, day: 8, year: 2025),
+        emoji: "🔬",
+        description: "A day to celebrate science, technology, engineering, and mathematics education.",
+        unsplashSearchTerm: "stem education",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalReadingDay = CalendarHoliday(
+        name: "National Reading Day",
+        date: createDate(month: 1, day: 23, year: 2025),
+        emoji: "📖",
+        description: "A day to promote and celebrate reading, especially for children.",
+        unsplashSearchTerm: "reading",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let worldBookDay = CalendarHoliday(
+        name: "World Book Day",
+        date: createDate(month: 4, day: 23, year: 2025),
+        emoji: "📚",
+        description: "A day to celebrate books, reading, and publishing worldwide.",
+        unsplashSearchTerm: "books",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalTriviaDay = CalendarHoliday(
+        name: "National Trivia Day",
+        date: createDate(month: 1, day: 4, year: 2025),
+        emoji: "❓",
+        description: "A day to celebrate trivia and test your knowledge.",
+        unsplashSearchTerm: "trivia",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalCartoonistsDay = CalendarHoliday(
+        name: "National Cartoonists Day",
+        date: createDate(month: 5, day: 5, year: 2025),
+        emoji: "✏️",
+        description: "A day to celebrate cartoonists and their art.",
+        unsplashSearchTerm: "cartoon",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalPhotographyDay = CalendarHoliday(
+        name: "National Photography Day",
+        date: createDate(month: 8, day: 19, year: 2025),
+        emoji: "📸",
+        description: "A day to celebrate the art and science of photography.",
+        unsplashSearchTerm: "photography",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalCreativityDay = CalendarHoliday(
+        name: "National Creativity Day",
+        date: createDate(month: 4, day: 21, year: 2025),
+        emoji: "🎨",
+        description: "A day to celebrate and encourage creativity in all forms.",
+        unsplashSearchTerm: "creativity",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    // MARK: - Additional Lifestyle Holidays
+    
+    static let newYearsResolutionsDay = CalendarHoliday(
+        name: "New Year's Resolutions Day",
+        date: createDate(month: 1, day: 1, year: 2025),
+        emoji: "🎯",
+        description: "The day to make and start working on your New Year's resolutions.",
+        unsplashSearchTerm: "new year resolutions",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalCleanYourRoomDay = CalendarHoliday(
+        name: "National Clean Your Room Day",
+        date: createDate(month: 5, day: 10, year: 2025),
+        emoji: "🧹",
+        description: "A day to encourage cleaning and organizing your personal space.",
+        unsplashSearchTerm: "cleaning",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalOrganizeYourHomeDay = CalendarHoliday(
+        name: "National Organize Your Home Day",
+        date: createDate(month: 1, day: 14, year: 2025),
+        emoji: "🏠",
+        description: "A day dedicated to organizing and decluttering your home.",
+        unsplashSearchTerm: "organize home",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalWorkFromHomeDay = CalendarHoliday(
+        name: "National Work From Home Day",
+        date: createDate(month: 2, day: 14, year: 2025),
+        emoji: "💻",
+        description: "A day to celebrate the flexibility and benefits of working from home.",
+        unsplashSearchTerm: "work from home",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalTakeAWalkDay = CalendarHoliday(
+        name: "National Take a Walk Day",
+        date: createDate(month: 3, day: 19, year: 2025),
+        emoji: "🚶",
+        description: "A day to encourage walking for health and enjoyment.",
+        unsplashSearchTerm: "walking",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    // MARK: - Additional Fun Holidays
+    
+    static let nationalHatDay = CalendarHoliday(
+        name: "National Hat Day",
+        date: createDate(month: 1, day: 15, year: 2025),
+        emoji: "🎩",
+        description: "A day to celebrate hats and headwear of all styles.",
+        unsplashSearchTerm: "hats",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalLeftHandersDay = CalendarHoliday(
+        name: "National Left-Handers Day",
+        date: createDate(month: 8, day: 13, year: 2025),
+        emoji: "✋",
+        description: "A day to celebrate left-handed people and raise awareness about left-handedness.",
+        unsplashSearchTerm: "left handed",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalPicnicDay = CalendarHoliday(
+        name: "National Picnic Day",
+        date: createDate(month: 4, day: 23, year: 2025),
+        emoji: "🧺",
+        description: "A day to enjoy a picnic outdoors with family and friends.",
+        unsplashSearchTerm: "picnic",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalJokeDay = CalendarHoliday(
+        name: "National Joke Day",
+        date: createDate(month: 7, day: 1, year: 2025),
+        emoji: "😄",
+        description: "A day to share jokes and laughter with others.",
+        unsplashSearchTerm: "jokes",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalThanksATeacherDay = CalendarHoliday(
+        name: "National Thank a Teacher Day",
+        date: createDate(month: 5, day: 7, year: 2025), // First Tuesday of first full week in May
+        emoji: "👩‍🏫",
+        description: "A day to thank and appreciate teachers for their hard work and dedication.",
+        unsplashSearchTerm: "teacher appreciation",
+        isRecurring: true,
+        category: .uniqueHolidays
+    )
+    
+    static let nationalBringYourPetToWorkDay = CalendarHoliday(
+        name: "National Bring Your Pet to Work Day",
+        date: createDate(month: 6, day: 21, year: 2025), // Friday after Father's Day
+        emoji: "🐾",
+        description: "A day to bring your pet to work, promoting pet adoption and workplace wellness.",
+        unsplashSearchTerm: "pets at work",
+        isRecurring: true,
+        category: .uniqueHolidays
     )
     
     private static func createDate(month: Int, day: Int, year: Int) -> Date {

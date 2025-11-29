@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -216,7 +216,7 @@ struct SettingsContentView: View {
                 VStack(spacing: 12) {
                     SettingsRow(
                         title: "Version",
-                        subtitle: "Simple Calendar 1.0.0",
+                        subtitle: "Calendar Play 1.0.0",
                         trailingContent: AnyView(EmptyView())
                     )
 
@@ -226,7 +226,7 @@ struct SettingsContentView: View {
                         SettingsRowWithInfo(
                             title: "About the App",
                             subtitle: "Why I built this calendar",
-                            infoText: "Learn about the story behind Simple Calendar and why it was created to help teach kids about calendars and time measurement.",
+                            infoText: "Learn about the story behind Calendar Play and why it was created to help teach kids about calendars and time measurement.",
                             trailingContent: AnyView(
                                 Image(systemName: "chevron.right")
                                     .foregroundColor(themeManager.currentPalette.textSecondary)
@@ -1162,7 +1162,7 @@ struct AboutTheAppView: View {
                             .font(.system(size: 60))
                             .foregroundColor(themeManager.currentPalette.primary)
 
-                        Text("About Simple Calendar")
+                        Text("About Calendar Play")
                             .font(.title)
                             .fontWeight(.bold)
                             .foregroundColor(themeManager.currentPalette.textPrimary)
@@ -1185,7 +1185,7 @@ struct AboutTheAppView: View {
                         Text("""
                         As a father, I've always believed that understanding time and calendars is one of the most important skills we can teach our children. Yet, I found that most calendar apps were designed for productivity rather than education.
 
-                        That's why I created Simple Calendar - not as just another calendar app, but as a teaching tool specifically designed to help kids understand how we measure time, organize our lives, and make sense of the world around us.
+                        That's why I created Calendar Play - not as just another calendar app, but as a teaching tool specifically designed to help kids understand how we measure time, organize our lives, and make sense of the world around us.
 
                         Every feature in this app was designed with learning in mind:
                         """)
@@ -1213,7 +1213,7 @@ struct AboutTheAppView: View {
 
                     // Version info
                     VStack(alignment: .center, spacing: 8) {
-                        Text("Simple Calendar v1.0.0")
+                        Text("Calendar Play v1.0.0")
                             .font(.caption)
                             .foregroundColor(themeManager.currentPalette.textSecondary)
 

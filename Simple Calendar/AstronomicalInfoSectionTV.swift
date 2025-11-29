@@ -1,12 +1,13 @@
 //
 //  AstronomicalInfoSectionTV.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/27/25.
 //
 
 import CoreLocation
 import SwiftUI
+import MapKit
 
 // MARK: - Astronomical Information Section (tvOS)
 #if os(tvOS)
@@ -18,6 +19,12 @@ struct AstronomicalInfoSection: View {
     
     private let daylightManager = DaylightManager.shared
     private let locationApproximator = LocationApproximator.shared
+    private let weatherManager = WeatherManager.shared
+    
+    @State private var weatherInfo: WeatherInfo?
+    @State private var weatherForecast: WeatherForecast?
+    @State private var isLoadingWeather = false
+    @State private var lastLoadedDate: Date? // Track last date we loaded weather for
     
     private var location: CLLocationCoordinate2D {
         locationApproximator.approximateLocation()
@@ -37,57 +44,47 @@ struct AstronomicalInfoSection: View {
                 if eventCount == 1 {
                     VStack(alignment: .leading, spacing: 16) {
                         // Sunrise and Sunset (side by side)
-                        HStack(spacing: 16) {
-                            AstronomicalInfoRow(
-                                icon: "sunrise.fill",
-                                title: "Sunrise",
-                                time: data.sunrise,
-                                color: .orange
-                            )
-                            
-                            AstronomicalInfoRow(
-                                icon: "sunset.fill",
-                                title: "Sunset",
-                                time: data.sunset,
-                                color: .orange
-                            )
-                        }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 16)
-                        .background(themeManager.currentPalette.surface.opacity(0.7))
-                        .cornerRadius(12)
+                        sunriseSunsetRow(astronomicalData: data)
                         
                         // Daylight and Night Duration (side by side)
                         daylightNightRow(astronomicalData: data)
+                        
+                        // Weather cards (if available)
+                        if let forecast = weatherForecast {
+                            weatherTemperatureRow(forecast: forecast)
+                            weatherConditionsRow(forecast: forecast)
+                        } else if let weather = weatherInfo {
+                            // Fallback to single weather info if forecast not available
+                            weatherTemperatureRow(weatherInfo: weather)
+                            weatherConditionsRow(weatherInfo: weather)
+                        }
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 8)
+                    .onAppear {
+                        loadWeather()
+                    }
+                    .onChange(of: date) {
+                        loadWeather()
+                    }
                 } else if eventCount == 0 {
                     // If 0 events, show full information including Daily Progression
                     VStack(alignment: .leading, spacing: 16) {
                         // Sunrise and Sunset (side by side)
-                        HStack(spacing: 16) {
-                            AstronomicalInfoRow(
-                                icon: "sunrise.fill",
-                                title: "Sunrise",
-                                time: data.sunrise,
-                                color: .orange
-                            )
-                            
-                            AstronomicalInfoRow(
-                                icon: "sunset.fill",
-                                title: "Sunset",
-                                time: data.sunset,
-                                color: .orange
-                            )
-                        }
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 16)
-                        .background(themeManager.currentPalette.surface.opacity(0.7))
-                        .cornerRadius(12)
+                        sunriseSunsetRow(astronomicalData: data)
                         
                         // Daylight and Night Duration (side by side)
                         daylightNightRow(astronomicalData: data)
+                        
+                        // Weather cards (if available)
+                        if let forecast = weatherForecast {
+                            weatherTemperatureRow(forecast: forecast)
+                            weatherConditionsRow(forecast: forecast)
+                        } else if let weather = weatherInfo {
+                            // Fallback to single weather info if forecast not available
+                            weatherTemperatureRow(weatherInfo: weather)
+                            weatherConditionsRow(weatherInfo: weather)
+                        }
                         
                         // Daily Progression - Only shown when eventCount == 0 (we're already in that block)
                         VStack(alignment: .leading, spacing: 10) {
@@ -179,10 +176,100 @@ struct AstronomicalInfoSection: View {
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 8)
+                    .onAppear {
+                        loadWeather()
+                    }
+                    .onChange(of: date) {
+                        loadWeather()
+                    }
                 }
             } else {
                 EmptyView()
             }
+        }
+    }
+    
+    private func loadWeather() {
+        // Check if we've already loaded weather for this date
+        let calendar = Calendar.current
+        if let lastDate = lastLoadedDate,
+           calendar.isDate(lastDate, inSameDayAs: date),
+           !isLoadingWeather {
+            return // Already loaded for this date
+        }
+        
+        guard !isLoadingWeather else { return }
+        isLoadingWeather = true
+        lastLoadedDate = date
+        
+        // Try to get forecast first (for high/low temps)
+        let location = LocationApproximator.shared.approximateLocation()
+        weatherManager.getWeatherForCoordinates(latitude: location.latitude, longitude: location.longitude, date: date) { weather in
+            
+            // If we got weather, try to get forecast for the date
+            if let weather = weather {
+                DispatchQueue.main.async {
+                    self.weatherInfo = weather
+                }
+                
+                // Try to get forecast to get high/low temps (using coordinates directly, avoids geocoding)
+                self.weatherManager.getWeatherForecastForCoordinates(latitude: location.latitude, longitude: location.longitude) { forecast in
+                    DispatchQueue.main.async {
+                        self.weatherForecast = forecast
+                        self.isLoadingWeather = false
+                    }
+                }
+            } else {
+                DispatchQueue.main.async {
+                    self.isLoadingWeather = false
+                }
+            }
+        }
+    }
+    
+    private func sunriseSunsetRow(astronomicalData data: AstronomicalData) -> some View {
+        HStack(spacing: 16) {
+            // Sunrise
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "sunrise.fill")
+                    .font(.system(size: 44))
+                    .foregroundColor(.orange)
+                    .frame(height: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Sunrise")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Text(data.sunrise)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(themeManager.currentPalette.surface.opacity(0.7))
+            .cornerRadius(12)
+            
+            // Sunset
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "sunset.fill")
+                    .font(.system(size: 44))
+                    .foregroundColor(.orange)
+                    .frame(height: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Sunset")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Text(data.sunset)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(themeManager.currentPalette.surface.opacity(0.7))
+            .cornerRadius(12)
         }
     }
     
@@ -404,6 +491,244 @@ struct TwilightTransitionRow: View {
         .padding(.horizontal, 8)
         .background(themeManager.currentPalette.surface.opacity(0.4))
         .cornerRadius(8)
+    }
+}
+
+// MARK: - Weather Cards
+extension AstronomicalInfoSection {
+    private func weatherTemperatureRow(forecast: WeatherForecast) -> some View {
+        let calendar = Calendar.current
+        
+        // Find the daily forecast for this date
+        let dailyForecast = forecast.daily.first { daily in
+            calendar.isDate(daily.date, inSameDayAs: date)
+        }
+        
+        return HStack(spacing: 16) {
+            // High Temperature
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "thermometer.sun.fill")
+                    .font(.system(size: 44))
+                    .foregroundColor(.red)
+                    .frame(height: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("High")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Text(dailyForecast?.maxTemperatureString ?? forecast.current.temperatureString)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(themeManager.currentPalette.surface.opacity(0.7))
+            .cornerRadius(12)
+            
+            // Low Temperature
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "thermometer.snowflake")
+                    .font(.system(size: 44))
+                    .foregroundColor(.blue)
+                    .frame(height: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Low")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Text(dailyForecast?.minTemperatureString ?? forecast.current.temperatureString)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(themeManager.currentPalette.surface.opacity(0.7))
+            .cornerRadius(12)
+        }
+    }
+    
+    private func weatherTemperatureRow(weatherInfo: WeatherInfo) -> some View {
+        // Fallback when we only have single weather info (no forecast)
+        return HStack(spacing: 16) {
+            // Temperature
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "thermometer")
+                    .font(.system(size: 44))
+                    .foregroundColor(.orange)
+                    .frame(height: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Temperature")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Text(weatherInfo.temperatureString)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(themeManager.currentPalette.surface.opacity(0.7))
+            .cornerRadius(12)
+            
+            // Condition
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: weatherInfo.icon)
+                    .font(.system(size: 44))
+                    .foregroundColor(weatherIconColor(for: weatherInfo.condition))
+                    .frame(height: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Condition")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Text(weatherInfo.condition)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(themeManager.currentPalette.surface.opacity(0.7))
+            .cornerRadius(12)
+        }
+    }
+    
+    private func weatherConditionsRow(forecast: WeatherForecast) -> some View {
+        let calendar = Calendar.current
+        let dailyForecast = forecast.daily.first { daily in
+            calendar.isDate(daily.date, inSameDayAs: date)
+        }
+        
+        let condition = dailyForecast?.condition ?? forecast.current.condition
+        let icon = dailyForecast?.icon ?? forecast.current.icon
+        let humidity: Double? = dailyForecast?.humidity ?? Optional(forecast.current.humidity)
+        let windSpeed: Double? = dailyForecast?.windSpeed ?? Optional(forecast.current.windSpeed)
+        
+        return HStack(spacing: 16) {
+            // Condition
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 44))
+                    .foregroundColor(weatherIconColor(for: condition))
+                    .frame(height: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Condition")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Text(condition)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(themeManager.currentPalette.surface.opacity(0.7))
+            .cornerRadius(12)
+            
+            // Humidity/Wind
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "humidity")
+                    .font(.system(size: 44))
+                    .foregroundColor(.cyan)
+                    .frame(height: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Details")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        if let humidityValue = humidity {
+                            Text("Humidity: \(String(format: "%.0f%%", humidityValue))")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                        }
+                        if let windSpeedValue = windSpeed {
+                            Text("Wind: \(String(format: "%.1f mph", windSpeedValue))")
+                                .font(.system(size: 18, weight: .medium))
+                                .foregroundColor(themeManager.currentPalette.textSecondary)
+                        }
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(themeManager.currentPalette.surface.opacity(0.7))
+            .cornerRadius(12)
+        }
+    }
+    
+    private func weatherConditionsRow(weatherInfo: WeatherInfo) -> some View {
+        return HStack(spacing: 16) {
+            // Condition
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: weatherInfo.icon)
+                    .font(.system(size: 44))
+                    .foregroundColor(weatherIconColor(for: weatherInfo.condition))
+                    .frame(height: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Condition")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    Text(weatherInfo.condition)
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundColor(themeManager.currentPalette.accent)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(themeManager.currentPalette.surface.opacity(0.7))
+            .cornerRadius(12)
+            
+            // Humidity/Wind
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "humidity")
+                    .font(.system(size: 44))
+                    .foregroundColor(.cyan)
+                    .frame(height: 60)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Details")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Humidity: \(weatherInfo.humidityString)")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                        Text("Wind: \(weatherInfo.windSpeedString)")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(themeManager.currentPalette.surface.opacity(0.7))
+            .cornerRadius(12)
+        }
+    }
+    
+    private func weatherIconColor(for condition: String) -> Color {
+        switch condition.lowercased() {
+        case let cond where cond.contains("clear") || cond.contains("sunny"):
+            return .yellow
+        case let cond where cond.contains("cloudy"):
+            return .gray
+        case let cond where cond.contains("rain") || cond.contains("drizzle"):
+            return .blue
+        case let cond where cond.contains("snow"):
+            return .white
+        case let cond where cond.contains("thunderstorm"):
+            return .purple
+        case let cond where cond.contains("fog") || cond.contains("foggy"):
+            return .gray.opacity(0.7)
+        default:
+            return .blue
+        }
     }
 }
 #endif

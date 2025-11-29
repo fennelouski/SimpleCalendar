@@ -1,6 +1,6 @@
 //
 //  CalendarViewModel.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -122,9 +122,9 @@ class CalendarViewModel: ObservableObject {
         if selectedDate == nil {
             selectDate(Date()) // Select today by default on tvOS
         }
+#endif
         // Apply monthly theme if enabled
         applyMonthlyThemeIfEnabled()
-        #endif
     }
 
     #if !os(tvOS)
@@ -221,9 +221,7 @@ class CalendarViewModel: ObservableObject {
         }
         
         // Apply monthly theme if enabled (tvOS only)
-        #if os(tvOS)
         applyMonthlyThemeIfEnabled()
-        #endif
     }
 
     func navigateToPreviousMonth() {
@@ -238,9 +236,7 @@ class CalendarViewModel: ObservableObject {
         }
         
         // Apply monthly theme if enabled (tvOS only)
-        #if os(tvOS)
         applyMonthlyThemeIfEnabled()
-        #endif
     }
 
     func navigateToNextYear() {
@@ -251,9 +247,7 @@ class CalendarViewModel: ObservableObject {
         }
         
         // Apply monthly theme if enabled (tvOS only)
-        #if os(tvOS)
         applyMonthlyThemeIfEnabled()
-        #endif
     }
 
     func navigateToPreviousYear() {
@@ -264,9 +258,7 @@ class CalendarViewModel: ObservableObject {
         }
         
         // Apply monthly theme if enabled (tvOS only)
-        #if os(tvOS)
         applyMonthlyThemeIfEnabled()
-        #endif
     }
 
     func navigateToToday() {
@@ -285,9 +277,7 @@ class CalendarViewModel: ObservableObject {
         NotificationCenter.default.post(name: Notification.Name("RefreshCalendar"), object: nil)
         
         // Apply monthly theme if enabled (tvOS only)
-        #if os(tvOS)
         applyMonthlyThemeIfEnabled()
-        #endif
     }
     
     /// Preload holidays for a given date to ensure smooth navigation
@@ -305,9 +295,7 @@ class CalendarViewModel: ObservableObject {
         // Change animation ID to cancel any previous animations and start fresh
         selectionAnimationId = UUID()
         alignCurrentDateWithSelectionIfNeeded(normalizedDate)
-#if os(tvOS)
         applyMonthlyThemeIfEnabled()
-#endif
     }
 
     func toggleDayDetail() {
@@ -365,7 +353,6 @@ class CalendarViewModel: ObservableObject {
     }
 
     func moveUpOneWeek() {
-        fatalError()
         let calendar = Calendar(identifier: .gregorian)
         if let selectedDate = selectedDate,
            let newDate = calendar.date(byAdding: .day, value: -7, to: selectedDate) {
@@ -376,7 +363,6 @@ class CalendarViewModel: ObservableObject {
     }
 
     func moveDownOneWeek() {
-        fatalError()
         let calendar = Calendar(identifier: .gregorian)
         if let selectedDate = selectedDate,
            let newDate = calendar.date(byAdding: .day, value: 7, to: selectedDate) {
@@ -410,9 +396,7 @@ class CalendarViewModel: ObservableObject {
     private func ensureSelectedDateIsVisible() {
         guard let selectedDate = selectedDate else { return }
         alignCurrentDateWithSelectionIfNeeded(selectedDate)
-#if os(tvOS)
         applyMonthlyThemeIfEnabled()
-#endif
     }
 
     private func alignCurrentDateWithSelectionIfNeeded(_ date: Date) {
@@ -549,7 +533,6 @@ class CalendarViewModel: ObservableObject {
         }
     }
     
-    #if os(tvOS)
     /// Apply the monthly theme if monthly theme mode is enabled
     private func applyMonthlyThemeIfEnabled() {
         let featureFlags = FeatureFlags.shared
@@ -561,5 +544,4 @@ class CalendarViewModel: ObservableObject {
         
         ThemeManager.shared.setTheme(monthlyTheme)
     }
-    #endif
 }

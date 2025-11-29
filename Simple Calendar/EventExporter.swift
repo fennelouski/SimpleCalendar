@@ -1,6 +1,6 @@
 //
 //  EventExporter.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -20,7 +20,7 @@ class EventExporter {
         var icsContent = """
         BEGIN:VCALENDAR
         VERSION:2.0
-        PRODID:-//Simple Calendar//EN
+        PRODID:-//Calendar Play//EN
         CALSCALE:GREGORIAN
 
         """

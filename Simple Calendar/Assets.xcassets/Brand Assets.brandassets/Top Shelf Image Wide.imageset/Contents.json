@@ -1,0 +1,18 @@
+{
+  "images" : [
+    {
+      "filename" : "Screenshot 2025-11-28 at 3.51.30 PM copy 5.png",
+      "idiom" : "tv",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "Screenshot 2025-11-28 at 3.51.30 PM copy 6.png",
+      "idiom" : "tv",
+      "scale" : "2x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

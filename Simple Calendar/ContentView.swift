@@ -1,6 +1,6 @@
 //
 //  ContentView.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -13,6 +13,7 @@ import AppKit
 // Import for daylight visualization
 import Foundation
 import CoreLocation
+import MapKit
 
 struct ContentView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
@@ -183,17 +184,17 @@ struct ContentView: View {
             // Initialize theme color scheme on app launch
             themeManager.currentColorScheme = colorScheme
         }
-        .onChange(of: colorScheme) { newColorScheme in
-            themeManager.currentColorScheme = newColorScheme
+        .onChange(of: colorScheme) { oldValue, newValue in
+            themeManager.currentColorScheme = newValue
         }
-        .onChange(of: uiConfig.dayNumberFontSize) { newFontSize in
-            currentFontSize = newFontSize
+        .onChange(of: uiConfig.dayNumberFontSize) { oldValue, newValue in
+            currentFontSize = newValue
             refreshTrigger = UUID()
         }
-        .onChange(of: uiConfig.gridLineOpacity) { _ in
+        .onChange(of: uiConfig.gridLineOpacity) {
             refreshTrigger = UUID()
         }
-        .onChange(of: focusedDate) { newFocusedDate in
+        .onChange(of: focusedDate) { oldValue, newFocusedDate in
             // Guard against re-entrant updates that cause double navigation
             guard !isUpdatingFocusSelection else { return }
             guard let date = newFocusedDate else { return }
@@ -221,7 +222,7 @@ struct ContentView: View {
             }
             #endif
         }
-        .onChange(of: calendarViewModel.selectedDate) { newSelectedDate in
+        .onChange(of: calendarViewModel.selectedDate) { oldValue, newSelectedDate in
             // Guard against re-entrant updates that cause double navigation
             guard !isUpdatingFocusSelection else { return }
             guard let normalized = normalizedDate(newSelectedDate) else { return }
@@ -249,7 +250,7 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: calendarViewModel.currentDate) { _ in
+        .onChange(of: calendarViewModel.currentDate) {
             // When currentDate changes (e.g., navigating to different month), 
             // update focus after a brief delay to let the grid regenerate
             if calendarViewModel.viewMode == .month,
@@ -265,7 +266,7 @@ struct ContentView: View {
                 }
             }
         }
-        .onChange(of: calendarViewModel.showDayDetail) { isShowing in
+        .onChange(of: calendarViewModel.showDayDetail) { oldValue, isShowing in
             if !isShowing, let normalized = normalizedDate(calendarViewModel.selectedDate) {
                 DispatchQueue.main.async {
                     focusedDate = normalized
@@ -659,7 +660,7 @@ struct ContentView: View {
             stopFormatRotationTimer()
             stopTimeUpdateTimer()
         }
-        .onChange(of: calendarViewModel.selectedDate) { newDate in
+        .onChange(of: calendarViewModel.selectedDate) {
             resetFormatRotation()
         }
     }
@@ -1245,6 +1246,18 @@ struct DayView: View {
     @StateObject private var featureFlags = FeatureFlags.shared
     @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
     private let holidayManager = HolidayManager.shared
+    private let weatherManager = WeatherManager.shared
+    
+    @State private var weatherInfo: WeatherInfo?
+    @State private var weatherForecast: WeatherForecast?
+    @State private var weatherDisplayState: WeatherDisplayState = .icon
+    @State private var weatherRotationTask: Task<Void, Never>?
+    
+#if os(tvOS)
+    private let maximumNumberOfHolidays = 2
+#else
+    private let maximumNumberOfHolidays: Int = .max
+#endif
 
     private var monthlyPalette: ColorPalette {
         if featureFlags.monthlyThemesEnabled {
@@ -1277,9 +1290,7 @@ struct DayView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: isCompactLayout ? 1 : 2) {
             Text(day.date.formatted(.dateTime.day()))
-                .font(.system(size: fontSize, weight: isCompactLayout ?
-                             (day.isToday ? .bold : .medium) :
-                             (day.isToday ? .bold : .medium)))
+                .font(dayFont)
                 .foregroundColor(dayTextColor)
                 #if !os(tvOS)
                 .minimumScaleFactor(0.5) // Allow font to scale down to 50% of original size on iOS/macOS
@@ -1319,7 +1330,7 @@ struct DayView: View {
                                 .minimumScaleFactor(0.4)
                                 .frame(maxWidth: .infinity, alignment: .center)
                         } else if holidaysOnThisDay.count > 1 {
-                            Text("\(holidaysOnThisDay.count) holidays")
+                            Text("\(min(holidaysOnThisDay.count, maximumNumberOfHolidays)) holidays")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(monthlyPalette.accent)
                         }
@@ -1442,7 +1453,83 @@ struct DayView: View {
             RoundedRectangle(cornerRadius: CornerRadius.small.value)
                 .stroke(day.isToday ? monthlyPalette.accent : Color.clear, lineWidth: day.isToday ? 3 : 0)
         )
+        .overlay(
+            // Weather indicator in top right corner
+            Group {
+                if weatherInfo != nil || weatherForecast != nil {
+                    SmallWeatherIndicator(
+                        weatherInfo: weatherInfo,
+                        weatherForecast: weatherForecast,
+                        date: day.date,
+                        displayState: weatherDisplayState
+                    )
+                    .padding(.top, 2)
+                    .padding(.trailing, 4)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing),
+            alignment: .topTrailing
+        )
+        .onAppear {
+            loadWeatherForDay()
+            startWeatherRotation()
+        }
+        .onDisappear {
+            stopWeatherRotation()
+        }
+        .onChange(of: day.date) {
+            loadWeatherForDay()
+        }
         .animation(.easeInOut(duration: 0.2), value: day.isSelected)
+    }
+    
+    private func loadWeatherForDay() {
+        let location = LocationApproximator.shared.approximateLocation()
+        weatherManager.getWeatherForCoordinates(latitude: location.latitude, longitude: location.longitude, date: day.date) { weather in
+            DispatchQueue.main.async {
+                weatherInfo = weather
+                // Restart rotation when weather data loads
+                if weather != nil {
+                    startWeatherRotation()
+                }
+            }
+            
+            // Try to get forecast for high/low temps (using coordinates directly, avoids geocoding)
+            weatherManager.getWeatherForecastForCoordinates(latitude: location.latitude, longitude: location.longitude) { forecast in
+                DispatchQueue.main.async {
+                    weatherForecast = forecast
+                    // Restart rotation when forecast loads
+                    if forecast != nil {
+                        startWeatherRotation()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func startWeatherRotation() {
+        stopWeatherRotation()
+        weatherRotationTask = Task { @MainActor in
+            while !Task.isCancelled {
+                // Rotate through states: icon -> high temp -> feels like (if available)
+                weatherDisplayState = .icon
+                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+                
+                if Task.isCancelled { break }
+                weatherDisplayState = .highTemp
+                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+                
+                if Task.isCancelled { break }
+                // Only show feels like if we have that data (for now, skip it as we don't have it)
+                // weatherDisplayState = .feelsLike
+                // try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
+            }
+        }
+    }
+    
+    private func stopWeatherRotation() {
+        weatherRotationTask?.cancel()
+        weatherRotationTask = nil
     }
 
     private var dayTextColor: Color {
@@ -1475,7 +1562,12 @@ struct DayView: View {
         // weekday 1 = Sunday, 7 = Saturday in Gregorian calendar
         return weekday == 1 || weekday == 7
     }
-
+    
+    private var dayFont: Font {
+        let weight: Font.Weight = day.isToday ? .bold : .medium
+        return .system(size: fontSize, weight: weight)
+    }
+    
     #if os(tvOS)
     /// Returns a distinct color for event indicator based on index
     private func eventIndicatorColor(for index: Int) -> Color {
@@ -1494,6 +1586,121 @@ struct DayView: View {
     #endif
 }
 
+// MARK: - Weather Display State
+enum WeatherDisplayState {
+    case icon
+    case highTemp
+    case feelsLike
+}
+
+// MARK: - Small Weather Indicator
+struct SmallWeatherIndicator: View {
+    let weatherInfo: WeatherInfo?
+    let weatherForecast: WeatherForecast?
+    let date: Date
+    let displayState: WeatherDisplayState
+    
+    @EnvironmentObject var themeManager: ThemeManager
+    
+    private var calendar: Calendar {
+        Calendar.current
+    }
+    
+    var body: some View {
+        Group {
+            switch displayState {
+            case .icon:
+                if let icon = weatherIcon {
+                    Image(systemName: icon)
+                        .font(.system(size: 10))
+                        .foregroundColor(weatherIconColor)
+                        .frame(width: 12, height: 12)
+                }
+            case .highTemp:
+                if let highTemp = highTemperature {
+                    Text(highTemp)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textPrimary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+            case .feelsLike:
+                if let feelsLike = feelsLikeTemperature {
+                    Text(feelsLike)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(themeManager.currentPalette.textSecondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+        }
+        .frame(width: 16, height: 12)
+    }
+    
+    private var weatherIcon: String? {
+        // Try to get from forecast first
+        if let forecast = weatherForecast {
+            let dailyForecast = forecast.daily.first { daily in
+                calendar.isDate(daily.date, inSameDayAs: date)
+            }
+            return dailyForecast?.icon ?? forecast.current.icon
+        }
+        
+        // Fallback to weather info
+        return weatherInfo?.icon
+    }
+    
+    private var weatherIconColor: Color {
+        let condition = weatherCondition
+        switch condition.lowercased() {
+        case let cond where cond.contains("clear") || cond.contains("sunny"):
+            return .yellow
+        case let cond where cond.contains("cloudy"):
+            return .gray
+        case let cond where cond.contains("rain") || cond.contains("drizzle"):
+            return .blue
+        case let cond where cond.contains("snow"):
+            return .white
+        case let cond where cond.contains("thunderstorm"):
+            return .purple
+        case let cond where cond.contains("fog") || cond.contains("foggy"):
+            return .gray.opacity(0.7)
+        default:
+            return .blue
+        }
+    }
+    
+    private var weatherCondition: String {
+        if let forecast = weatherForecast {
+            let dailyForecast = forecast.daily.first { daily in
+                calendar.isDate(daily.date, inSameDayAs: date)
+            }
+            return dailyForecast?.condition ?? forecast.current.condition
+        }
+        
+        return weatherInfo?.condition ?? ""
+    }
+    
+    private var highTemperature: String? {
+        if let forecast = weatherForecast {
+            let dailyForecast = forecast.daily.first { daily in
+                calendar.isDate(daily.date, inSameDayAs: date)
+            }
+            return dailyForecast?.maxTemperatureString
+        }
+        
+        // Fallback to current temperature if no forecast
+        return weatherInfo?.temperatureString
+    }
+    
+    private var feelsLikeTemperature: String? {
+        // Open-Meteo doesn't provide feels-like temperature in the free API
+        // This would need to be calculated or obtained from a different source
+        // For now, return nil so it doesn't show
+        return nil
+    }
+}
+
 struct DayDetailView: View {
     let date: Date
     @EnvironmentObject var calendarViewModel: CalendarViewModel
@@ -1505,6 +1712,12 @@ struct DayDetailView: View {
     @State private var onThisDayData: OnThisDayData?
     @State private var isLoadingOnThisDay = false
     @State private var onThisDayError: Error?
+
+#if os(tvOS)
+    private let maximumNumberOfHolidays = 2
+#else
+    private let maximumNumberOfHolidays: Int = .max
+#endif
 
     private func groupDuplicateEvents(_ events: [CalendarEvent]) -> [[CalendarEvent]] {
         var groupedEvents: [[CalendarEvent]] = []
@@ -1569,9 +1782,10 @@ struct DayDetailView: View {
 
                     // Show holidays at the top if enabled
                     // Limit to 2 holidays on tvOS for better visibility in detail view
+                    
                     if !holidaysOnThisDay.isEmpty {
                         #if os(tvOS)
-                        let displayedHolidays = Array(holidaysOnThisDay.prefix(2))
+                        let displayedHolidays = Array(holidaysOnThisDay.prefix(maximumNumberOfHolidays))
                         #else
                         let displayedHolidays = holidaysOnThisDay
                         #endif
@@ -3089,7 +3303,7 @@ struct DayDetailSlideOut: View {
         }
         .animation(.easeInOut(duration: 0.3), value: date)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: shouldShowOnRight)
-        .onChange(of: calendarViewModel.showDayDetail) { newValue in
+        .onChange(of: calendarViewModel.showDayDetail) { oldValue, newValue in
             if !newValue {
                 withAnimation(.spring()) {
                     isFullScreen = false
@@ -3097,7 +3311,7 @@ struct DayDetailSlideOut: View {
                 }
             }
         }
-        .onChange(of: date) { _ in
+        .onChange(of: date) {
             // Update the hysteresis state when date changes
             let newShouldShowOnRight = shouldShowOnRight
             if showOnRight != newShouldShowOnRight {

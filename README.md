@@ -1,8 +1,8 @@
-# Simple Calendar
+# Calendar Play
 
 A beautiful, multi-platform calendar application for iOS, iPadOS, and macOS designed to help teach calendar concepts to kids while providing advanced features for adults.
 
-![Simple Calendar](https://img.shields.io/badge/platforms-iOS%20%7C%20iPadOS%20%7C%20macOS-blue)
+![Calendar Play](https://img.shields.io/badge/platforms-iOS%20%7C%20iPadOS%20%7C%20macOS-blue)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 ![Swift](https://img.shields.io/badge/Swift-5.9-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)

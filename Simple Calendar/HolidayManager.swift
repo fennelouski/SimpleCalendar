@@ -1,6 +1,6 @@
 //
 //  HolidayManager.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -45,7 +45,6 @@ class HolidayManager: ObservableObject {
         .fourthOfJuly,
         .constitutionDay,
         .laborDay,
-        .columbusDay,
         .indigenousPeoplesDay,
         .electionDay,
         .veteransDay,
@@ -87,7 +86,17 @@ class HolidayManager: ObservableObject {
         .purim,
         .sukkot,
         .shavuot,
+        .tuBshevat,
+        .lagBOmer,
+        .tishaBAv,
+        .simchatTorah,
+        .sheminiAtzeret,
         .diwali,
+        .ramadanStart,
+        .eidAlFitr,
+        .eidAlAdha,
+        .vesak,
+        .holi,
         
         // MARK: - Social/Cultural Holidays
         .newYearsEve,
@@ -150,7 +159,128 @@ class HolidayManager: ObservableObject {
         .nationalSiblingsDay,
         .nationalWomensDay,
         .stGeorgesDay,
-        .walpurgisNight
+        .walpurgisNight,
+        
+        // MARK: - Additional Unique Holidays
+        .talkLikeAPirateDay,
+        .nationalMargaritaDay,
+        .nationalCheeseDay,
+        .nationalChocolateDay,
+        .nationalPancakeDay,
+        .nationalSandwichDay,
+        .nationalCookieDay,
+        .nationalPretzelDay,
+        .nationalBubbleBathDay,
+        .nationalPajamaDay,
+        
+        // MARK: - Awareness Days
+        .blackHistoryMonthStart,
+        .autismAwarenessDay,
+        .breastCancerAwarenessMonthStart,
+        .mentalHealthAwarenessMonthStart,
+        .worldAidsDay,
+        .heartMonthStart,
+        .diabetesAwarenessMonthStart,
+        .alzheimersAwarenessMonthStart,
+        .worldCancerDay,
+        .worldWaterDay,
+        .earthHour,
+        .worldHealthDay,
+        .arborDayAwareness,
+        .nationalStrokeAwarenessMonthStart,
+        .nationalSkinCancerAwarenessMonthStart,
+        .worldEnvironmentDay,
+        .nationalSuicidePreventionMonthStart,
+        .worldOceansDay,
+        .nationalDomesticViolenceAwarenessMonthStart,
+        
+        // MARK: - Additional Seasonal Holidays
+        .firstDayOfWinter,
+        .firstDayOfFall,
+        
+        // MARK: - Additional Food Holidays
+        .nationalGrilledCheeseDay,
+        .nationalBaconDay,
+        .nationalApplePieDay,
+        .nationalIceCreamForBreakfastDay,
+        
+        // MARK: - Additional Pet Holidays
+        .nationalDogDay,
+        .nationalCatDay,
+        .adoptAShelterPetDay,
+        .nationalPuppyDay,
+        .nationalAnimalDay,
+        .worldWildlifeDay,
+        .nationalParksDay,
+        
+        // MARK: - Additional Fun/Culture Holidays
+        .marioDay,
+        .nationalVideoGameDay,
+        .nationalComicBookDay,
+        .nationalMovieDay,
+        .batmanDay,
+        .pokemonDay,
+        
+        // MARK: - Additional Kindness/Mental Health Holidays
+        .randomActsOfKindnessDay,
+        .worldMentalHealthDay,
+        .nationalKindnessDay,
+        .nationalBestFriendsDay,
+        .worldSmileDay,
+        .worldHappinessDay,
+        .nationalComplimentDay,
+        .nationalRelaxationDay,
+        
+        // MARK: - Additional Educational Holidays
+        .nationalSTEMDay,
+        .nationalReadingDay,
+        .worldBookDay,
+        .nationalTriviaDay,
+        .nationalCartoonistsDay,
+        .nationalPhotographyDay,
+        .nationalCreativityDay,
+        
+        // MARK: - Additional Lifestyle Holidays
+        .newYearsResolutionsDay,
+        .nationalCleanYourRoomDay,
+        .nationalOrganizeYourHomeDay,
+        .nationalWorkFromHomeDay,
+        .nationalTakeAWalkDay,
+        
+        // MARK: - Additional Fun Holidays
+        .nationalHatDay,
+        .nationalLeftHandersDay,
+        .nationalPicnicDay,
+        .nationalJokeDay,
+        .nationalThanksATeacherDay,
+        .nationalBringYourPetToWorkDay,
+        
+        // MARK: - Lunar Phases
+        .newMoonJanuary,
+        .fullMoonJanuary,
+        .newMoonFebruary,
+        .fullMoonFebruary,
+        .newMoonMarch,
+        .fullMoonMarch,
+        .newMoonApril,
+        .fullMoonApril,
+        .newMoonMay,
+        .fullMoonMay,
+        .newMoonJune,
+        .fullMoonJune,
+        .newMoonJuly,
+        .fullMoonJuly,
+        .newMoonAugust,
+        .fullMoonAugust,
+        .newMoonSeptember,
+        .fullMoonSeptember,
+        .newMoonOctober,
+        .fullMoonOctober,
+        .newMoonNovember,
+        .fullMoonNovember,
+        .newMoonDecember,
+        .fullMoonDecember,
+        .blueMoon
     ]
 
     private init() {
@@ -243,7 +373,16 @@ class HolidayManager: ObservableObject {
         for (_, yearHolidays) in cachedHolidays {
             allHolidays.append(contentsOf: yearHolidays)
         }
+        // Filter by enabled categories
+        let categoryManager = HolidayCategoryManager.shared
+        allHolidays = allHolidays.filter { categoryManager.isEnabled($0.category) }
         self.holidays = allHolidays.sorted(by: { $0.date < $1.date })
+    }
+    
+    /// Filter holidays by enabled categories
+    private func filterByEnabledCategories(_ holidays: [CalendarHoliday]) -> [CalendarHoliday] {
+        let categoryManager = HolidayCategoryManager.shared
+        return holidays.filter { categoryManager.isEnabled($0.category) }
     }
     
     /// Load holidays for a specific year if not already loaded and within supported range
@@ -297,9 +436,11 @@ class HolidayManager: ObservableObject {
         // The holidays will appear once async loading completes
         if let yearHolidays = cachedHolidays[year] {
             let matchingHolidays = yearHolidays.filter { $0.occursOn(date) }
+            // Filter by enabled categories
+            let filteredHolidays = filterByEnabledCategories(matchingHolidays)
             // Remove duplicates by name to avoid showing the same holiday twice
             var seenNames = Set<String>()
-            return matchingHolidays.filter { holiday in
+            return filteredHolidays.filter { holiday in
                 if seenNames.contains(holiday.name) {
                     return false
                 } else {
@@ -320,10 +461,12 @@ class HolidayManager: ObservableObject {
         
         // Return cached holidays for this year if available
         if let yearHolidays = cachedHolidays[year] {
-            return yearHolidays.filter { holiday in
+            let monthHolidays = yearHolidays.filter { holiday in
                 let components = Calendar(identifier: .gregorian).dateComponents([.month, .year], from: holiday.date)
                 return components.month == month && components.year == year
             }
+            // Filter by enabled categories
+            return filterByEnabledCategories(monthHolidays)
         }
         
         // Return empty if not loaded yet
@@ -349,8 +492,11 @@ class HolidayManager: ObservableObject {
         // Ensure we have holidays loaded for this year (async)
         ensureHolidaysForYear(year)
         
-        // Return cached holidays directly
-        return cachedHolidays[year] ?? []
+        // Return cached holidays filtered by enabled categories
+        if let yearHolidays = cachedHolidays[year] {
+            return filterByEnabledCategories(yearHolidays)
+        }
+        return []
     }
 
     /// Refresh holidays for new years as needed

@@ -1,6 +1,6 @@
-# Unit Testing Guide for Simple Calendar
+# Unit Testing Guide for Calendar Play
 
-This document outlines our policies, procedures, and best practices for writing, maintaining, and executing unit tests in the Simple Calendar project.
+This document outlines our policies, procedures, and best practices for writing, maintaining, and executing unit tests in the Calendar Play project.
 
 ## Table of Contents
 1. [Testing Framework](#testing-framework)
@@ -23,7 +23,7 @@ We use Apple's Testing framework (`import Testing`) which provides:
 
 ### File Structure
 ```
-Simple CalendarTests/
+Calendar PlayTests/
 ├── Simple_CalendarTests.swift     # Main test file
 ├── README.md                      # This documentation
 └── [Additional test files as needed]
@@ -122,17 +122,17 @@ For asynchronous operations:
 
 #### Run All Tests
 ```bash
-xcodebuild test -scheme "Simple Calendar" -destination "platform=macOS"
+xcodebuild test -scheme "Calendar Play" -destination "platform=macOS"
 ```
 
 #### Run Specific Tests
 ```bash
-xcodebuild test -scheme "Simple Calendar" -destination "platform=macOS" -only-testing:Simple_CalendarTests/testNavigateDateByWeekBackward
+xcodebuild test -scheme "Calendar Play" -destination "platform=macOS" -only-testing:Simple_CalendarTests/testNavigateDateByWeekBackward
 ```
 
 #### Run with Code Coverage
 ```bash
-xcodebuild test -scheme "Simple Calendar" -destination "platform=macOS" -enableCodeCoverage YES
+xcodebuild test -scheme "Calendar Play" -destination "platform=macOS" -enableCodeCoverage YES
 ```
 
 ### Continuous Integration

@@ -1,6 +1,6 @@
 //
 //  SettingsView.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -27,9 +27,12 @@ struct SettingsContentView: View {
     @EnvironmentObject var uiConfig: UIConfiguration
     @EnvironmentObject var calendarViewModel: CalendarViewModel
     @StateObject private var featureFlags = FeatureFlags.shared
+    @StateObject private var holidayCategoryManager = HolidayCategoryManager.shared
     @Binding var showSettings: Bool
     @FocusState private var focusedTheme: ColorTheme?
     @State private var showAboutView = false
+    @State private var preservedFocusedCategory: CalendarHoliday.CalendarHolidayCategory? = nil
+    @State private var focusRestoreTrigger: UUID = UUID()
     var googleOAuthManager: GoogleOAuthManager?
     
     var body: some View {
@@ -305,6 +308,45 @@ struct SettingsContentView: View {
                             .padding(.horizontal, 16)
                         }
                         
+                        // Holiday Categories Section
+                        if featureFlags.holidayDisplayEnabled {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Holiday Categories")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                                    .padding(.horizontal, 16)
+                                
+                                VStack(spacing: 0) {
+                                    ForEach(CalendarHoliday.CalendarHolidayCategory.allCases, id: \.self) { category in
+                                        HolidayCategoryToggleRow(
+                                            category: category,
+                                            holidayCategoryManager: holidayCategoryManager,
+                                            themeManager: themeManager,
+                                            shouldRestoreFocus: preservedFocusedCategory == category,
+                                            focusRestoreTrigger: focusRestoreTrigger,
+                                            onFocusChange: { newCategory in
+                                                preservedFocusedCategory = newCategory
+                                            },
+                                            onToggle: {
+                                                // Trigger focus restoration after toggle
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                                    focusRestoreTrigger = UUID()
+                                                }
+                                            }
+                                        )
+                                        
+                                        if category != CalendarHoliday.CalendarHolidayCategory.allCases.last {
+                                            Divider()
+                                        }
+                                    }
+                                }
+                                .background(themeManager.currentPalette.surface.opacity(0.5))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .padding(.horizontal, 16)
+                            }
+                        }
+                        
                         
                         // Appearance Section (combined)
                         VStack(alignment: .leading, spacing: 12) {
@@ -570,7 +612,7 @@ struct SettingsContentView: View {
                                             .fontWeight(.medium)
                                             .foregroundColor(themeManager.currentPalette.textPrimary)
                                         
-                                        Text("Simple Calendar 1.0.0")
+                                        Text("Calendar Play 1.0.0")
                                             .font(.subheadline)
                                             .foregroundColor(themeManager.currentPalette.textSecondary)
                                     }
@@ -687,7 +729,7 @@ struct AboutView: View {
                         
                         Spacer()
                         
-                        Text("About Simple Calendar")
+                        Text("About Calendar Play")
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(themeManager.currentPalette.textPrimary)
@@ -699,7 +741,7 @@ struct AboutView: View {
                     .padding(.top, spacing3)
                     // Description
                     VStack(alignment: .leading, spacing: spacing3) {
-                        Text("Simple Calendar is designed to help children and learners of all ages understand calendar concepts. The app focuses on accessibility and education, making it easy to visualize time, dates, and calendar relationships.")
+                        Text("Calendar Play is designed to help children and learners of all ages understand calendar concepts. The app focuses on accessibility and education, making it easy to visualize time, dates, and calendar relationships.")
                             .font(.body)
                             .foregroundColor(themeManager.currentPalette.textPrimary)
                             .lineSpacing(spacing0)
@@ -911,6 +953,141 @@ struct SettingsRowView: View {
     }
 }
 #endif
+
+// MARK: - Holiday Category Toggle Row
+struct HolidayCategoryToggleRow: View {
+    let category: CalendarHoliday.CalendarHolidayCategory
+    @ObservedObject var holidayCategoryManager: HolidayCategoryManager
+    @ObservedObject var themeManager: ThemeManager
+    var shouldRestoreFocus: Bool
+    var focusRestoreTrigger: UUID
+    var onFocusChange: ((CalendarHoliday.CalendarHolidayCategory?) -> Void)?
+    var onToggle: (() -> Void)?
+    
+    private var isEnabled: Bool {
+        holidayCategoryManager.enabledCategories.contains(category)
+    }
+    
+    private var categoryBinding: Binding<Bool> {
+        Binding(
+            get: {
+                holidayCategoryManager.enabledCategories.contains(category)
+            },
+            set: { newValue in
+                if newValue {
+                    holidayCategoryManager.enable(category)
+                } else {
+                    holidayCategoryManager.disable(category)
+                }
+                onToggle?()
+                NotificationCenter.default.post(name: Notification.Name("RefreshCalendar"), object: nil)
+                HolidayManager.shared.refreshHolidaysIfNeeded()
+            }
+        )
+    }
+    
+#if os(tvOS)
+    @FocusState private var isFocused: Bool
+    @State private var lastRestoreTrigger: UUID?
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(category.displayName)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .lineLimit(nil)
+                
+                Text(categoryDescription(for: category))
+                    .font(.subheadline)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                    .lineLimit(nil)
+            }
+            
+            Spacer()
+            
+            Image(systemName: isEnabled ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(isEnabled ? themeManager.currentPalette.primary : themeManager.currentPalette.textSecondary)
+                .font(.system(size: 24))
+        }
+        .contentShape(Rectangle())
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isFocused ? themeManager.currentPalette.primary.opacity(0.15) : Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isFocused ? themeManager.currentPalette.primary : Color.clear, lineWidth: 2)
+                )
+        )
+        .scaleEffect(isFocused ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isFocused)
+        .focusable()
+        .focused($isFocused)
+        .onChange(of: isFocused) { oldValue, newValue in
+            if newValue {
+                onFocusChange?(category)
+            }
+        }
+        .onChange(of: focusRestoreTrigger) { oldValue, trigger in
+            if shouldRestoreFocus && trigger != lastRestoreTrigger && !isFocused {
+                lastRestoreTrigger = trigger
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    isFocused = true
+                }
+            }
+        }
+        .onTapGesture {
+            categoryBinding.wrappedValue.toggle()
+        }
+    }
+#else
+    var body: some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(category.displayName)
+                    .font(.body)
+                    .fontWeight(.medium)
+                    .foregroundColor(themeManager.currentPalette.textPrimary)
+                    .lineLimit(nil)
+                
+                Text(categoryDescription(for: category))
+                    .font(.subheadline)
+                    .foregroundColor(themeManager.currentPalette.textSecondary)
+                    .lineLimit(nil)
+            }
+            
+            Spacer()
+            
+            Toggle("", isOn: categoryBinding)
+                .labelsHidden()
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+    }
+#endif
+    
+    private func categoryDescription(for category: CalendarHoliday.CalendarHolidayCategory) -> String {
+        switch category {
+        case .bankHolidays:
+            return "New Year's Day, Labor Day, Thanksgiving, etc."
+        case .uniqueHolidays:
+            return "National Donut Day, Talk Like a Pirate Day, etc."
+        case .awarenessDays:
+            return "Awareness days and months"
+        case .seasons:
+            return "First day of spring, summer, etc."
+        case .christianHolidays:
+            return "Christmas, Easter, Good Friday, etc."
+        case .jewishHolidays:
+            return "Hanukkah, Rosh Hashanah, Passover, etc."
+        case .otherHolidays:
+            return "Other holidays like Diwali and Kwanzaa"
+        }
+    }
+}
 
 // Extension to add settings notification
 extension Notification.Name {

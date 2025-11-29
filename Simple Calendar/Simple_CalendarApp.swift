@@ -1,6 +1,6 @@
 //
 //  Simple_CalendarApp.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -45,7 +45,7 @@ struct Simple_CalendarApp: App {
         .commands {
             #if os(macOS)
             CommandGroup(replacing: .appInfo) {
-                Button("About Simple Calendar") {
+                Button("About Calendar Play") {
                     NSApplication.shared.orderFrontStandardAboutPanel()
                 }
             }
@@ -65,7 +65,7 @@ struct Simple_CalendarApp: App {
             }
 
             CommandGroup(replacing: .help) {
-                Button("Simple Calendar Help") {
+                Button("Calendar Play Help") {
                     showHelp()
                 }
                 .keyboardShortcut("?", modifiers: .command)
@@ -85,7 +85,7 @@ struct Simple_CalendarApp: App {
             defer: false
         )
         helpWindow.center()
-        helpWindow.title = "Simple Calendar Help"
+        helpWindow.title = "Calendar Play Help"
         helpWindow.contentView = NSHostingView(rootView: HelpView())
         helpWindow.makeKeyAndOrderFront(nil)
     }

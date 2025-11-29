@@ -1,6 +1,6 @@
 //
 //  ColorTheme.swift
-//  Simple Calendar
+//  Calendar Play
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -637,7 +637,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "January",
                     primary: Color(hex: "1976D2"),      // Blue
                     secondary: Color(hex: "42A5F5"),    // Light blue
-                    accent: Color(hex: "E3F2FD"),      // Very light blue
+                    accent: Color(hex: "7372AD"),      // Light blue
                     background: Color(hex: "E3F2FD"),   // Light blue background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "0D47A1"),  // Dark blue
@@ -683,7 +683,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "February",
                     primary: Color(hex: "C2185B"),      // Deep pink
                     secondary: Color(hex: "E91E63"),    // Pink
-                    accent: Color(hex: "FCE4EC"),      // Very light pink
+                    accent: Color(hex: "9C848C"),      // Very light pink
                     background: Color(hex: "FCE4EC"),   // Light pink background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "880E4F"),  // Dark pink
@@ -729,7 +729,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "March",
                     primary: Color(hex: "388E3C"),      // Green
                     secondary: Color(hex: "66BB6A"),    // Light green
-                    accent: Color(hex: "FFF9C4"),      // Light yellow
+                    accent: Color(hex: "9F9974"),      // Light yellow
                     background: Color(hex: "E8F5E8"),   // Light green background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "1B5E20"),  // Dark green
@@ -775,7 +775,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "April",
                     primary: Color(hex: "5E35B1"),      // Deep purple
                     secondary: Color(hex: "7C4DFF"),    // Purple
-                    accent: Color(hex: "E1BEE7"),      // Pale purple
+                    accent: Color(hex: "815E87"),      // Pale purple
                     background: Color(hex: "F3E5F5"),   // Light purple background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "311B92"),  // Dark purple
@@ -821,7 +821,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "May",
                     primary: Color(hex: "2E7D32"),      // Deep green
                     secondary: Color(hex: "4CAF50"),    // Green
-                    accent: Color(hex: "FFF176"),      // Yellow
+                    accent: Color(hex: "9F9136"),      // Yellow
                     background: Color(hex: "E8F5E8"),   // Light green background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "1B5E20"),  // Dark green
@@ -867,7 +867,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "June",
                     primary: Color(hex: "1565C0"),      // Deep blue
                     secondary: Color(hex: "2196F3"),    // Blue
-                    accent: Color(hex: "FFF176"),      // Yellow
+                    accent: Color(hex: "9F9136"),      // Yellow
                     background: Color(hex: "E3F2FD"),   // Light blue background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "0D47A1"),  // Dark blue
@@ -913,7 +913,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "July",
                     primary: Color(hex: "D32F2F"),      // Deep red
                     secondary: Color(hex: "1976D2"),    // Blue
-                    accent: Color(hex: "FFFFFF"),      // White
+                    accent: Color(hex: "4F4F4F"),      // Gray
                     background: Color(hex: "FFEBEE"),   // Light red background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "B71C1C"),  // Dark red
@@ -959,7 +959,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "August",
                     primary: Color(hex: "EF6C00"),      // Deep orange
                     secondary: Color(hex: "FF9800"),    // Orange
-                    accent: Color(hex: "FFF9C4"),      // Light yellow
+                    accent: Color(hex: "9F9964"),      // Light yellow
                     background: Color(hex: "FFF3E0"),   // Light orange background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "E65100"),  // Dark orange
@@ -1005,7 +1005,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "September",
                     primary: Color(hex: "283593"),      // Deep indigo
                     secondary: Color(hex: "3F51B5"),    // Indigo
-                    accent: Color(hex: "FFF9C4"),      // Light yellow
+                    accent: Color(hex: "9F9984"),      // Light yellow
                     background: Color(hex: "E8EAF6"),   // Light indigo background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "1A237E"),  // Dark indigo
@@ -1051,7 +1051,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "October",
                     primary: Color(hex: "D84315"),      // Orange
                     secondary: Color(hex: "7B1FA2"),    // Deep purple
-                    accent: Color(hex: "FFEB3B"),      // Yellow
+                    accent: Color(hex: "9F8B1B"),      // Yellow
                     background: Color(hex: "FFF3E0"),   // Light orange background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "BF360C"),  // Dark orange
@@ -1097,7 +1097,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "November",
                     primary: Color(hex: "5D4037"),      // Deep brown
                     secondary: Color(hex: "8D6E63"),    // Brown
-                    accent: Color(hex: "FF8A65"),      // Orange
+                    accent: Color(hex: "9F3A25"),      // Orange
                     background: Color(hex: "EFEBE9"),   // Light brown background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "3E2723"),  // Dark brown
@@ -1143,7 +1143,7 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
                     name: "December",
                     primary: Color(hex: "C62828"),      // Deep red
                     secondary: Color(hex: "2E7D32"),    // Green
-                    accent: Color(hex: "FFD54F"),      // Gold
+                    accent: Color(hex: "9F752F"),      // Gold
                     background: Color(hex: "FFEBEE"),   // Light red background
                     surface: Color(hex: "FFFFFF"),     // White
                     textPrimary: Color(hex: "B71C1C"),  // Dark red
