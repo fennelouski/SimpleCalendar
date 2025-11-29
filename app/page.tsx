@@ -113,6 +113,24 @@ export default function HomePage() {
             >
               Contact Us
             </a>
+            <a
+              href="/privacy"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "0.35rem",
+                padding: "0.7rem 1.4rem",
+                borderRadius: "999px",
+                border: "1px solid rgba(107, 114, 128, 0.6)",
+                color: "#9ca3af",
+                fontSize: "0.9rem",
+                fontWeight: 500,
+                textDecoration: "none"
+              }}
+            >
+              Privacy Policy
+            </a>
           </div>
         </section>
 
