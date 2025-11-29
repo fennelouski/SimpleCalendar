@@ -1,3 +1,9 @@
+export const metadata = {
+  title: "Calendar Play – Support",
+  description:
+    "Get help with Calendar Play by 100 Apps Studio. Contact support@100apps.studio."
+};
+
 const SUPPORT_EMAIL = "support@100apps.studio";
 
 export default function SupportPage() {

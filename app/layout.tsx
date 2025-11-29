@@ -1,6 +1,7 @@
 export const metadata = {
-  title: "Calendar Play – Support",
-  description: "Support information for the Calendar Play app by 100 Apps Studio."
+  title: "Calendar Play",
+  description:
+    "Calendar Play by 100 Apps Studio — a delightful calendar with smart views and helpful details."
 };
 
 export default function RootLayout({
