@@ -6,3 +6,10 @@
 //
 
 import Foundation
+
+// MARK: - Weather Display State
+enum WeatherDisplayState {
+    case icon
+    case highTemp
+    case feelsLike
+}

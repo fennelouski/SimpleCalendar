@@ -65,6 +65,8 @@ class CalendarViewModel: ObservableObject {
     @Published var showEventTemplates: Bool = false
     @Published var showImageSelection: Bool = false
     @Published var selectedEventForImage: CalendarEvent?
+    @Published var showTVEventManagement: Bool = false
+    @Published var currentBackgroundImage: PlatformImage? = nil
 
     #if !os(tvOS)
     private let eventStore = EKEventStore()
@@ -101,21 +103,30 @@ class CalendarViewModel: ObservableObject {
         // Check calendar authorization status
         let status = EKEventStore.authorizationStatus(for: .event)
         switch status {
-        case .authorized:
+        case .authorized, .fullAccess:
             print("📅 Calendar access already granted")
             loadSystemEvents()
         case .notDetermined:
             requestCalendarAccess()
         case .denied, .restricted:
             print("📅 Calendar access denied or restricted")
-        @unknown default:
+        case .writeOnly:
+            print("📅 Calendar access write only. Cannot read events.")
+        @unknown default: 
             print("📅 Unknown calendar authorization status")
         }
         #endif
 
         setupKeyboardShortcuts()
         setupSyncTimer()
+        setupMidnightRefreshObserver()
+        setupMemoryWarningObserver()
+        setupUnsplashObserver()
         loadAllEvents() // This will load Google events
+
+        if FeatureFlags.shared.automaticUnsplashImages {
+            fetchRandomUnsplashImage()
+        }
 
         // Initialize selected date for tvOS
         #if os(tvOS)
@@ -494,13 +505,34 @@ class CalendarViewModel: ObservableObject {
     }
 
     private func setupSyncTimer() {
-        // Set up a timer to sync every 15 minutes (900 seconds)
+        #if !os(tvOS)
+        // Set up a timer to sync every 15 minutes (900 seconds) - only needed for platforms with external calendar sync
         syncTimer = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { [weak self] _ in
             print("⏰ Auto-syncing calendar data (15-minute interval)")
             self?.syncCalendars()
         }
         // Make sure the timer doesn't prevent the app from sleeping
         syncTimer?.tolerance = 60 // Allow 1 minute tolerance
+        #else
+        // On tvOS, no external calendar sync needed, so skip the sync timer
+        print("📺 tvOS: Skipping sync timer (no external calendar integration)")
+        #endif
+    }
+
+    private func setupMidnightRefreshObserver() {
+        // Listen for system midnight notification (fires when calendar day changes)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleMidnightRefresh),
+            name: NSNotification.Name.NSCalendarDayChanged,
+            object: nil
+        )
+        print("🌙 Registered for midnight refresh notifications")
+    }
+
+    @objc private func handleMidnightRefresh() {
+        print("🌙 System midnight notification received - refreshing calendar")
+        refresh()
     }
 
     private func syncCalendars() {
@@ -510,6 +542,72 @@ class CalendarViewModel: ObservableObject {
 
     deinit {
         syncTimer?.invalidate()
+        // Notification observer automatically removed when object is deallocated
+    }
+
+    // MARK: - Memory Management
+
+    private func setupMemoryWarningObserver() {
+        #if os(iOS)
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleMemoryWarning),
+            name: UIApplication.didReceiveMemoryWarningNotification,
+            object: nil
+        )
+        #endif
+    }
+
+    @objc private func handleMemoryWarning() {
+        print("🧠 Memory warning received - clearing caches")
+
+        // Clear image caches
+        ImageRepository.shared.clearExpiredImages()
+
+        // Clear holiday caches
+        HolidayManager.shared.clearCache(keepingYears: Set([Calendar(identifier: .gregorian).component(.year, from: Date())]))
+
+        // Clear geocoding cache
+        // Note: LocationGeocodingCache handles its own cleanup
+
+        // Force garbage collection on main thread
+        DispatchQueue.main.async {
+            // This helps SwiftUI release views and other objects
+            self.objectWillChange.send()
+        }
+    }
+    
+    // MARK: - Unsplash Integration
+
+    private func setupUnsplashObserver() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(fetchRandomUnsplashImage),
+            name: Notification.Name("FetchUnsplashImage"),
+            object: nil
+        )
+    }
+
+    @objc func fetchRandomUnsplashImage() {
+        guard FeatureFlags.shared.automaticUnsplashImages else { return }
+        
+        // Use a relevant query based on the current month/season
+        let monthName = currentDate.formatted(.dateTime.month(.wide))
+        let query = "\(monthName) nature landscape"
+        
+        UnsplashAPI.shared.getRandomPhoto(query: query) { [weak self] photo in
+            guard let self = self, let photo = photo else { return }
+            
+            UnsplashAPI.shared.downloadImage(from: photo.urls.regular) { data in
+                guard let data = data, let image = PlatformImage(data: data) else { return }
+                
+                DispatchQueue.main.async {
+                    self.currentBackgroundImage = image
+                    // Track download
+                    UnsplashAPI.shared.trackDownload(for: photo.id)
+                }
+            }
+        }
     }
     
     // MARK: - Monthly Theme Support (tvOS only)

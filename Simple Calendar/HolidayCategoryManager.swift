@@ -43,14 +43,16 @@ class HolidayCategoryManager: ObservableObject {
         saveEnabledCategories()
         // Also sync to iCloud
         syncToiCloud()
+        clearHolidayCaches()
     }
-    
+
     /// Disable a category
     func disable(_ category: CalendarHoliday.CalendarHolidayCategory) {
         enabledCategories.remove(category)
         saveEnabledCategories()
         // Also sync to iCloud
         syncToiCloud()
+        clearHolidayCaches()
     }
     
     /// Toggle a category
@@ -134,6 +136,11 @@ class HolidayCategoryManager: ObservableObject {
             iCloudStore.set(isEnabled, forKey: key)
         }
         iCloudStore.synchronize()
+    }
+
+    /// Clear cached holiday results when categories change
+    private func clearHolidayCaches() {
+        HolidayManager.shared.clearDateHolidaysCache()
     }
 }
 

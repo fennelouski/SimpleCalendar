@@ -67,7 +67,17 @@ open "Simple Calendar.xcodeproj"
 4. Set up API keys (optional for full functionality):
    - Get Unsplash API keys from [Unsplash Developers](https://unsplash.com/developers)
    - Get Google OAuth credentials from [Google Cloud Console](https://console.cloud.google.com/)
-   - Replace placeholders in `UnsplashAPI.swift` and `GoogleOAuthManager.swift`
+   - Get OpenAI API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+
+5. Configure environment variables for the Next.js backend:
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your actual API keys
+   ```
+
+   Required environment variables:
+   - `UNSPLASH_ACCESS_KEY`: Your Unsplash API access key
+   - `OPENAI_API_KEY`: Your OpenAI API key (for event parsing)
 
 ## 🎮 Usage
 

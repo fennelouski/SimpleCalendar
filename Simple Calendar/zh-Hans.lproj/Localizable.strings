@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 11/30/25.
+*/
+
+/* General */
+"Calendar" = "日历";
+"Settings" = "设置";
+"Done" = "完成";
+"Cancel" = "取消";
+"Save" = "保存";
+"Close" = "关闭";
+"None" = "无";
+"Today" = "今天";
+"Version" = "版本";
+
+/* Permission Primer */
+"Calendar Access" = "访问日历";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play 需要访问您的日历以显示日程安排并帮助您直接在应用中管理事件。";
+"We respect your privacy and only use this access to show and edit your calendar events." = "我们尊重您的隐私，仅使用此权限来显示和编辑您的日历事件。";
+"Allow Access" = "允许访问";
+"Not Now" = "暂不";
+"Allow Calendar Access" = "允许访问日历";
+"Prompts the system dialog to grant calendar permissions." = "提示系统对话框以授予日历权限。";
+"Dismisses this screen without granting permission." = "关闭此屏幕而不授予权限。";
+
+/* Settings - Headers */
+"Calendar Integration" = "日历集成";
+"Holiday Display" = "假期显示";
+"Holiday Categories" = "假期类别";
+"Appearance" = "外观";
+"Theme" = "主题";
+"About" = "关于";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "系统日历";
+"Sync with macOS Calendar" = "与 macOS 日历同步";
+"Sync System Calendar" = "同步系统日历";
+"Google Calendar" = "谷歌日历";
+"Connect your Google Calendar" = "连接您的谷歌日历";
+"Signed in as %@" = "已登录为 %@";
+"Sync Google Calendar" = "同步谷歌日历";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "显示假期";
+"Display holidays on the calendar with educational information" = "在日历上显示假期及教育信息";
+"Enabled - Display holidays on the calendar" = "已启用 - 在日历上显示假期";
+"Disabled - Hide holidays on the calendar" = "已禁用 - 在日历上隐藏假期";
+"Monthly Themes" = "每月主题";
+"Use different colors for each month to help understand calendar concepts" = "每个月使用不同的颜色以帮助理解日历概念";
+"Enabled - Theme changes automatically each month" = "已启用 - 主题每月自动更改";
+"Disabled - Use a fixed theme" = "已禁用 - 使用固定主题";
+"Automatic Backgrounds" = "自动背景";
+"Automatically set a beautiful background image from Unsplash" = "自动从 Unsplash 设置精美的背景图片";
+"Holiday Guide" = "假期指南";
+"Learn about holidays and their meanings (Coming Soon)" = "了解假期及其含义（即将推出）";
+
+/* Settings - Appearance */
+"Day Number Size" = "日期数字大小";
+"Adjust the size of day numbers in the calendar" = "调整日历中日期数字的大小";
+"Monthly Theme" = "每月主题";
+"Theme changes automatically each month" = "主题每月自动更改";
+"Use a fixed theme" = "使用固定主题";
+"Border Contrast" = "边框对比度";
+"Adjust the contrast of day square borders" = "调整日期方块边框的对比度";
+"Weekend Tinting" = "周末着色";
+"Enabled - Weekends are visually distinguished" = "已启用 - 周末在视觉上有所区分";
+"Disabled - All days look the same" = "已禁用 - 所有日期看起来相同";
+"Color Theme" = "颜色主题";
+"Choose your preferred color scheme" = "选择您喜欢的配色方案";
+"Go to Today" = "回到今天";
+"Move the selected date to today" = "将选定日期移至今天";
+
+/* Settings - About */
+"About the App" = "关于应用";
+"Why I built this calendar" = "我为何构建此日历";
+
+/* Event Creation */
+"New Event" = "新事件";
+"Event Details" = "事件详情";
+"Title" = "标题";
+"All Day" = "全天";
+"Event will use current date and time" = "事件将使用当前日期和时间";
+"Start Time" = "开始时间";
+"End Time" = "结束时间";
+"Date" = "日期";
+"Additional Information" = "附加信息";
+"Location" = "地点";
+"Notes" = "备注";
+"Invitees" = "受邀者";
+"Email addresses (comma separated)" = "电子邮件地址（以逗号分隔）";
+"Image" = "图片";
+"Event Image" = "事件图片";
+"Image selected" = "已选择图片";
+"Double tap to choose an image" = "双击选择图片";
+"Location Map" = "位置地图";
+"Repeat" = "重复";
+"Double tap to set recurrence" = "双击设置重复";
+"Reminder" = "提醒";
+"Double tap to set reminder" = "双击设置提醒";
+"Repeat Event" = "重复事件";
+"Repeat Every" = "每...重复";
+"Frequency" = "频率";
+"Day" = "天";
+"Week" = "周";
+"Month" = "月";
+"Year" = "年";
+"Every %d %@" = "每 %d %@";
+"End Repeat" = "结束重复";
+"Never" = "从不";
+"After 30 occurrences" = "30 次后";
+"End Date" = "结束日期";
+"Set Reminder" = "设置提醒";
+"At time of event" = "事件发生时";
+"%d minutes before" = "%d 分钟前";
+"1 hour before" = "1 小时前";
+"%d hours before" = "%d 小时前";
+"1 day before" = "1 天前";
+"Invited: %@" = "受邀： %@";
+
+/* Day View */
+"%d holiday" = "%d 个假期";
+"%d holidays" = "%d 个假期";
+"%d event" = "%d 个事件";
+"%d events" = "%d 个事件";
+"No events" = "无事件";
+"Double tap to view details" = "双击查看详情";
+"+%d more" = "+%d 更多";
+
+/* Accessibility */
+"Today, %@" = "今天，%@";

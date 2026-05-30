@@ -22,6 +22,7 @@ struct EventCreationView: View {
     @State private var endDate = Date().addingTimeInterval(3600) // 1 hour later
     @State private var location = ""
     @State private var notes = ""
+    @State private var invitees = ""
     @State private var isAllDay = false
     #if !os(tvOS)
     @State private var selectedCalendar: EKCalendar?
@@ -44,28 +45,28 @@ struct EventCreationView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Event Details")) {
-                    TextField("Title", text: $title)
+                Section(header: Text("Event Details".localized)) {
+                    TextField("Title".localized, text: $title)
                         .font(.headline)
 
-                    Toggle("All Day", isOn: $isAllDay)
+                    Toggle("All Day".localized, isOn: $isAllDay)
 
                     #if os(tvOS)
                     // tvOS - date selection not available, uses current date
-                    Text("Event will use current date and time")
+                    Text("Event will use current date and time".localized)
                         .foregroundColor(themeManager.currentPalette.textSecondary)
                     #else
                     if !isAllDay {
-                        DatePicker("Start Time", selection: $startDate, displayedComponents: [.date, .hourAndMinute])
-                        DatePicker("End Time", selection: $endDate, displayedComponents: [.date, .hourAndMinute])
+                        DatePicker("Start Time".localized, selection: $startDate, displayedComponents: [.date, .hourAndMinute])
+                        DatePicker("End Time".localized, selection: $endDate, displayedComponents: [.date, .hourAndMinute])
                     } else {
-                        DatePicker("Date", selection: $startDate, displayedComponents: [.date])
+                        DatePicker("Date".localized, selection: $startDate, displayedComponents: [.date])
                     }
                     #endif
                 }
 
-                Section(header: Text("Additional Information")) {
-                    TextField("Location", text: $location)
+                Section(header: Text("Additional Information".localized)) {
+                    TextField("Location".localized, text: $location)
                     #if os(tvOS)
                     TextField("Notes", text: $notes)
                     #else
@@ -73,7 +74,7 @@ struct EventCreationView: View {
                         TextEditor(text: $notes)
                             .frame(minHeight: 80)
                         if notes.isEmpty {
-                            Text("Notes")
+                            Text("Notes".localized)
                                 .foregroundColor(themeManager.currentPalette.textSecondary)
                                 .padding(.top, 8)
                                 .padding(.leading, 4)
@@ -83,9 +84,17 @@ struct EventCreationView: View {
                     #endif
                 }
 
+                Section(header: Text("Invitees".localized)) {
+                    TextField("Email addresses (comma separated)".localized, text: $invitees)
+                        #if os(iOS)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                        #endif
+                }
+
                 #if !os(tvOS)
-                Section(header: Text("Calendar")) {
-                    Picker("Calendar", selection: $selectedCalendar) {
+                Section(header: Text("Calendar".localized)) {
+                    Picker("Calendar".localized, selection: $selectedCalendar) {
                         ForEach(eventStore.calendars(for: .event), id: \.calendarIdentifier) { calendar in
                             Text(calendar.title)
                                 .tag(calendar as EKCalendar?)
@@ -94,10 +103,10 @@ struct EventCreationView: View {
                 }
                 #endif
 
-                Section(header: Text("Image")) {
+                Section(header: Text("Image".localized)) {
                     Button(action: { showImageSelection = true }) {
                         HStack {
-                            Text("Event Image")
+                            Text("Event Image".localized)
                             Spacer()
                             if let imageId = selectedImageId,
                                let image = ImageManager.shared.getImage(for: imageId) {
@@ -110,16 +119,19 @@ struct EventCreationView: View {
                                 Image(systemName: "photo")
                                     .foregroundColor(themeManager.currentPalette.primary)
                             } else {
-                                Text("None")
+                                Text("None".localized)
                                     .foregroundColor(themeManager.currentPalette.textSecondary)
                             }
                         }
                     }
+                    .accessibilityLabel("Event Image".localized)
+                    .accessibilityValue(selectedImageId != nil ? "Image selected".localized : "None".localized)
+                    .accessibilityHint("Double tap to choose an image".localized)
                 }
 
                 #if !os(tvOS)
                 if !location.isEmpty {
-                    Section(header: Text("Location Map")) {
+                    Section(header: Text("Location Map".localized)) {
                         EventMapView(location: location)
                     }
                 }
@@ -129,33 +141,39 @@ struct EventCreationView: View {
                 Section {
                     Button(action: { showRecurrencePicker = true }) {
                         HStack {
-                            Text("Repeat")
+                            Text("Repeat".localized)
                             Spacer()
-                            Text(recurrenceRule?.description ?? "Never")
+                            Text(recurrenceRule?.description ?? "Never".localized)
                                 .foregroundColor(themeManager.currentPalette.textSecondary)
                         }
                     }
+                    .accessibilityLabel("Repeat".localized)
+                    .accessibilityValue(recurrenceRule?.description ?? "Never".localized)
+                    .accessibilityHint("Double tap to set recurrence".localized)
                 }
                 #endif
 
                 Section {
                     Button(action: { showReminderPicker = true }) {
                         HStack {
-                            Text("Reminder")
+                            Text("Reminder".localized)
                             Spacer()
                             Text(reminderText)
                                 .foregroundColor(themeManager.currentPalette.textSecondary)
                         }
                     }
+                    .accessibilityLabel("Reminder".localized)
+                    .accessibilityValue(reminderText)
+                    .accessibilityHint("Double tap to set reminder".localized)
                 }
             }
-            .navigationTitle("New Event")
+            .navigationTitle("New Event".localized)
             HStack {
-                Button("Cancel") {
+                Button("Cancel".localized) {
                     presentationMode.wrappedValue.dismiss()
                 }
                 Spacer()
-                Button("Save") {
+                Button("Save".localized) {
                     saveEvent()
                 }
                 .disabled(title.trimmingCharacters(in: .whitespaces).isEmpty)
@@ -191,12 +209,16 @@ struct EventCreationView: View {
 
     private var reminderText: String {
         if reminderMinutes == 0 {
-            return "At time of event"
+            return "At time of event".localized
         } else if reminderMinutes < 60 {
-            return "\(reminderMinutes) minutes before"
+            return "%d minutes before".localized(with: reminderMinutes)
         } else {
             let hours = reminderMinutes / 60
-            return "\(hours) hour\(hours > 1 ? "s" : "") before"
+            if hours == 1 {
+                return "1 hour before".localized
+            } else {
+                return "%d hours before".localized(with: hours)
+            }
         }
     }
 
@@ -230,7 +252,17 @@ struct EventCreationView: View {
                 event.startDate = self.startDate
                 event.endDate = self.isAllDay ? Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: self.startDate) ?? self.endDate : self.endDate
                 event.location = self.location.isEmpty ? nil : self.location
-                event.notes = self.notes.isEmpty ? nil : self.notes
+                event.location = self.location.isEmpty ? nil : self.location
+                
+                var finalNotes = self.notes
+                if !self.invitees.isEmpty {
+                    if !finalNotes.isEmpty {
+                        finalNotes += "\n\n"
+                    }
+                    finalNotes += "Invited: %@".localized(with: self.invitees)
+                }
+                event.notes = finalNotes.isEmpty ? nil : finalNotes
+                
                 event.isAllDay = self.isAllDay
                 event.calendar = self.selectedCalendar ?? self.eventStore.calendars(for: .event).first
 
@@ -270,15 +302,15 @@ struct RecurrencePickerView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Text("Repeat Event")
+                Text("Repeat Event".localized)
                     .font(.title)
                     .fontWeight(.bold)
                 Spacer()
                 HStack(spacing: 16) {
-                    Button("Cancel") {
+                    Button("Cancel".localized) {
                         presentationMode.wrappedValue.dismiss()
                     }
-                    Button("Done") {
+                    Button("Done".localized) {
                         saveRecurrenceRule()
                     }
                     .buttonStyle(.borderedProminent)
@@ -289,21 +321,21 @@ struct RecurrencePickerView: View {
             Divider()
 
             Form {
-                Section(header: Text("Repeat Every")) {
-                    Picker("Frequency", selection: $frequency) {
-                        Text("Day").tag(EKRecurrenceFrequency.daily)
-                        Text("Week").tag(EKRecurrenceFrequency.weekly)
-                        Text("Month").tag(EKRecurrenceFrequency.monthly)
-                        Text("Year").tag(EKRecurrenceFrequency.yearly)
+                Section(header: Text("Repeat Every".localized)) {
+                    Picker("Frequency".localized, selection: $frequency) {
+                        Text("Day".localized).tag(EKRecurrenceFrequency.daily)
+                        Text("Week".localized).tag(EKRecurrenceFrequency.weekly)
+                        Text("Month".localized).tag(EKRecurrenceFrequency.monthly)
+                        Text("Year".localized).tag(EKRecurrenceFrequency.yearly)
                     }
 
-                    Stepper("Every \(interval) \(frequency.description)", value: $interval, in: 1...30)
+                    Stepper("Every %d %@".localized(with: interval, frequency.description), value: $interval, in: 1...30)
                 }
 
-                Section(header: Text("End Repeat")) {
+                Section(header: Text("End Repeat".localized)) {
                     Button(action: { endDate = nil }) {
                         HStack {
-                            Text("Never")
+                            Text("Never".localized)
                             Spacer()
                             if endDate == nil {
                                 Image(systemName: "checkmark")
@@ -314,7 +346,7 @@ struct RecurrencePickerView: View {
 
                     Button(action: { endDate = Date().addingTimeInterval(86400 * 30) }) {
                         HStack {
-                            Text("After 30 occurrences")
+                            Text("After 30 occurrences".localized)
                             Spacer()
                             if endDate != nil {
                                 Image(systemName: "checkmark")
@@ -324,7 +356,7 @@ struct RecurrencePickerView: View {
                     }
 
                     if endDate != nil {
-                        DatePicker("End Date", selection: Binding($endDate)!)
+                        DatePicker("End Date".localized, selection: Binding($endDate)!)
                     }
                 }
             }
@@ -347,24 +379,24 @@ struct ReminderPickerView: View {
     @Environment(\.presentationMode) var presentationMode
 
     let reminderOptions = [
-        (0, "At time of event"),
-        (5, "5 minutes before"),
-        (15, "15 minutes before"),
-        (30, "30 minutes before"),
-        (60, "1 hour before"),
-        (120, "2 hours before"),
-        (1440, "1 day before")
+        (0, "At time of event".localized),
+        (5, "%d minutes before".localized(with: 5)),
+        (15, "%d minutes before".localized(with: 15)),
+        (30, "%d minutes before".localized(with: 30)),
+        (60, "1 hour before".localized),
+        (120, "%d hours before".localized(with: 2)),
+        (1440, "1 day before".localized)
     ]
 
     var body: some View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Text("Set Reminder")
+                Text("Set Reminder".localized)
                     .font(.title)
                     .fontWeight(.bold)
                 Spacer()
-                Button("Cancel") {
+                Button("Cancel".localized) {
                     presentationMode.wrappedValue.dismiss()
                 }
             }
@@ -396,10 +428,10 @@ struct ReminderPickerView: View {
 extension EKRecurrenceFrequency {
     var description: String {
         switch self {
-        case .daily: return "day"
-        case .weekly: return "week"
-        case .monthly: return "month"
-        case .yearly: return "year"
+        case .daily: return "Day".localized
+        case .weekly: return "Week".localized
+        case .monthly: return "Month".localized
+        case .yearly: return "Year".localized
         @unknown default: return "period"
         }
     }

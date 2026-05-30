@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 12/01/25.
+*/
+
+/* General */
+"Calendar" = "Kalender";
+"Settings" = "Instellingen";
+"Done" = "Gereed";
+"Cancel" = "Annuleren";
+"Save" = "Opslaan";
+"Close" = "Sluiten";
+"None" = "Geen";
+"Today" = "Vandaag";
+"Version" = "Versie";
+
+/* Permission Primer */
+"Calendar Access" = "Kalendertoegang";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play heeft toegang tot uw agenda nodig om uw schema weer te geven en u te helpen evenementen rechtstreeks vanuit de app te beheren.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "We respecteren uw privacy en gebruiken deze toegang alleen om uw agenda-evenementen weer te geven en te bewerken.";
+"Allow Access" = "Toegang toestaan";
+"Not Now" = "Niet nu";
+"Allow Calendar Access" = "Kalendertoegang toestaan";
+"Prompts the system dialog to grant calendar permissions." = "Vraagt het systeemdialoogvenster om kalenderrechten te verlenen.";
+"Dismisses this screen without granting permission." = "Sluit dit scherm zonder toestemming te verlenen.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Kalenderintegratie";
+"Holiday Display" = "Vakantieweergave";
+"Holiday Categories" = "Vakantiecategorieën";
+"Appearance" = "Uiterlijk";
+"Theme" = "Thema";
+"About" = "Over";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Systeemkalender";
+"Sync with macOS Calendar" = "Synchroniseren met macOS-kalender";
+"Sync System Calendar" = "Systeemkalender synchroniseren";
+"Google Calendar" = "Google Agenda";
+"Connect your Google Calendar" = "Verbind uw Google Agenda";
+"Signed in as %@" = "Ingelogd als %@";
+"Sync Google Calendar" = "Google Agenda synchroniseren";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Feestdagen tonen";
+"Display holidays on the calendar with educational information" = "Toon feestdagen op de kalender met educatieve informatie";
+"Enabled - Display holidays on the calendar" = "Ingeschakeld - Toon feestdagen op de kalender";
+"Disabled - Hide holidays on the calendar" = "Uitgeschakeld - Verberg feestdagen op de kalender";
+"Monthly Themes" = "Maandelijkse thema's";
+"Use different colors for each month to help understand calendar concepts" = "Gebruik verschillende kleuren voor elke maand om kalenderconcepten te helpen begrijpen";
+"Enabled - Theme changes automatically each month" = "Ingeschakeld - Thema verandert automatisch elke maand";
+"Disabled - Use a fixed theme" = "Uitgeschakeld - Gebruik een vast thema";
+"Automatic Backgrounds" = "Automatische achtergronden";
+"Automatically set a beautiful background image from Unsplash" = "Stel automatisch een prachtige achtergrondafbeelding in van Unsplash";
+"Holiday Guide" = "Vakantiegids";
+"Learn about holidays and their meanings (Coming Soon)" = "Leer over feestdagen en hun betekenis (Binnenkort)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Grootte dagnummer";
+"Adjust the size of day numbers in the calendar" = "Pas de grootte van dagnummers in de kalender aan";
+"Monthly Theme" = "Maandelijks thema";
+"Theme changes automatically each month" = "Thema verandert automatisch elke maand";
+"Use a fixed theme" = "Gebruik een vast thema";
+"Border Contrast" = "Randcontrast";
+"Adjust the contrast of day square borders" = "Pas het contrast van de randen van dagvierkanten aan";
+"Weekend Tinting" = "Weekendtinten";
+"Enabled - Weekends are visually distinguished" = "Ingeschakeld - Weekenden worden visueel onderscheiden";
+"Disabled - All days look the same" = "Uitgeschakeld - Alle dagen zien er hetzelfde uit";
+"Color Theme" = "Kleurthema";
+"Choose your preferred color scheme" = "Kies uw voorkeurskleurenschema";
+"Go to Today" = "Ga naar Vandaag";
+"Move the selected date to today" = "Verplaats de geselecteerde datum naar vandaag";
+
+/* Settings - About */
+"About the App" = "Over de app";
+"Why I built this calendar" = "Waarom ik deze kalender heb gebouwd";
+
+/* Event Creation */
+"New Event" = "Nieuw evenement";
+"Event Details" = "Evenementdetails";
+"Title" = "Titel";
+"All Day" = "Hele dag";
+"Event will use current date and time" = "Evenement gebruikt huidige datum en tijd";
+"Start Time" = "Starttijd";
+"End Time" = "Eindtijd";
+"Date" = "Datum";
+"Additional Information" = "Aanvullende informatie";
+"Location" = "Locatie";
+"Notes" = "Notities";
+"Invitees" = "Genodigden";
+"Email addresses (comma separated)" = "E-mailadressen (gescheiden door komma's)";
+"Image" = "Afbeelding";
+"Event Image" = "Evenementafbeelding";
+"Image selected" = "Afbeelding geselecteerd";
+"Double tap to choose an image" = "Dubbeltikken om een afbeelding te kiezen";
+"Location Map" = "Locatiekaart";
+"Repeat" = "Herhalen";
+"Double tap to set recurrence" = "Dubbeltikken om herhaling in te stellen";
+"Reminder" = "Herinnering";
+"Double tap to set reminder" = "Dubbeltikken om herinnering in te stellen";
+"Repeat Event" = "Evenement herhalen";
+"Repeat Every" = "Herhaal elke";
+"Frequency" = "Frequentie";
+"Day" = "Dag";
+"Week" = "Week";
+"Month" = "Maand";
+"Year" = "Jaar";
+"Every %d %@" = "Elke %d %@";
+"End Repeat" = "Einde herhaling";
+"Never" = "Nooit";
+"After 30 occurrences" = "Na 30 keer";
+"End Date" = "Einddatum";
+"Set Reminder" = "Herinnering instellen";
+"At time of event" = "Op tijdstip van evenement";
+"%d minutes before" = "%d minuten ervoor";
+"1 hour before" = "1 uur ervoor";
+"%d hours before" = "%d uur ervoor";
+"1 day before" = "1 dag ervoor";
+"Invited: %@" = "Uitgenodigd: %@";
+
+/* Day View */
+"%d holiday" = "%d feestdag";
+"%d holidays" = "%d feestdagen";
+"%d event" = "%d evenement";
+"%d events" = "%d evenementen";
+"No events" = "Geen evenementen";
+"Double tap to view details" = "Dubbeltikken om details te bekijken";
+"+%d more" = "+%d meer";
+
+/* Accessibility */
+"Today, %@" = "Vandaag, %@";

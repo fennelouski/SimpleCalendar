@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 12/01/25.
+*/
+
+/* General */
+"Calendar" = "Kalendarz";
+"Settings" = "Ustawienia";
+"Done" = "Gotowe";
+"Cancel" = "Anuluj";
+"Save" = "Zapisz";
+"Close" = "Zamknij";
+"None" = "Brak";
+"Today" = "Dziś";
+"Version" = "Wersja";
+
+/* Permission Primer */
+"Calendar Access" = "Dostęp do kalendarza";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play potrzebuje dostępu do Twojego kalendarza, aby wyświetlać Twój harmonogram i pomagać w zarządzaniu wydarzeniami bezpośrednio z aplikacji.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "Szanujemy Twoją prywatność i używamy tego dostępu tylko do wyświetlania i edytowania wydarzeń w kalendarzu.";
+"Allow Access" = "Zezwól na dostęp";
+"Not Now" = "Nie teraz";
+"Allow Calendar Access" = "Zezwól na dostęp do kalendarza";
+"Prompts the system dialog to grant calendar permissions." = "Wywołuje okno dialogowe systemu, aby przyznać uprawnienia do kalendarza.";
+"Dismisses this screen without granting permission." = "Zamyka ten ekran bez przyznania uprawnień.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Integracja kalendarza";
+"Holiday Display" = "Wyświetlanie świąt";
+"Holiday Categories" = "Kategorie świąt";
+"Appearance" = "Wygląd";
+"Theme" = "Motyw";
+"About" = "O aplikacji";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Kalendarz systemowy";
+"Sync with macOS Calendar" = "Synchronizuj z Kalendarzem macOS";
+"Sync System Calendar" = "Synchronizuj kalendarz systemowy";
+"Google Calendar" = "Kalendarz Google";
+"Connect your Google Calendar" = "Połącz swój Kalendarz Google";
+"Signed in as %@" = "Zalogowano jako %@";
+"Sync Google Calendar" = "Synchronizuj Kalendarz Google";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Pokaż święta";
+"Display holidays on the calendar with educational information" = "Wyświetlaj święta w kalendarzu z informacjami edukacyjnymi";
+"Enabled - Display holidays on the calendar" = "Włączone - Wyświetlaj święta w kalendarzu";
+"Disabled - Hide holidays on the calendar" = "Wyłączone - Ukryj święta w kalendarzu";
+"Monthly Themes" = "Motywy miesięczne";
+"Use different colors for each month to help understand calendar concepts" = "Używaj różnych kolorów dla każdego miesiąca, aby pomóc zrozumieć koncepcje kalendarza";
+"Enabled - Theme changes automatically each month" = "Włączone - Motyw zmienia się automatycznie co miesiąc";
+"Disabled - Use a fixed theme" = "Wyłączone - Użyj stałego motywu";
+"Automatic Backgrounds" = "Automatyczne tła";
+"Automatically set a beautiful background image from Unsplash" = "Automatycznie ustaw piękne zdjęcie w tle z Unsplash";
+"Holiday Guide" = "Przewodnik po świętach";
+"Learn about holidays and their meanings (Coming Soon)" = "Dowiedz się o świętach i ich znaczeniu (Wkrótce)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Rozmiar numeru dnia";
+"Adjust the size of day numbers in the calendar" = "Dostosuj rozmiar numerów dni w kalendarzu";
+"Monthly Theme" = "Motyw miesięczny";
+"Theme changes automatically each month" = "Motyw zmienia się automatycznie co miesiąc";
+"Use a fixed theme" = "Użyj stałego motywu";
+"Border Contrast" = "Kontrast obramowania";
+"Adjust the contrast of day square borders" = "Dostosuj kontrast obramowań kwadratów dni";
+"Weekend Tinting" = "Zabarwienie weekendu";
+"Enabled - Weekends are visually distinguished" = "Włączone - Weekendy są wizualnie wyróżnione";
+"Disabled - All days look the same" = "Wyłączone - Wszystkie dni wyglądają tak samo";
+"Color Theme" = "Motyw kolorystyczny";
+"Choose your preferred color scheme" = "Wybierz preferowany schemat kolorów";
+"Go to Today" = "Idź do dzisiaj";
+"Move the selected date to today" = "Przenieś wybraną datę na dzisiaj";
+
+/* Settings - About */
+"About the App" = "O aplikacji";
+"Why I built this calendar" = "Dlaczego stworzyłem ten kalendarz";
+
+/* Event Creation */
+"New Event" = "Nowe wydarzenie";
+"Event Details" = "Szczegóły wydarzenia";
+"Title" = "Tytuł";
+"All Day" = "Cały dzień";
+"Event will use current date and time" = "Wydarzenie użyje bieżącej daty i godziny";
+"Start Time" = "Czas rozpoczęcia";
+"End Time" = "Czas zakończenia";
+"Date" = "Data";
+"Additional Information" = "Dodatkowe informacje";
+"Location" = "Lokalizacja";
+"Notes" = "Notatki";
+"Invitees" = "Zaproszeni";
+"Email addresses (comma separated)" = "Adresy e-mail (oddzielone przecinkami)";
+"Image" = "Obraz";
+"Event Image" = "Obraz wydarzenia";
+"Image selected" = "Wybrano obraz";
+"Double tap to choose an image" = "Stuknij dwukrotnie, aby wybrać obraz";
+"Location Map" = "Mapa lokalizacji";
+"Repeat" = "Powtórz";
+"Double tap to set recurrence" = "Stuknij dwukrotnie, aby ustawić powtarzanie";
+"Reminder" = "Przypomnienie";
+"Double tap to set reminder" = "Stuknij dwukrotnie, aby ustawić przypomnienie";
+"Repeat Event" = "Powtórz wydarzenie";
+"Repeat Every" = "Powtarzaj co";
+"Frequency" = "Częstotliwość";
+"Day" = "Dzień";
+"Week" = "Tydzień";
+"Month" = "Miesiąc";
+"Year" = "Rok";
+"Every %d %@" = "Co %d %@";
+"End Repeat" = "Zakończ powtarzanie";
+"Never" = "Nigdy";
+"After 30 occurrences" = "Po 30 wystąpieniach";
+"End Date" = "Data zakończenia";
+"Set Reminder" = "Ustaw przypomnienie";
+"At time of event" = "W czasie wydarzenia";
+"%d minutes before" = "%d minut przed";
+"1 hour before" = "1 godzinę przed";
+"%d hours before" = "%d godzin przed";
+"1 day before" = "1 dzień przed";
+"Invited: %@" = "Zaproszono: %@";
+
+/* Day View */
+"%d holiday" = "%d święto";
+"%d holidays" = "%d świąt";
+"%d event" = "%d wydarzenie";
+"%d events" = "%d wydarzeń";
+"No events" = "Brak wydarzeń";
+"Double tap to view details" = "Stuknij dwukrotnie, aby zobaczyć szczegóły";
+"+%d more" = "+%d więcej";
+
+/* Accessibility */
+"Today, %@" = "Dzisiaj, %@";

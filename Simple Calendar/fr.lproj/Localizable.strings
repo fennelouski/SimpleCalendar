@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 12/01/25.
+*/
+
+/* General */
+"Calendar" = "Calendrier";
+"Settings" = "Réglages";
+"Done" = "OK";
+"Cancel" = "Annuler";
+"Save" = "Enregistrer";
+"Close" = "Fermer";
+"None" = "Aucun";
+"Today" = "Aujourd'hui";
+"Version" = "Version";
+
+/* Permission Primer */
+"Calendar Access" = "Accès au calendrier";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play a besoin d'accéder à votre calendrier pour afficher votre emploi du temps et vous aider à gérer vos événements directement depuis l'application.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "Nous respectons votre vie privée et n'utilisons cet accès que pour afficher et modifier vos événements de calendrier.";
+"Allow Access" = "Autoriser l'accès";
+"Not Now" = "Pas maintenant";
+"Allow Calendar Access" = "Autoriser l'accès au calendrier";
+"Prompts the system dialog to grant calendar permissions." = "Affiche la boîte de dialogue système pour accorder les autorisations de calendrier.";
+"Dismisses this screen without granting permission." = "Ferme cet écran sans accorder l'autorisation.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Intégration du calendrier";
+"Holiday Display" = "Affichage des jours fériés";
+"Holiday Categories" = "Catégories de jours fériés";
+"Appearance" = "Apparence";
+"Theme" = "Thème";
+"About" = "À propos";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Calendrier système";
+"Sync with macOS Calendar" = "Synchroniser avec le calendrier macOS";
+"Sync System Calendar" = "Synchroniser le calendrier système";
+"Google Calendar" = "Google Agenda";
+"Connect your Google Calendar" = "Connecter votre Google Agenda";
+"Signed in as %@" = "Connecté en tant que %@";
+"Sync Google Calendar" = "Synchroniser Google Agenda";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Afficher les jours fériés";
+"Display holidays on the calendar with educational information" = "Afficher les jours fériés sur le calendrier avec des informations éducatives";
+"Enabled - Display holidays on the calendar" = "Activé - Afficher les jours fériés sur le calendrier";
+"Disabled - Hide holidays on the calendar" = "Désactivé - Masquer les jours fériés sur le calendrier";
+"Monthly Themes" = "Thèmes mensuels";
+"Use different colors for each month to help understand calendar concepts" = "Utiliser des couleurs différentes pour chaque mois pour aider à comprendre les concepts du calendrier";
+"Enabled - Theme changes automatically each month" = "Activé - Le thème change automatiquement chaque mois";
+"Disabled - Use a fixed theme" = "Désactivé - Utiliser un thème fixe";
+"Automatic Backgrounds" = "Arrière-plans automatiques";
+"Automatically set a beautiful background image from Unsplash" = "Définir automatiquement une belle image d'arrière-plan depuis Unsplash";
+"Holiday Guide" = "Guide des jours fériés";
+"Learn about holidays and their meanings (Coming Soon)" = "En savoir plus sur les jours fériés et leur signification (Bientôt disponible)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Taille du numéro du jour";
+"Adjust the size of day numbers in the calendar" = "Ajuster la taille des numéros de jour dans le calendrier";
+"Monthly Theme" = "Thème mensuel";
+"Theme changes automatically each month" = "Le thème change automatiquement chaque mois";
+"Use a fixed theme" = "Utiliser un thème fixe";
+"Border Contrast" = "Contraste des bordures";
+"Adjust the contrast of day square borders" = "Ajuster le contraste des bordures des cases de jour";
+"Weekend Tinting" = "Teinte du week-end";
+"Enabled - Weekends are visually distinguished" = "Activé - Les week-ends sont visuellement distingués";
+"Disabled - All days look the same" = "Désactivé - Tous les jours se ressemblent";
+"Color Theme" = "Thème de couleur";
+"Choose your preferred color scheme" = "Choisissez votre schéma de couleurs préféré";
+"Go to Today" = "Aller à aujourd'hui";
+"Move the selected date to today" = "Déplacer la date sélectionnée à aujourd'hui";
+
+/* Settings - About */
+"About the App" = "À propos de l'application";
+"Why I built this calendar" = "Pourquoi j'ai créé ce calendrier";
+
+/* Event Creation */
+"New Event" = "Nouvel événement";
+"Event Details" = "Détails de l'événement";
+"Title" = "Titre";
+"All Day" = "Toute la journée";
+"Event will use current date and time" = "L'événement utilisera la date et l'heure actuelles";
+"Start Time" = "Heure de début";
+"End Time" = "Heure de fin";
+"Date" = "Date";
+"Additional Information" = "Informations supplémentaires";
+"Location" = "Lieu";
+"Notes" = "Notes";
+"Invitees" = "Invités";
+"Email addresses (comma separated)" = "Adresses e-mail (séparées par des virgules)";
+"Image" = "Image";
+"Event Image" = "Image de l'événement";
+"Image selected" = "Image sélectionnée";
+"Double tap to choose an image" = "Appuyez deux fois pour choisir une image";
+"Location Map" = "Carte du lieu";
+"Repeat" = "Répéter";
+"Double tap to set recurrence" = "Appuyez deux fois pour définir la récurrence";
+"Reminder" = "Rappel";
+"Double tap to set reminder" = "Appuyez deux fois pour définir un rappel";
+"Repeat Event" = "Répéter l'événement";
+"Repeat Every" = "Répéter chaque";
+"Frequency" = "Fréquence";
+"Day" = "Jour";
+"Week" = "Semaine";
+"Month" = "Mois";
+"Year" = "Année";
+"Every %d %@" = "Tous les %d %@";
+"End Repeat" = "Fin de la répétition";
+"Never" = "Jamais";
+"After 30 occurrences" = "Après 30 occurrences";
+"End Date" = "Date de fin";
+"Set Reminder" = "Définir un rappel";
+"At time of event" = "À l'heure de l'événement";
+"%d minutes before" = "%d minutes avant";
+"1 hour before" = "1 heure avant";
+"%d hours before" = "%d heures avant";
+"1 day before" = "1 jour avant";
+"Invited: %@" = "Invité : %@";
+
+/* Day View */
+"%d holiday" = "%d jour férié";
+"%d holidays" = "%d jours fériés";
+"%d event" = "%d événement";
+"%d events" = "%d événements";
+"No events" = "Aucun événement";
+"Double tap to view details" = "Appuyez deux fois pour voir les détails";
+"+%d more" = "+%d de plus";
+
+/* Accessibility */
+"Today, %@" = "Aujourd'hui, %@";

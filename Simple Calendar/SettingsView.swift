@@ -6,6 +6,12 @@
 //
 
 import SwiftUI
+#if !os(tvOS)
+import EventKit
+#endif
+#if os(macOS)
+import AppKit
+#endif
 
 struct SettingsView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
@@ -47,13 +53,13 @@ struct SettingsContentView: View {
 #if os(tvOS)
                         Spacer()
 #endif
-                        Text("Settings")
+                        Text("Settings".localized)
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(themeManager.currentPalette.textPrimary)
                         Spacer()
 #if !os(tvOS)
-                        Button("Done") {
+                        Button("Done".localized) {
                             showSettings = false
                         }
                         .foregroundColor(themeManager.currentPalette.primary)
@@ -70,7 +76,7 @@ struct SettingsContentView: View {
 #if !os(tvOS)
                         // Calendar Integration Section (iOS/macOS only)
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Calendar Integration")
+                            Text("Calendar Integration".localized)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(themeManager.currentPalette.textPrimary)
@@ -78,16 +84,17 @@ struct SettingsContentView: View {
                             
                             // iOS/macOS: Full calendar integration settings
                             VStack(spacing: 0) {
+#if !os(tvOS)
                                 // System Calendar
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("System Calendar")
+                                        Text("System Calendar".localized)
                                             .font(.body)
                                             .fontWeight(.medium)
                                             .foregroundColor(themeManager.currentPalette.textPrimary)
                                             .lineLimit(nil)
                                         
-                                        Text("Sync with macOS Calendar")
+                                        Text("Sync with macOS Calendar".localized)
                                             .font(.subheadline)
                                             .foregroundColor(themeManager.currentPalette.textSecondary)
                                             .lineLimit(nil)
@@ -103,27 +110,48 @@ struct SettingsContentView: View {
                                             .font(.system(size: 16))
                                     }
                                     
-                                    Toggle("", isOn: .constant(true))
-                                        .disabled(true)
+                                    Toggle("", isOn: Binding(
+                                        get: { 
+                                            EKEventStore.authorizationStatus(for: .event) == .fullAccess || 
+                                            EKEventStore.authorizationStatus(for: .event) == .authorized 
+                                        },
+                                        set: { newValue in
+                                            if newValue {
+                                                calendarViewModel.requestCalendarAccess()
+                                            } else {
+                                                #if os(iOS)
+                                                if let url = URL(string: UIApplication.openSettingsURLString) {
+                                                    UIApplication.shared.open(url)
+                                                }
+                                                #elseif os(macOS)
+                                                if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Calendars") {
+                                                    NSWorkspace.shared.open(url)
+                                                }
+                                                #endif
+                                            }
+                                        }
+                                    ))
                                         .labelsHidden()
+                                        .accessibilityLabel("Sync System Calendar".localized)
                                 }
                                 .padding(.vertical, 12)
                                 .padding(.horizontal, 16)
                                 
                                 Divider()
+#endif
                                 
                                 // Google Calendar
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Google Calendar")
+                                        Text("Google Calendar".localized)
                                             .font(.body)
                                             .fontWeight(.medium)
                                             .foregroundColor(themeManager.currentPalette.textPrimary)
                                             .lineLimit(nil)
                                         
                                         Text(googleOAuthManager?.isAuthenticated ?? false ?
-                                             "Signed in as \(googleOAuthManager?.userEmail ?? "Unknown")" :
-                                                "Connect your Google Calendar")
+                                             "Signed in as %@".localized(with: googleOAuthManager?.userEmail ?? "Unknown") :
+                                                "Connect your Google Calendar".localized)
                                         .font(.subheadline)
                                         .foregroundColor(themeManager.currentPalette.textSecondary)
                                         .lineLimit(nil)
@@ -139,9 +167,18 @@ struct SettingsContentView: View {
                                             .font(.system(size: 16))
                                     }
                                     
-                                    Toggle("", isOn: .constant(googleOAuthManager?.isAuthenticated ?? false))
-                                        .disabled(true)
+                                    Toggle("", isOn: Binding(
+                                        get: { googleOAuthManager?.isAuthenticated ?? false },
+                                        set: { newValue in
+                                            if newValue {
+                                                googleOAuthManager?.signIn()
+                                            } else {
+                                                googleOAuthManager?.signOut()
+                                            }
+                                        }
+                                    ))
                                         .labelsHidden()
+                                        .accessibilityLabel("Sync Google Calendar".localized)
                                 }
                                 .padding(.vertical, 12)
                                 .padding(.horizontal, 16)
@@ -154,7 +191,7 @@ struct SettingsContentView: View {
                         
                         // Holiday Display Section
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Holiday Display")
+                            Text("Holiday Display".localized)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(themeManager.currentPalette.textPrimary)
@@ -164,8 +201,8 @@ struct SettingsContentView: View {
 #if os(tvOS)
                                 // tvOS: Toggleable holiday display setting
                                 SettingsRowView(
-                                    title: "Show Holidays",
-                                    description: featureFlags.holidayDisplayEnabled ? "Enabled - Display holidays on the calendar" : "Disabled - Hide holidays on the calendar",
+                                    title: "Show Holidays".localized,
+                                    description: featureFlags.holidayDisplayEnabled ? "Enabled - Display holidays on the calendar".localized : "Disabled - Hide holidays on the calendar".localized,
                                     icon: featureFlags.holidayDisplayEnabled ? "checkmark.circle.fill" : "xmark.circle.fill",
                                     iconColor: featureFlags.holidayDisplayEnabled ? themeManager.currentPalette.primary : themeManager.currentPalette.textSecondary.opacity(0.5),
                                     themeManager: themeManager
@@ -173,17 +210,32 @@ struct SettingsContentView: View {
                                     featureFlags.holidayDisplayEnabled.toggle()
                                     NotificationCenter.default.post(name: Notification.Name("RefreshCalendar"), object: nil)
                                 }
+                                
+                                Divider()
+                                
+
+
+                                // tvOS: Background Animations setting
+                                SettingsRowView(
+                                    title: "Background Animations".localized,
+                                    description: featureFlags.backgroundAnimationsEnabled ? "Enabled - Show seasonal animations behind the calendar".localized : "Disabled - No background animations".localized,
+                                    icon: featureFlags.backgroundAnimationsEnabled ? "checkmark.circle.fill" : "xmark.circle.fill",
+                                    iconColor: featureFlags.backgroundAnimationsEnabled ? themeManager.currentPalette.primary : themeManager.currentPalette.textSecondary.opacity(0.5),
+                                    themeManager: themeManager
+                                ) {
+                                    featureFlags.backgroundAnimationsEnabled.toggle()
+                                }
 #else
                                 // iOS/macOS: Separate info button and toggle
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Show Holidays")
+                                        Text("Show Holidays".localized)
                                             .font(.body)
                                             .fontWeight(.medium)
                                             .foregroundColor(themeManager.currentPalette.textPrimary)
                                             .lineLimit(nil)
                                         
-                                        Text("Display holidays on the calendar with educational information")
+                                        Text("Display holidays on the calendar with educational information".localized)
                                             .font(.subheadline)
                                             .foregroundColor(themeManager.currentPalette.textSecondary)
                                             .lineLimit(nil)
@@ -204,56 +256,23 @@ struct SettingsContentView: View {
                                         set: { featureFlags.holidayDisplayEnabled = $0 }
                                     ))
                                     .labelsHidden()
+                                    .accessibilityLabel("Show Holidays".localized)
                                 }
                                 .padding(.vertical, 12)
                                 .padding(.horizontal, 16)
                                 
                                 Divider()
                                 
-#if os(tvOS)
-                                // tvOS: Monthly themes setting
-                                Button(action: {
-                                    withAnimation {
-                                        featureFlags.monthlyThemesEnabled.toggle()
-                                    }
-                                }) {
-                                    HStack(spacing: 12) {
-                                        VStack(alignment: .leading, spacing: 2) {
-                                            Text("Monthly Themes")
-                                                .font(.body)
-                                                .fontWeight(.medium)
-                                                .foregroundColor(themeManager.currentPalette.textPrimary)
-                                                .lineLimit(nil)
-                                            
-                                            Text("Use different colors for each month to help understand calendar concepts")
-                                                .font(.subheadline)
-                                                .foregroundColor(themeManager.currentPalette.textSecondary)
-                                                .lineLimit(nil)
-                                        }
-                                        
-                                        Spacer()
-                                        
-                                        Image(systemName: featureFlags.monthlyThemesEnabled ? "checkmark.circle.fill" : "circle")
-                                            .foregroundColor(featureFlags.monthlyThemesEnabled ? themeManager.currentPalette.primary : themeManager.currentPalette.textSecondary)
-                                            .font(.system(size: 20))
-                                    }
-                                    .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.borderless)
-                                .focusable()
-                                .padding(.vertical, 12)
-                                .padding(.horizontal, 16)
-#else
                                 // iOS/macOS: Monthly themes setting
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Monthly Themes")
+                                        Text("Monthly Themes".localized)
                                             .font(.body)
                                             .fontWeight(.medium)
                                             .foregroundColor(themeManager.currentPalette.textPrimary)
                                             .lineLimit(nil)
                                         
-                                        Text("Use different colors for each month to help understand calendar concepts")
+                                        Text("Use different colors for each month to help understand calendar concepts".localized)
                                             .font(.subheadline)
                                             .foregroundColor(themeManager.currentPalette.textSecondary)
                                             .lineLimit(nil)
@@ -266,10 +285,73 @@ struct SettingsContentView: View {
                                         set: { featureFlags.monthlyThemesEnabled = $0 }
                                     ))
                                     .labelsHidden()
+                                    .accessibilityLabel("Monthly Themes".localized)
                                 }
                                 .padding(.vertical, 12)
                                 .padding(.horizontal, 16)
-#endif
+
+                                Divider()
+
+                                // Automatic Unsplash Images
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Automatic Backgrounds".localized)
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                                            .lineLimit(nil)
+                                        
+                                        Text("Automatically set a beautiful background image from Unsplash".localized)
+                                            .font(.subheadline)
+                                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                                            .lineLimit(nil)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Toggle("", isOn: Binding(
+                                        get: { featureFlags.automaticUnsplashImages },
+                                        set: { newValue in
+                                            featureFlags.automaticUnsplashImages = newValue
+                                            if newValue {
+                                                NotificationCenter.default.post(name: Notification.Name("FetchUnsplashImage"), object: nil)
+                                            }
+                                        }
+                                    ))
+                                    .labelsHidden()
+                                    .accessibilityLabel("Automatic Backgrounds".localized)
+                                }
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 16)
+
+                                Divider()
+
+                                // Background Animations
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Background Animations".localized)
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                                            .lineLimit(nil)
+                                        
+                                        Text("Show seasonal animations behind the calendar in month view".localized)
+                                            .font(.subheadline)
+                                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                                            .lineLimit(nil)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Toggle("", isOn: Binding(
+                                        get: { featureFlags.backgroundAnimationsEnabled },
+                                        set: { featureFlags.backgroundAnimationsEnabled = $0 }
+                                    ))
+                                    .labelsHidden()
+                                    .accessibilityLabel("Background Animations".localized)
+                                }
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 16)
                                 
                                 Divider()
                                 
@@ -279,13 +361,13 @@ struct SettingsContentView: View {
                                 }) {
                                     HStack(spacing: 12) {
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("Holiday Guide")
+                                            Text("Holiday Guide".localized)
                                                 .font(.body)
                                                 .fontWeight(.medium)
                                                 .foregroundColor(themeManager.currentPalette.textSecondary.opacity(0.6))
                                                 .lineLimit(nil)
                                             
-                                            Text("Learn about holidays and their meanings (Coming Soon)")
+                                            Text("Learn about holidays and their meanings (Coming Soon)".localized)
                                                 .font(.subheadline)
                                                 .foregroundColor(themeManager.currentPalette.textSecondary.opacity(0.5))
                                                 .lineLimit(nil)
@@ -311,7 +393,7 @@ struct SettingsContentView: View {
                         // Holiday Categories Section
                         if featureFlags.holidayDisplayEnabled {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Holiday Categories")
+                                Text("Holiday Categories".localized)
                                     .font(.headline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(themeManager.currentPalette.textPrimary)
@@ -350,7 +432,7 @@ struct SettingsContentView: View {
                         
                         // Appearance Section (combined)
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("Appearance")
+                            Text("Appearance".localized)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(themeManager.currentPalette.textPrimary)
@@ -360,12 +442,12 @@ struct SettingsContentView: View {
                                 // Day Number Font Size
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Day Number Size")
+                                        Text("Day Number Size".localized)
                                             .font(.body)
                                             .fontWeight(.medium)
                                             .foregroundColor(themeManager.currentPalette.textPrimary)
                                         
-                                        Text("Adjust the size of day numbers in the calendar")
+                                        Text("Adjust the size of day numbers in the calendar".localized)
                                             .font(.subheadline)
                                             .foregroundColor(themeManager.currentPalette.textSecondary)
                                             .lineLimit(nil)
@@ -417,18 +499,120 @@ struct SettingsContentView: View {
                                 .padding(.vertical, 12)
                                 .padding(.horizontal, 16)
                                 
+                                Divider()
+                                
+                                // Color Saturation
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Color Saturation".localized)
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                                        
+                                        Text("Adjust color intensity (0% - 200%)".localized)
+                                            .font(.subheadline)
+                                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                                            .lineLimit(nil)
+                                    }
+                                    
+                                    Spacer()
+                                    
+#if os(tvOS)
+                                    HStack(spacing: 8) {
+                                        Button(action: {
+                                            themeManager.saturation = max(0.0, themeManager.saturation - 0.1)
+                                        }) {
+                                            Image(systemName: "minus.circle.fill")
+                                                .font(.system(size: 22.5))
+                                                .foregroundColor(themeManager.currentPalette.primary)
+                                        }
+                                        .buttonStyle(.borderless)
+                                        
+                                        Text("\(Int(round(themeManager.saturation * 100)))%")
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                                            .frame(minWidth: 50, alignment: .center)
+                                        
+                                        Button(action: {
+                                            themeManager.saturation = min(2.0, themeManager.saturation + 0.1)
+                                        }) {
+                                            Image(systemName: "plus.circle.fill")
+                                                .font(.system(size: 22.5))
+                                                .foregroundColor(themeManager.currentPalette.primary)
+                                        }
+                                        .buttonStyle(.borderless)
+                                    }
+#else
+                                    Slider(value: Binding(
+                                        get: { themeManager.saturation },
+                                        set: { themeManager.saturation = $0 }
+                                    ), in: 0.0...2.0)
+                                    .tint(themeManager.currentPalette.primary)
+                                    .frame(width: 120)
+#endif
+                                }
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 16)
+                                
+#if !os(tvOS)
+                                Divider()
+                                
+                                // Monthly Theme Setting (iOS/macOS)
+                                HStack(spacing: 12) {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("Monthly Theme".localized)
+                                            .font(.body)
+                                            .fontWeight(.medium)
+                                            .foregroundColor(themeManager.currentPalette.textPrimary)
+                                            .lineLimit(nil)
+                                        
+                                        Text(featureFlags.useMonthlyThemeMode ? "Theme changes automatically each month".localized : "Use a fixed theme".localized)
+                                            .font(.subheadline)
+                                            .foregroundColor(themeManager.currentPalette.textSecondary)
+                                            .lineLimit(nil)
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Toggle("", isOn: Binding(
+                                        get: { featureFlags.useMonthlyThemeMode },
+                                        set: { newValue in
+                                            withAnimation {
+                                                if newValue {
+                                                    // Enabling monthly theme mode - save current theme as manual, then apply monthly theme
+                                                    featureFlags.useMonthlyThemeMode = true
+                                                    themeManager.saveCurrentThemeAsManual()
+                                                    let calendar = Calendar(identifier: .gregorian)
+                                                    let month = calendar.component(.month, from: calendarViewModel.currentDate)
+                                                    let monthlyTheme = CalendarViewModel.monthlyThemeForMonth(month)
+                                                    themeManager.setTheme(monthlyTheme)
+                                                } else {
+                                                    // Disabling monthly theme mode - restore the last manually selected theme
+                                                    featureFlags.useMonthlyThemeMode = false
+                                                    themeManager.restoreLastManualTheme()
+                                                }
+                                            }
+                                        }
+                                    ))
+                                    .labelsHidden()
+                                }
+                                .padding(.vertical, 12)
+                                .padding(.horizontal, 16)
+#endif
+                                
 #if os(tvOS)
                                 Divider()
                                 
                                 // Border Contrast Setting
                                 HStack {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Border Contrast")
+                                        Text("Border Contrast".localized)
                                             .font(.body)
                                             .fontWeight(.medium)
                                             .foregroundColor(themeManager.currentPalette.textPrimary)
                                         
-                                        Text("Adjust the contrast of day square borders")
+                                        Text("Adjust the contrast of day square borders".localized)
                                             .font(.subheadline)
                                             .foregroundColor(themeManager.currentPalette.textSecondary)
                                             .lineLimit(nil)
@@ -471,8 +655,8 @@ struct SettingsContentView: View {
                                 
                                 // Weekend Tinting Setting (tvOS only)
                                 SettingsRowView(
-                                    title: "Weekend Tinting",
-                                    description: featureFlags.weekendTintingEnabled ? "Enabled - Weekends are visually distinguished" : "Disabled - All days look the same",
+                                    title: "Weekend Tinting".localized,
+                                    description: featureFlags.weekendTintingEnabled ? "Enabled - Weekends are visually distinguished".localized : "Disabled - All days look the same".localized,
                                     icon: featureFlags.weekendTintingEnabled ? "checkmark.circle.fill" : "xmark.circle.fill",
                                     iconColor: featureFlags.weekendTintingEnabled ? themeManager.currentPalette.primary : themeManager.currentPalette.textSecondary.opacity(0.5),
                                     themeManager: themeManager
@@ -485,8 +669,8 @@ struct SettingsContentView: View {
                                 
                                 // Monthly Theme Setting (tvOS only)
                                 SettingsRowView(
-                                    title: "Monthly Theme",
-                                    description: featureFlags.useMonthlyThemeMode ? "Enabled - Theme changes automatically each month" : "Disabled - Use a fixed theme",
+                                    title: "Monthly Theme".localized,
+                                    description: featureFlags.useMonthlyThemeMode ? "Enabled - Theme changes automatically each month".localized : "Disabled - Use a fixed theme".localized,
                                     icon: featureFlags.useMonthlyThemeMode ? "checkmark.circle.fill" : "circle",
                                     iconColor: featureFlags.useMonthlyThemeMode ? themeManager.currentPalette.primary : themeManager.currentPalette.textSecondary,
                                     themeManager: themeManager
@@ -518,7 +702,7 @@ struct SettingsContentView: View {
                         // Theme Selection Section (tvOS only) - Only show when Monthly Theme is disabled
                         if !featureFlags.useMonthlyThemeMode {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Theme")
+                                Text("Theme".localized)
                                     .font(.headline)
                                     .fontWeight(.semibold)
                                     .foregroundColor(themeManager.currentPalette.textPrimary)
@@ -529,12 +713,12 @@ struct SettingsContentView: View {
                                     VStack(alignment: .leading, spacing: 12) {
                                         HStack {
                                             VStack(alignment: .leading, spacing: 2) {
-                                                Text("Color Theme")
+                                                Text("Color Theme".localized)
                                                     .font(.body)
                                                     .fontWeight(.medium)
                                                     .foregroundColor(themeManager.currentPalette.textPrimary)
                                                 
-                                                Text("Choose your preferred color scheme")
+                                                Text("Choose your preferred color scheme".localized)
                                                     .font(.subheadline)
                                                     .foregroundColor(themeManager.currentPalette.textSecondary)
                                                     .lineLimit(nil)
@@ -580,8 +764,8 @@ struct SettingsContentView: View {
                         VStack(alignment: .leading, spacing: 12) {
                             VStack(spacing: 0) {
                                 SettingsRowView(
-                                    title: "Go to Today",
-                                    description: "Move the selected date to today",
+                                    title: "Go to Today".localized,
+                                    description: "Move the selected date to today".localized,
                                     icon: "calendar",
                                     iconColor: themeManager.currentPalette.primary,
                                     themeManager: themeManager
@@ -597,7 +781,7 @@ struct SettingsContentView: View {
                         
                         // About Section (moved to bottom)
                         VStack(alignment: .leading, spacing: 12) {
-                            Text("About")
+                            Text("About".localized)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(themeManager.currentPalette.textPrimary)
@@ -607,7 +791,7 @@ struct SettingsContentView: View {
                                 // Version
                                 HStack(spacing: 12) {
                                     VStack(alignment: .leading, spacing: 2) {
-                                        Text("Version")
+                                        Text("Version".localized)
                                             .font(.body)
                                             .fontWeight(.medium)
                                             .foregroundColor(themeManager.currentPalette.textPrimary)
@@ -637,13 +821,13 @@ struct SettingsContentView: View {
                                 }) {
                                     HStack(spacing: 12) {
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("About the App")
+                                            Text("About the App".localized)
                                                 .font(.body)
                                                 .fontWeight(.medium)
                                                 .foregroundColor(themeManager.currentPalette.textPrimary)
                                                 .lineLimit(nil)
                                             
-                                            Text("Why I built this calendar")
+                                            Text("Why I built this calendar".localized)
                                                 .font(.subheadline)
                                                 .foregroundColor(themeManager.currentPalette.textSecondary)
                                                 .lineLimit(nil)
@@ -677,6 +861,9 @@ struct SettingsContentView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
+#if os(iOS)
+                    .padding(.bottom, 40) // Extra bottom padding to ensure content can scroll above safe area
+#endif
                 }
             }
         }
@@ -729,7 +916,7 @@ struct AboutView: View {
                         
                         Spacer()
                         
-                        Text("About Calendar Play")
+                        Text("About Calendar Play".localized)
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(themeManager.currentPalette.textPrimary)
@@ -741,7 +928,7 @@ struct AboutView: View {
                     .padding(.top, spacing3)
                     // Description
                     VStack(alignment: .leading, spacing: spacing3) {
-                        Text("Calendar Play is designed to help children and learners of all ages understand calendar concepts. The app focuses on accessibility and education, making it easy to visualize time, dates, and calendar relationships.")
+                        Text("Calendar Play is designed to help children and learners of all ages understand calendar concepts. The app focuses on accessibility and education, making it easy to visualize time, dates, and calendar relationships.".localized)
                             .font(.body)
                             .foregroundColor(themeManager.currentPalette.textPrimary)
                             .lineSpacing(spacing0)
@@ -753,7 +940,7 @@ struct AboutView: View {
                     
                     // Footer
                     VStack(spacing: spacing1) {
-                        Text("Made for learning and accessibility")
+                        Text("Made for learning and accessibility".localized)
                             .font(.caption)
                             .foregroundColor(themeManager.currentPalette.textSecondary)
                             .multilineTextAlignment(.center)
@@ -777,7 +964,7 @@ struct AboutView: View {
             .toolbar {
 #if os(iOS)
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button("Done".localized) {
                         showAboutView = false
                     }
                     .foregroundColor(themeManager.currentPalette.primary)
@@ -840,23 +1027,19 @@ struct AboutAppRowView: View {
     var body: some View {
         HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("About the App")
+                Text("About the App".localized)
                     .font(.body)
                     .fontWeight(.medium)
                     .foregroundColor(themeManager.currentPalette.textPrimary)
                     .lineLimit(nil)
                 
-                Text("Why I built this calendar")
+                Text("Why I built this calendar".localized)
                     .font(.subheadline)
                     .foregroundColor(themeManager.currentPalette.textSecondary)
                     .lineLimit(nil)
             }
             
             Spacer()
-            
-            Image(systemName: "info.circle")
-                .foregroundColor(themeManager.currentPalette.textSecondary)
-                .font(.system(size: 20))
             
             Image(systemName: "chevron.right")
                 .foregroundColor(themeManager.currentPalette.textSecondary)
@@ -1072,19 +1255,19 @@ struct HolidayCategoryToggleRow: View {
     private func categoryDescription(for category: CalendarHoliday.CalendarHolidayCategory) -> String {
         switch category {
         case .bankHolidays:
-            return "New Year's Day, Labor Day, Thanksgiving, etc."
+            return "New Year's Day, Labor Day, Thanksgiving, etc.".localized
         case .uniqueHolidays:
-            return "National Donut Day, Talk Like a Pirate Day, etc."
+            return "National Donut Day, Talk Like a Pirate Day, etc.".localized
         case .awarenessDays:
-            return "Awareness days and months"
+            return "Awareness days and months".localized
         case .seasons:
-            return "First day of spring, summer, etc."
+            return "First day of spring, summer, etc.".localized
         case .christianHolidays:
-            return "Christmas, Easter, Good Friday, etc."
+            return "Christmas, Easter, Good Friday, etc.".localized
         case .jewishHolidays:
-            return "Hanukkah, Rosh Hashanah, Passover, etc."
+            return "Hanukkah, Rosh Hashanah, Passover, etc.".localized
         case .otherHolidays:
-            return "Other holidays like Diwali and Kwanzaa"
+            return "Other holidays like Diwali and Kwanzaa".localized
         }
     }
 }
@@ -1093,4 +1276,6 @@ struct HolidayCategoryToggleRow: View {
 extension Notification.Name {
     static let ShowSettings = Notification.Name("ShowSettings")
 }
+
+
 

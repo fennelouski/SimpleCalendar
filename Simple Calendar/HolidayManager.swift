@@ -18,6 +18,7 @@ class HolidayManager: ObservableObject {
     
     /// Number of years to load around the current year initially
     private static let initialYearRange = 5 // 2 years back, current year, 2 years forward
+    private static let maxCachedYears = 20 // Maximum years to keep in memory
 
     @Published var holidays: [CalendarHoliday] = []
     
@@ -30,6 +31,9 @@ class HolidayManager: ObservableObject {
     
     // Cache for date calculations to avoid recalculation
     private var dateCache: [String: Date?] = [:] // "holidayName-year" -> Date
+
+    // Cache for holidays on specific dates to avoid repeated filtering
+    private var dateHolidaysCache: [String: [CalendarHoliday]] = [:] // "year-month-day" -> Holidays cache
 
     private let allHolidays: [CalendarHoliday] = [
         // MARK: - Government/Banking Holidays (National)
@@ -377,6 +381,36 @@ class HolidayManager: ObservableObject {
         let categoryManager = HolidayCategoryManager.shared
         allHolidays = allHolidays.filter { categoryManager.isEnabled($0.category) }
         self.holidays = allHolidays.sorted(by: { $0.date < $1.date })
+
+        // Limit cache size after updating
+        limitCacheSize()
+    }
+
+    /// Limit the cache size to prevent memory issues
+    private func limitCacheSize() {
+        let currentYear = Calendar(identifier: .gregorian).component(.year, from: Date())
+
+        // If we have too many cached years, remove the ones farthest from current year
+        if cachedHolidays.count > Self.maxCachedYears {
+            let sortedYears = cachedHolidays.keys.sorted { year1, year2 in
+                let distance1 = abs(year1 - currentYear)
+                let distance2 = abs(year2 - currentYear)
+                return distance1 < distance2
+            }
+
+            let yearsToKeep = Set(sortedYears.prefix(Self.maxCachedYears))
+            let yearsToRemove = Set(cachedHolidays.keys).subtracting(yearsToKeep)
+
+            for year in yearsToRemove {
+                cachedHolidays.removeValue(forKey: year)
+
+                // Also clean up date cache for this year
+                dateCache = dateCache.filter { !$0.key.hasSuffix("-\(year)") }
+
+                // Clean up date holidays cache
+                dateHolidaysCache = dateHolidaysCache.filter { !$0.key.hasPrefix("\(year)-") }
+            }
+        }
     }
     
     /// Filter holidays by enabled categories
@@ -416,7 +450,7 @@ class HolidayManager: ObservableObject {
         let startYear = max(Self.minYear, centerYear - range)
         let endYear = min(Self.maxYear, centerYear + range)
         let yearsToPreload = Array(startYear...endYear).filter { cachedHolidays[$0] == nil && !loadingYears.contains($0) }
-        
+
         if !yearsToPreload.isEmpty {
             loadingQueue.async { [weak self] in
                 self?.loadHolidaysForYears(yearsToPreload, priority: .utility)
@@ -424,13 +458,66 @@ class HolidayManager: ObservableObject {
         }
     }
 
+    /// Load holidays for a specific year synchronously (blocks until complete)
+    /// Used on tvOS to ensure holidays appear immediately
+    private func loadHolidaysForYearSynchronously(_ year: Int) {
+        // Skip if already loaded or loading
+        guard cachedHolidays[year] == nil && !loadingYears.contains(year) else {
+            return
+        }
+
+        loadingYears.insert(year)
+
+        var yearHolidays: [CalendarHoliday] = []
+
+        // Calculate holidays for this year synchronously
+        for holiday in allHolidays {
+            if let holidayDate = cachedDateForHoliday(holiday: holiday, year: year) {
+                let holidayForYear = CalendarHoliday(
+                    name: holiday.name,
+                    date: holidayDate,
+                    emoji: holiday.emoji,
+                    description: holiday.description,
+                    unsplashSearchTerm: holiday.unsplashSearchTerm,
+                    isRecurring: holiday.isRecurring,
+                    category: holiday.category
+                )
+                yearHolidays.append(holidayForYear)
+            }
+        }
+
+        // Cache the results
+        cachedHolidays[year] = yearHolidays
+        loadingYears.remove(year)
+
+        // Update published holidays
+        updatePublishedHolidays()
+    }
+
     /// Get holidays that occur on a specific date
     func holidaysOn(_ date: Date) -> [CalendarHoliday] {
         let calendar = Calendar(identifier: .gregorian)
         let year = calendar.component(.year, from: date)
-        
+        let month = calendar.component(.month, from: date)
+        let day = calendar.component(.day, from: date)
+        let cacheKey = "\(year)-\(month)-\(day)"
+
+        // Check if we have cached results for this specific date
+        if let cachedResult = dateHolidaysCache[cacheKey] {
+            return cachedResult
+        }
+
+        // For tvOS, try to load holidays synchronously if not already cached
+        // This ensures holidays appear immediately when navigating
+        #if os(tvOS)
+        if cachedHolidays[year] == nil && !loadingYears.contains(year) {
+            // Load synchronously for immediate display on tvOS
+            loadHolidaysForYearSynchronously(year)
+        }
+        #else
         // Ensure we have holidays loaded for this year (async, won't block)
         ensureHolidaysForYear(year)
+        #endif
         
         // Return cached holidays for this year if available, otherwise return empty
         // The holidays will appear once async loading completes
@@ -440,7 +527,7 @@ class HolidayManager: ObservableObject {
             let filteredHolidays = filterByEnabledCategories(matchingHolidays)
             // Remove duplicates by name to avoid showing the same holiday twice
             var seenNames = Set<String>()
-            return filteredHolidays.filter { holiday in
+            let finalHolidays = filteredHolidays.filter { holiday in
                 if seenNames.contains(holiday.name) {
                     return false
                 } else {
@@ -448,9 +535,15 @@ class HolidayManager: ObservableObject {
                     return true
                 }
             }
+
+            // Cache the result for this specific date
+            dateHolidaysCache[cacheKey] = finalHolidays
+            return finalHolidays
         }
-        
+
         // Return empty if not loaded yet - will be updated when async loading completes
+        // Cache empty result to avoid repeated checks
+        dateHolidaysCache[cacheKey] = []
         return []
     }
 
@@ -520,13 +613,13 @@ class HolidayManager: ObservableObject {
     func clearCache(keepingYears: Set<Int>) {
         loadingQueue.async { [weak self] in
             guard let self = self else { return }
-            
+
             let yearsToKeep = keepingYears.filter { $0 >= Self.minYear && $0 <= Self.maxYear }
             let yearsToRemove = Set(self.cachedHolidays.keys).subtracting(yearsToKeep)
-            
+
             for year in yearsToRemove {
                 self.cachedHolidays.removeValue(forKey: year)
-                
+
                 // Also clear date cache for this year
                 for (key, _) in self.dateCache {
                     if key.hasSuffix("-\(year)") {
@@ -534,10 +627,15 @@ class HolidayManager: ObservableObject {
                     }
                 }
             }
-            
+
             DispatchQueue.main.async {
                 self.updatePublishedHolidays()
             }
         }
+    }
+
+    /// Clear date-specific holiday cache (called when categories change)
+    func clearDateHolidaysCache() {
+        dateHolidaysCache.removeAll()
     }
 }

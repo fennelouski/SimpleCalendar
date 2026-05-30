@@ -1,0 +1,134 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 11/30/25.
+*/
+
+/* General */
+"Calendar" = "Calendar";
+"Settings" = "Setări";
+"Done" = "Gata";
+"Cancel" = "Anulează";
+"Save" = "Salvează";
+"Close" = "Închide";
+"None" = "Niciunul";
+"Today" = "Astăzi";
+"Version" = "Versiune";
+
+/* Permission Primer */
+"Calendar Access" = "Acces Calendar";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play are nevoie de acces la calendarul dvs. pentru a afișa programul dvs. și pentru a vă ajuta să gestionați evenimentele direct din aplicație.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "Respectăm confidențialitatea dvs. și folosim acest acces doar pentru a afișa și edita evenimentele din calendarul dvs.";
+"Allow Access" = "Permite Accesul";
+"Not Now" = "Nu Acum";
+"Allow Calendar Access" = "Permite Accesul la Calendar";
+"Prompts the system dialog to grant calendar permissions." = "Solicită dialogul sistemului pentru a acorda permisiuni de calendar.";
+"Dismisses this screen without granting permission." = "Închide acest ecran fără a acorda permisiunea.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Integrare Calendar";
+"Holiday Display" = "Afișare Sărbători";
+"Holiday Categories" = "Categorii Sărbători";
+"Appearance" = "Aspect";
+"Theme" = "Temă";
+"About" = "Despre";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Calendar Sistem";
+"Sync with macOS Calendar" = "Sincronizează cu Calendar macOS";
+"Sync System Calendar" = "Sincronizează Calendar Sistem";
+"Google Calendar" = "Google Calendar";
+"Connect your Google Calendar" = "Conectează-te la Google Calendar";
+"Signed in as %@" = "Conectat ca %@";
+"Sync Google Calendar" = "Sincronizează Google Calendar";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Afișează Sărbătorile";
+"Display holidays on the calendar with educational information" = "Afișează sărbătorile pe calendar cu informații educaționale";
+"Enabled - Display holidays on the calendar" = "Activat - Afișează sărbătorile pe calendar";
+"Disabled - Hide holidays on the calendar" = "Dezactivat - Ascunde sărbătorile pe calendar";
+"Monthly Themes" = "Teme Lunare";
+"Use different colors for each month to help understand calendar concepts" = "Folosește culori diferite pentru fiecare lună pentru a ajuta la înțelegerea conceptelor de calendar";
+"Enabled - Theme changes automatically each month" = "Activat - Tema se schimbă automat în fiecare lună";
+"Disabled - Use a fixed theme" = "Dezactivat - Folosește o temă fixă";
+"Automatic Backgrounds" = "Fundaluri Automate";
+"Automatically set a beautiful background image from Unsplash" = "Setează automat o imagine de fundal frumoasă de la Unsplash";
+"Holiday Guide" = "Ghid Sărbători";
+"Learn about holidays and their meanings (Coming Soon)" = "Află despre sărbători și semnificațiile lor (În Curând)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Dimensiune Număr Zi";
+"Adjust the size of day numbers in the calendar" = "Ajustează dimensiunea numerelor zilelor din calendar";
+"Monthly Theme" = "Temă Lunară";
+"Theme changes automatically each month" = "Tema se schimbă automat în fiecare lună";
+"Use a fixed theme" = "Folosește o temă fixă";
+"Border Contrast" = "Contrast Bordură";
+"Adjust the contrast of day square borders" = "Ajustează contrastul bordurilor pătratelor zilelor";
+"Weekend Tinting" = "Colorare Weekend";
+"Enabled - Weekends are visually distinguished" = "Activat - Weekend-urile sunt distinse vizual";
+"Disabled - All days look the same" = "Dezactivat - Toate zilele arată la fel";
+"Color Theme" = "Temă Culoare";
+"Choose your preferred color scheme" = "Alege schema de culori preferată";
+"Go to Today" = "Mergi la Astăzi";
+"Move the selected date to today" = "Mută data selectată la astăzi";
+
+/* Settings - About */
+"About the App" = "Despre Aplicație";
+"Why I built this calendar" = "De ce am construit acest calendar";
+
+/* Event Creation */
+"New Event" = "Eveniment Nou";
+"Event Details" = "Detalii Eveniment";
+"Title" = "Titlu";
+"All Day" = "Toată Ziua";
+"Event will use current date and time" = "Evenimentul va folosi data și ora curentă";
+"Start Time" = "Ora de Început";
+"End Time" = "Ora de Sfârșit";
+"Date" = "Dată";
+"Additional Information" = "Informații Suplimentare";
+"Location" = "Locație";
+"Notes" = "Notițe";
+"Invitees" = "Invitați";
+"Email addresses (comma separated)" = "Adrese email (separate prin virgulă)";
+"Image" = "Imagine";
+"Event Image" = "Imagine Eveniment";
+"Image selected" = "Imagine selectată";
+"Double tap to choose an image" = "Apasă de două ori pentru a alege o imagine";
+"Location Map" = "Hartă Locație";
+"Repeat" = "Repetă";
+"Double tap to set recurrence" = "Apasă de două ori pentru a seta recurența";
+"Reminder" = "Memento";
+"Double tap to set reminder" = "Apasă de două ori pentru a seta memento";
+"Repeat Event" = "Repetă Eveniment";
+"Repeat Every" = "Repetă La Fiecare";
+"Frequency" = "Frecvență";
+"Day" = "Zi";
+"Week" = "Săptămână";
+"Month" = "Lună";
+"Year" = "An";
+"Every %d %@" = "La fiecare %d %@";
+"End Repeat" = "Termină Repetarea";
+"Never" = "Niciodată";
+"After 30 occurrences" = "După 30 de apariții";
+"End Date" = "Dată Sfârșit";
+"Set Reminder" = "Setează Memento";
+"At time of event" = "La ora evenimentului";
+"%d minutes before" = "%d minute înainte";
+"1 hour before" = "1 oră înainte";
+"%d hours before" = "%d ore înainte";
+"1 day before" = "1 zi înainte";
+"Invited: %@" = "Invitat: %@";
+
+/* Day View */
+"%d holiday" = "%d sărbătoare";
+"%d holidays" = "%d sărbători";
+"%d event" = "%d eveniment";
+"%d events" = "%d evenimente";
+"No events" = "Fără evenimente";
+"Double tap to view details" = "Apasă de două ori pentru a vedea detaliile";
+"+%d more" = "+%d în plus";
+
+/* Accessibility */
+"Today, %@" = "Astăzi, %@";
+

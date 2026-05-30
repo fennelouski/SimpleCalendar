@@ -132,11 +132,11 @@ class UIConfiguration: ObservableObject {
         let savedFontSize = UserDefaults.standard.integer(forKey: fontSizeKey)
         self.fontSizeCategory = FontSizeCategory(rawValue: savedFontSize) ?? .normal
 
-        // Load grid line opacity, default to 0.8 (80%)
+        // Load grid line opacity, default to 0.3 (30%)
         let loadedGridLineOpacity = UserDefaults.standard.double(forKey: gridLineOpacityKey)
         if loadedGridLineOpacity == 0.0 && !UserDefaults.standard.bool(forKey: "gridLineOpacitySet") {
             // First time setup, use default value
-            self.gridLineOpacity = 0.8
+            self.gridLineOpacity = 0.3
             UserDefaults.standard.set(true, forKey: "gridLineOpacitySet")
         } else {
             self.gridLineOpacity = loadedGridLineOpacity
@@ -146,7 +146,7 @@ class UIConfiguration: ObservableObject {
         if !UserDefaults.standard.bool(forKey: "dayNumberFontSizeSet") {
             // First time setup, use default value
             #if os(tvOS)
-            self.dayNumberFontSize = 68.0 // Large default for tvOS (8 + 6*12 = 68)
+            self.dayNumberFontSize = 44.0 // Large default for tvOS (8 + 4*11 = 44)
             #else
             self.dayNumberFontSize = 14.0 // Standard size for iOS/macOS
             #endif

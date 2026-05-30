@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 11/30/25.
+*/
+
+/* General */
+"Calendar" = "Lịch";
+"Settings" = "Cài đặt";
+"Done" = "Xong";
+"Cancel" = "Hủy";
+"Save" = "Lưu";
+"Close" = "Đóng";
+"None" = "Không";
+"Today" = "Hôm nay";
+"Version" = "Phiên bản";
+
+/* Permission Primer */
+"Calendar Access" = "Truy cập Lịch";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play cần truy cập vào lịch của bạn để hiển thị lịch trình và giúp bạn quản lý sự kiện trực tiếp từ ứng dụng.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "Chúng tôi tôn trọng quyền riêng tư của bạn và chỉ sử dụng quyền truy cập này để hiển thị và chỉnh sửa các sự kiện lịch của bạn.";
+"Allow Access" = "Cho phép Truy cập";
+"Not Now" = "Để sau";
+"Allow Calendar Access" = "Cho phép Truy cập Lịch";
+"Prompts the system dialog to grant calendar permissions." = "Nhắc hộp thoại hệ thống để cấp quyền lịch.";
+"Dismisses this screen without granting permission." = "Đóng màn hình này mà không cấp quyền.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Tích hợp Lịch";
+"Holiday Display" = "Hiển thị Ngày lễ";
+"Holiday Categories" = "Danh mục Ngày lễ";
+"Appearance" = "Giao diện";
+"Theme" = "Chủ đề";
+"About" = "Giới thiệu";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Lịch Hệ thống";
+"Sync with macOS Calendar" = "Đồng bộ với Lịch macOS";
+"Sync System Calendar" = "Đồng bộ Lịch Hệ thống";
+"Google Calendar" = "Google Calendar";
+"Connect your Google Calendar" = "Kết nối Google Calendar của bạn";
+"Signed in as %@" = "Đã đăng nhập là %@";
+"Sync Google Calendar" = "Đồng bộ Google Calendar";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Hiển thị Ngày lễ";
+"Display holidays on the calendar with educational information" = "Hiển thị ngày lễ trên lịch với thông tin giáo dục";
+"Enabled - Display holidays on the calendar" = "Đã bật - Hiển thị ngày lễ trên lịch";
+"Disabled - Hide holidays on the calendar" = "Đã tắt - Ẩn ngày lễ trên lịch";
+"Monthly Themes" = "Chủ đề Hàng tháng";
+"Use different colors for each month to help understand calendar concepts" = "Sử dụng màu sắc khác nhau cho mỗi tháng để giúp hiểu các khái niệm lịch";
+"Enabled - Theme changes automatically each month" = "Đã bật - Chủ đề thay đổi tự động mỗi tháng";
+"Disabled - Use a fixed theme" = "Đã tắt - Sử dụng chủ đề cố định";
+"Automatic Backgrounds" = "Hình nền Tự động";
+"Automatically set a beautiful background image from Unsplash" = "Tự động đặt hình nền đẹp từ Unsplash";
+"Holiday Guide" = "Hướng dẫn Ngày lễ";
+"Learn about holidays and their meanings (Coming Soon)" = "Tìm hiểu về các ngày lễ và ý nghĩa của chúng (Sắp ra mắt)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Kích thước Số Ngày";
+"Adjust the size of day numbers in the calendar" = "Điều chỉnh kích thước số ngày trong lịch";
+"Monthly Theme" = "Chủ đề Hàng tháng";
+"Theme changes automatically each month" = "Chủ đề thay đổi tự động mỗi tháng";
+"Use a fixed theme" = "Sử dụng chủ đề cố định";
+"Border Contrast" = "Độ tương phản Viền";
+"Adjust the contrast of day square borders" = "Điều chỉnh độ tương phản của viền ô ngày";
+"Weekend Tinting" = "Tô màu Cuối tuần";
+"Enabled - Weekends are visually distinguished" = "Đã bật - Cuối tuần được phân biệt trực quan";
+"Disabled - All days look the same" = "Đã tắt - Tất cả các ngày trông giống nhau";
+"Color Theme" = "Chủ đề Màu sắc";
+"Choose your preferred color scheme" = "Chọn phối màu ưa thích của bạn";
+"Go to Today" = "Về Hôm nay";
+"Move the selected date to today" = "Di chuyển ngày đã chọn về hôm nay";
+
+/* Settings - About */
+"About the App" = "Về Ứng dụng";
+"Why I built this calendar" = "Tại sao tôi xây dựng lịch này";
+
+/* Event Creation */
+"New Event" = "Sự kiện Mới";
+"Event Details" = "Chi tiết Sự kiện";
+"Title" = "Tiêu đề";
+"All Day" = "Cả ngày";
+"Event will use current date and time" = "Sự kiện sẽ sử dụng ngày và giờ hiện tại";
+"Start Time" = "Thời gian Bắt đầu";
+"End Time" = "Thời gian Kết thúc";
+"Date" = "Ngày";
+"Additional Information" = "Thông tin Bổ sung";
+"Location" = "Địa điểm";
+"Notes" = "Ghi chú";
+"Invitees" = "Người được mời";
+"Email addresses (comma separated)" = "Địa chỉ email (phân cách bằng dấu phẩy)";
+"Image" = "Hình ảnh";
+"Event Image" = "Hình ảnh Sự kiện";
+"Image selected" = "Đã chọn hình ảnh";
+"Double tap to choose an image" = "Nhấn đúp để chọn hình ảnh";
+"Location Map" = "Bản đồ Vị trí";
+"Repeat" = "Lặp lại";
+"Double tap to set recurrence" = "Nhấn đúp để đặt lặp lại";
+"Reminder" = "Nhắc nhở";
+"Double tap to set reminder" = "Nhấn đúp để đặt nhắc nhở";
+"Repeat Event" = "Lặp lại Sự kiện";
+"Repeat Every" = "Lặp lại Mỗi";
+"Frequency" = "Tần suất";
+"Day" = "Ngày";
+"Week" = "Tuần";
+"Month" = "Tháng";
+"Year" = "Năm";
+"Every %d %@" = "Mỗi %d %@";
+"End Repeat" = "Kết thúc Lặp lại";
+"Never" = "Không bao giờ";
+"After 30 occurrences" = "Sau 30 lần";
+"End Date" = "Ngày Kết thúc";
+"Set Reminder" = "Đặt Nhắc nhở";
+"At time of event" = "Tại thời điểm sự kiện";
+"%d minutes before" = "%d phút trước";
+"1 hour before" = "1 giờ trước";
+"%d hours before" = "%d giờ trước";
+"1 day before" = "1 ngày trước";
+"Invited: %@" = "Đã mời: %@";
+
+/* Day View */
+"%d holiday" = "%d ngày lễ";
+"%d holidays" = "%d ngày lễ";
+"%d event" = "%d sự kiện";
+"%d events" = "%d sự kiện";
+"No events" = "Không có sự kiện";
+"Double tap to view details" = "Nhấn đúp để xem chi tiết";
+"+%d more" = "+%d thêm";
+
+/* Accessibility */
+"Today, %@" = "Hôm nay, %@";

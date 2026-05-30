@@ -20,8 +20,10 @@ final class CalendarEvent {
     var isAllDay: Bool
     var imageUrl: String?
     var imageRepositoryId: String?
+    var color: String? // Hex color code like "#FF6B6B"
+    var emoji: String? // Single emoji character
 
-    init(id: String, title: String, startDate: Date, endDate: Date, location: String? = nil, notes: String? = nil, calendarIdentifier: String, isAllDay: Bool = false, imageUrl: String? = nil, imageRepositoryId: String? = nil) {
+    init(id: String, title: String, startDate: Date, endDate: Date, location: String? = nil, notes: String? = nil, calendarIdentifier: String, isAllDay: Bool = false, imageUrl: String? = nil, imageRepositoryId: String? = nil, color: String? = nil, emoji: String? = nil) {
         self.id = id
         self.title = title
         self.startDate = startDate
@@ -32,6 +34,8 @@ final class CalendarEvent {
         self.isAllDay = isAllDay
         self.imageUrl = imageUrl
         self.imageRepositoryId = imageRepositoryId
+        self.color = color
+        self.emoji = emoji
     }
 }
 

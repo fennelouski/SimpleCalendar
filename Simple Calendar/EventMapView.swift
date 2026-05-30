@@ -25,9 +25,30 @@ class LocationGeocodingCache {
     private var pendingRequests: [String: [(CLLocationCoordinate2D) -> Void]] = [:]
     private let cacheDuration: TimeInterval = 24 * 60 * 60 // 24 hours
     private let geocodingMinInterval: TimeInterval = 1.0 // Minimum 1 second between requests
+    private let maxCacheSize = 200 // Maximum number of cached locations
     private var lastGeocodingRequestTime: Date?
-    
-    private init() {}
+
+    private init() {
+        // Clean up expired entries periodically
+        Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { [weak self] _ in
+            self?.cleanupExpiredEntries()
+        }
+    }
+
+    private func cleanupExpiredEntries() {
+        let now = Date()
+        let expiredKeys = cache.filter { now.timeIntervalSince($0.value.date) > cacheDuration }.keys
+        expiredKeys.forEach { cache.removeValue(forKey: $0) }
+    }
+
+    private func limitCacheSize() {
+        if cache.count > maxCacheSize {
+            // Remove oldest entries
+            let sortedByAge = cache.sorted { $0.value.date < $1.value.date }
+            let keysToRemove = sortedByAge.prefix(cache.count - maxCacheSize).map { $0.key }
+            keysToRemove.forEach { cache.removeValue(forKey: $0) }
+        }
+    }
     
     func getCoordinate(for location: String, completion: @escaping (CLLocationCoordinate2D) -> Void) {
         // Check cache first
@@ -62,14 +83,18 @@ class LocationGeocodingCache {
         pendingRequests[location] = [completion]
         lastGeocodingRequestTime = now
         
-        // Use CLGeocoder instead of MKLocalSearch to avoid geocoding request throttling
-        let geocoder = CLGeocoder()
-        geocoder.geocodeAddressString(location) { [weak self] placemarks, error in
+        // Use MKLocalSearch for geocoding (replaces deprecated CLGeocoder)
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = location
+        
+        let search = MKLocalSearch(request: request)
+        search.start { [weak self] response, error in
             guard let self = self else { return }
             
             let coordinate: CLLocationCoordinate2D
-            if let placemark = placemarks?.first,
-               let location = placemark.location {
+            if let response = response,
+               let mapItem = response.mapItems.first {
+                let location = mapItem.location
                 coordinate = location.coordinate
             } else {
                 // Fallback to default
@@ -78,7 +103,10 @@ class LocationGeocodingCache {
             
             // Cache the result
             self.cache[location] = (coordinate: coordinate, date: Date())
-            
+
+            // Limit cache size
+            self.limitCacheSize()
+
             // Call all pending completion handlers for this location
             if let pendingCompletions = self.pendingRequests[location] {
                 for completionHandler in pendingCompletions {
@@ -270,6 +298,7 @@ struct InteractiveMapView: View {
                         .font(.title)
                         .foregroundColor(themeManager.currentPalette.textSecondary)
                 }
+                .accessibilityLabel("Close")
             }
             .padding()
 

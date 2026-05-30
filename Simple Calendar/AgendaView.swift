@@ -61,7 +61,7 @@ struct AgendaView: View {
                 Spacer()
 
                 Button(action: { selectedDate = Date() }) {
-                    Text("Today")
+                    Text("Today".localized)
                         .font(.headline)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
@@ -92,7 +92,7 @@ struct AgendaView: View {
                 Spacer()
 
                 Button(action: { selectedDate = Date() }) {
-                    Text("Today")
+                    Text("Today".localized)
                 }
                 .keyboardShortcut("t", modifiers: [.command])
                 #endif
@@ -132,6 +132,10 @@ struct AgendaView: View {
                                 }
                             #endif
                         }
+#if os(iOS)
+                        // Add bottom padding to ensure content can scroll above safe area
+                        Color.clear.frame(height: 40)
+#endif
                     }
                 }
                 .onAppear {
@@ -225,7 +229,7 @@ struct AgendaItemView: View {
                     .foregroundColor(item.isToday ? themeManager.currentPalette.primary : themeManager.currentPalette.textPrimary)
 
                 if item.isToday {
-                    Text("Today")
+                    Text("Today".localized)
                         .font(.caption)
                         .foregroundColor(themeManager.currentPalette.primary)
                         .padding(.horizontal, 6)
@@ -237,7 +241,7 @@ struct AgendaItemView: View {
                 Spacer()
 
                 if !item.events.isEmpty {
-                    Text("\(item.events.count) event\(item.events.count == 1 ? "" : "s")")
+                    Text(item.events.count == 1 ? "1 event".localized : "%d events".localized(with: item.events.count))
                         .font(.caption)
                         .foregroundColor(themeManager.currentPalette.textSecondary)
                 }
@@ -247,7 +251,7 @@ struct AgendaItemView: View {
 
             // Events
             if item.events.isEmpty {
-                Text("No events")
+                Text("No events".localized)
                     .foregroundColor(themeManager.currentPalette.textSecondary)
                     .font(.caption)
                     .padding(.horizontal)
@@ -273,9 +277,9 @@ struct AgendaItemView: View {
 
         let calendar = Calendar(identifier: .gregorian)
         if calendar.isDate(date, inSameDayAs: Date()) {
-            return "Today"
+            return "Today".localized
         } else if calendar.isDate(date, inSameDayAs: calendar.date(byAdding: .day, value: 1, to: Date())!) {
-            return "Tomorrow"
+            return "Tomorrow".localized
         } else {
             return formatter.string(from: date)
         }
@@ -343,7 +347,7 @@ struct EventRowView: View {
 
     private var timeString: String {
         if event.isAllDay {
-            return "All day"
+            return "All day".localized
         }
 
         let formatter = DateFormatter()
@@ -369,9 +373,9 @@ struct EventRowView: View {
 
     private var calendarSource: String {
         if event.id.hasPrefix("google_") {
-            return "Google"
+            return "Google".localized
         } else {
-            return "Local"
+            return "Local".localized
         }
     }
 }

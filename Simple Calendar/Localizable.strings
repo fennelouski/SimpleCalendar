@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 11/30/25.
+*/
+
+/* General */
+"Calendar" = "Calendar";
+"Settings" = "Settings";
+"Done" = "Done";
+"Cancel" = "Cancel";
+"Save" = "Save";
+"Close" = "Close";
+"None" = "None";
+"Today" = "Today";
+"Version" = "Version";
+
+/* Permission Primer */
+"Calendar Access" = "Calendar Access";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "We respect your privacy and only use this access to show and edit your calendar events.";
+"Allow Access" = "Allow Access";
+"Not Now" = "Not Now";
+"Allow Calendar Access" = "Allow Calendar Access";
+"Prompts the system dialog to grant calendar permissions." = "Prompts the system dialog to grant calendar permissions.";
+"Dismisses this screen without granting permission." = "Dismisses this screen without granting permission.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Calendar Integration";
+"Holiday Display" = "Holiday Display";
+"Holiday Categories" = "Holiday Categories";
+"Appearance" = "Appearance";
+"Theme" = "Theme";
+"About" = "About";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "System Calendar";
+"Sync with macOS Calendar" = "Sync with macOS Calendar";
+"Sync System Calendar" = "Sync System Calendar";
+"Google Calendar" = "Google Calendar";
+"Connect your Google Calendar" = "Connect your Google Calendar";
+"Signed in as %@" = "Signed in as %@";
+"Sync Google Calendar" = "Sync Google Calendar";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Show Holidays";
+"Display holidays on the calendar with educational information" = "Display holidays on the calendar with educational information";
+"Enabled - Display holidays on the calendar" = "Enabled - Display holidays on the calendar";
+"Disabled - Hide holidays on the calendar" = "Disabled - Hide holidays on the calendar";
+"Monthly Themes" = "Monthly Themes";
+"Use different colors for each month to help understand calendar concepts" = "Use different colors for each month to help understand calendar concepts";
+"Enabled - Theme changes automatically each month" = "Enabled - Theme changes automatically each month";
+"Disabled - Use a fixed theme" = "Disabled - Use a fixed theme";
+"Automatic Backgrounds" = "Automatic Backgrounds";
+"Automatically set a beautiful background image from Unsplash" = "Automatically set a beautiful background image from Unsplash";
+"Holiday Guide" = "Holiday Guide";
+"Learn about holidays and their meanings (Coming Soon)" = "Learn about holidays and their meanings (Coming Soon)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Day Number Size";
+"Adjust the size of day numbers in the calendar" = "Adjust the size of day numbers in the calendar";
+"Monthly Theme" = "Monthly Theme";
+"Theme changes automatically each month" = "Theme changes automatically each month";
+"Use a fixed theme" = "Use a fixed theme";
+"Border Contrast" = "Border Contrast";
+"Adjust the contrast of day square borders" = "Adjust the contrast of day square borders";
+"Weekend Tinting" = "Weekend Tinting";
+"Enabled - Weekends are visually distinguished" = "Enabled - Weekends are visually distinguished";
+"Disabled - All days look the same" = "Disabled - All days look the same";
+"Color Theme" = "Color Theme";
+"Choose your preferred color scheme" = "Choose your preferred color scheme";
+"Go to Today" = "Go to Today";
+"Move the selected date to today" = "Move the selected date to today";
+
+/* Settings - About */
+"About the App" = "About the App";
+"Why I built this calendar" = "Why I built this calendar";
+
+/* Event Creation */
+"New Event" = "New Event";
+"Event Details" = "Event Details";
+"Title" = "Title";
+"All Day" = "All Day";
+"Event will use current date and time" = "Event will use current date and time";
+"Start Time" = "Start Time";
+"End Time" = "End Time";
+"Date" = "Date";
+"Additional Information" = "Additional Information";
+"Location" = "Location";
+"Notes" = "Notes";
+"Invitees" = "Invitees";
+"Email addresses (comma separated)" = "Email addresses (comma separated)";
+"Image" = "Image";
+"Event Image" = "Event Image";
+"Image selected" = "Image selected";
+"Double tap to choose an image" = "Double tap to choose an image";
+"Location Map" = "Location Map";
+"Repeat" = "Repeat";
+"Double tap to set recurrence" = "Double tap to set recurrence";
+"Reminder" = "Reminder";
+"Double tap to set reminder" = "Double tap to set reminder";
+"Repeat Event" = "Repeat Event";
+"Repeat Every" = "Repeat Every";
+"Frequency" = "Frequency";
+"Day" = "Day";
+"Week" = "Week";
+"Month" = "Month";
+"Year" = "Year";
+"Every %d %@" = "Every %d %@";
+"End Repeat" = "End Repeat";
+"Never" = "Never";
+"After 30 occurrences" = "After 30 occurrences";
+"End Date" = "End Date";
+"Set Reminder" = "Set Reminder";
+"At time of event" = "At time of event";
+"%d minutes before" = "%d minutes before";
+"1 hour before" = "1 hour before";
+"%d hours before" = "%d hours before";
+"1 day before" = "1 day before";
+"Invited: %@" = "Invited: %@";
+
+/* Day View */
+"%d holiday" = "%d holiday";
+"%d holidays" = "%d holidays";
+"%d event" = "%d event";
+"%d events" = "%d events";
+"No events" = "No events";
+"Double tap to view details" = "Double tap to view details";
+"+%d more" = "+%d more";
+
+/* Accessibility */
+"Today, %@" = "Today, %@";

@@ -5,12 +5,7 @@
 	<key>CFBundleIcons</key>
 	<dict>
 		<key>CFBundlePrimaryIcon</key>
-		<dict>
-			<key>CFBundleIconFiles</key>
-			<array>
-				<string>App Icon</string>
-			</array>
-		</dict>
+		<string>tvOS Assets</string>
 	</dict>
 	<key>CFBundleURLTypes</key>
 	<array>
@@ -36,6 +31,3 @@
 	</array>
 </dict>
 </plist>
-
-
-

@@ -386,13 +386,13 @@ class LocationApproximator {
                 switch hoursOffset {
                 case -5, -4: // Eastern Time (EST/EDT)
                     return timezoneLocations["America/New_York"]
-                case -6, -5: // Central Time (CST/CDT)
+                case -6: // Central Time (CST/CDT) - removed -5 as it's already handled above
                     return timezoneLocations["America/Chicago"]
-                case -7, -6: // Mountain Time (MST/MDT)
+                case -7: // Mountain Time (MST/MDT) - removed -6 as it's already handled above
                     return timezoneLocations["America/Denver"]
-                case -8, -7: // Pacific Time (PST/PDT)
+                case -8: // Pacific Time (PST/PDT) - removed -7 as it's already handled above
                     return timezoneLocations["America/Los_Angeles"]
-                case -9, -8: // Alaska Time (AKST/AKDT)
+                case -9: // Alaska Time (AKST/AKDT) - removed -8 as it's already handled above
                     return timezoneLocations["America/Anchorage"]
                 case -10: // Hawaii Time (HST)
                     return timezoneLocations["Pacific/Honolulu"]
@@ -450,7 +450,7 @@ class LocationApproximator {
         }
         
         // Check for language code match (e.g., "en" in "en_US")
-        let languageCode = locale.languageCode ?? ""
+        let languageCode = locale.language.languageCode?.identifier ?? ""
         for (localeId, location) in localeLocations {
             if localeId.hasPrefix(languageCode + "_") {
                 return location
@@ -462,7 +462,7 @@ class LocationApproximator {
 }
 
 // MARK: - IP Geolocation Response Model
-private struct IPLocationResponse: Codable {
+private nonisolated struct IPLocationResponse: Codable {
     let latitude: Double?
     let longitude: Double?
     let city: String?

@@ -8,6 +8,8 @@
 import Foundation
 #if os(macOS)
 import AppKit
+#elseif os(iOS)
+import UIKit
 #endif
 
 class EventExporter {
@@ -118,11 +120,30 @@ class EventExporter {
 
     static func shareEvent(_ event: CalendarEvent) {
         guard let fileURL = exportSingleEvent(event) else { return }
-
+        shareEvents(fileURL: fileURL)
+    }
+    
+    static func shareEvents(fileURL: URL) {
         #if os(macOS)
         let sharingService = NSSharingServicePicker(items: [fileURL])
         if let window = NSApplication.shared.windows.first {
             sharingService.show(relativeTo: NSRect.zero, of: window.contentView!, preferredEdge: .minY)
+        }
+        #elseif os(iOS)
+        let activityViewController = UIActivityViewController(activityItems: [fileURL], applicationActivities: nil)
+        
+        // Get the current window scene to present the activity view controller
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let rootViewController = windowScene.windows.first?.rootViewController {
+            
+            // For iPad, we need to configure the popover presentation controller
+            if let popover = activityViewController.popoverPresentationController {
+                popover.sourceView = rootViewController.view
+                popover.sourceRect = CGRect(x: rootViewController.view.bounds.midX, y: rootViewController.view.bounds.midY, width: 0, height: 0)
+                popover.permittedArrowDirections = []
+            }
+            
+            rootViewController.present(activityViewController, animated: true, completion: nil)
         }
         #endif
     }

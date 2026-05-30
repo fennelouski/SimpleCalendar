@@ -1,6 +1,6 @@
 //
 //  FeatureFlags.swift
-//  Calendar Play
+//  Simple Calendar
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
@@ -108,6 +108,25 @@ class FeatureFlags: ObservableObject {
         }
     }
 
+    @Published var automaticUnsplashImages: Bool = true {
+        didSet {
+            UserDefaults.standard.set(automaticUnsplashImages, forKey: "feature_automaticUnsplashImages")
+            // Also sync to iCloud
+            NSUbiquitousKeyValueStore.default.set(automaticUnsplashImages, forKey: "feature_automaticUnsplashImages")
+            NSUbiquitousKeyValueStore.default.synchronize()
+        }
+    }
+
+    @Published var backgroundAnimationsEnabled: Bool = true {
+        didSet {
+            UserDefaults.standard.set(backgroundAnimationsEnabled, forKey: "feature_backgroundAnimationsEnabled")
+            // Also sync to iCloud
+            NSUbiquitousKeyValueStore.default.set(backgroundAnimationsEnabled, forKey: "feature_backgroundAnimationsEnabled")
+            NSUbiquitousKeyValueStore.default.synchronize()
+        }
+    }
+
+
     private init() {
         // Load initial values from UserDefaults
         advancedViews = UserDefaults.standard.bool(forKey: "feature_advancedViews")
@@ -202,17 +221,19 @@ class FeatureFlags: ObservableObject {
 
         monthlyThemesEnabled = UserDefaults.standard.bool(forKey: "feature_monthlyThemesEnabled")
         if monthlyThemesEnabled == false && UserDefaults.standard.object(forKey: "feature_monthlyThemesEnabled") == nil {
-            monthlyThemesEnabled = false // Default to false to not surprise users
+            monthlyThemesEnabled = true // Default to true for monthly themes
         }
 
         useMonthlyThemeMode = UserDefaults.standard.bool(forKey: "feature_useMonthlyThemeMode")
         if useMonthlyThemeMode == false && UserDefaults.standard.object(forKey: "feature_useMonthlyThemeMode") == nil {
-            useMonthlyThemeMode = false // Default to false
+            useMonthlyThemeMode = true // Default to true
         }
 
         onThisDayEnabled = getOnThisDayFlag()
         weekendTintingEnabled = getWeekendTintingFlag()
         holidayDisplayEnabled = getHolidayDisplayFlag()
+        automaticUnsplashImages = getAutomaticUnsplashImagesFlag()
+        backgroundAnimationsEnabled = getBackgroundAnimationsFlag()
     }
 
     /// Get On This Day flag with iCloud sync support
@@ -235,8 +256,12 @@ class FeatureFlags: ObservableObject {
             return iCloudValue
         }
 
-        // Fall back to local UserDefaults, defaulting to false
-        return UserDefaults.standard.bool(forKey: "feature_weekendTintingEnabled")
+        // Fall back to local UserDefaults, defaulting to true
+        let localValue = UserDefaults.standard.bool(forKey: "feature_weekendTintingEnabled")
+        if UserDefaults.standard.object(forKey: "feature_weekendTintingEnabled") != nil {
+            return localValue
+        }
+        return true // Default to enabled
     }
 
     /// Get Holiday Display flag with iCloud sync support
@@ -250,6 +275,34 @@ class FeatureFlags: ObservableObject {
         // Fall back to local UserDefaults, defaulting to true
         let localValue = UserDefaults.standard.bool(forKey: "feature_holidayDisplayEnabled")
         if UserDefaults.standard.object(forKey: "feature_holidayDisplayEnabled") != nil {
+            return localValue
+        }
+        return true // Default to enabled
+    }
+
+    /// Get Automatic Unsplash Images flag with iCloud sync support
+    private func getAutomaticUnsplashImagesFlag() -> Bool {
+        // Try iCloud first, then local defaults
+        let iCloudValue = NSUbiquitousKeyValueStore.default.bool(forKey: "feature_automaticUnsplashImages")
+        if NSUbiquitousKeyValueStore.default.object(forKey: "feature_automaticUnsplashImages") != nil {
+            return iCloudValue
+        }
+
+        // Fall back to local UserDefaults, defaulting to false
+        return UserDefaults.standard.bool(forKey: "feature_automaticUnsplashImages")
+    }
+
+    /// Get Background Animations flag with iCloud sync support
+    private func getBackgroundAnimationsFlag() -> Bool {
+        // Try iCloud first, then local defaults
+        let iCloudValue = NSUbiquitousKeyValueStore.default.bool(forKey: "feature_backgroundAnimationsEnabled")
+        if NSUbiquitousKeyValueStore.default.object(forKey: "feature_backgroundAnimationsEnabled") != nil {
+            return iCloudValue
+        }
+
+        // Fall back to local UserDefaults, defaulting to true
+        let localValue = UserDefaults.standard.bool(forKey: "feature_backgroundAnimationsEnabled")
+        if UserDefaults.standard.object(forKey: "feature_backgroundAnimationsEnabled") != nil {
             return localValue
         }
         return true // Default to enabled
@@ -275,11 +328,14 @@ class FeatureFlags: ObservableObject {
         collaborationFeatures = true
         daylightVisualizationCalendar = true
         daylightVisualizationDayView = true
-        monthlyThemesEnabled = false  // Default to off (opt-in feature)
-        useMonthlyThemeMode = false  // Default to off
+        monthlyThemesEnabled = true  // Default to on
+        useMonthlyThemeMode = true   // Default to on
         onThisDayEnabled = false  // Default to off
         weekendTintingEnabled = true   // Default to on for all platforms
+        weekendTintingEnabled = true   // Default to on for all platforms
         holidayDisplayEnabled = true  // Default to on
+        automaticUnsplashImages = false // Default to off
+        backgroundAnimationsEnabled = true // Default to on
 
         saveAll()
     }
@@ -307,7 +363,10 @@ class FeatureFlags: ObservableObject {
         UserDefaults.standard.set(useMonthlyThemeMode, forKey: "feature_useMonthlyThemeMode")
         UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
         UserDefaults.standard.set(weekendTintingEnabled, forKey: "feature_weekendTintingEnabled")
+        UserDefaults.standard.set(weekendTintingEnabled, forKey: "feature_weekendTintingEnabled")
         UserDefaults.standard.set(holidayDisplayEnabled, forKey: "feature_holidayDisplayEnabled")
+        UserDefaults.standard.set(automaticUnsplashImages, forKey: "feature_automaticUnsplashImages")
+        UserDefaults.standard.set(backgroundAnimationsEnabled, forKey: "feature_backgroundAnimationsEnabled")
         UserDefaults.standard.synchronize()
     }
 

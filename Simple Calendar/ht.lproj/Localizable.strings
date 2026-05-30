@@ -1,0 +1,134 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 11/30/25.
+*/
+
+/* General */
+"Calendar" = "Kalandriye";
+"Settings" = "Anviwònman";
+"Done" = "Fè";
+"Cancel" = "Anile";
+"Save" = "Sere";
+"Close" = "Fèmen";
+"None" = "Okenn";
+"Today" = "Jodi a";
+"Version" = "Vèsyon";
+
+/* Permission Primer */
+"Calendar Access" = "Aksè Kalandriye";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play bezwen aksè nan kalandriye ou pou montre orè ou epi ede ou jere evènman dirèkteman nan aplikasyon an.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "Nou respekte vi prive ou epi sèlman itilize aksè sa a pou montre ak modifye evènman kalandriye ou yo.";
+"Allow Access" = "Pèmèt Aksè";
+"Not Now" = "Pa Kounye a";
+"Allow Calendar Access" = "Pèmèt Aksè Kalandriye";
+"Prompts the system dialog to grant calendar permissions." = "Mande dyalòg sistèm nan pou bay pèmisyon kalandriye.";
+"Dismisses this screen without granting permission." = "Fèmen ekran sa a san yo pa bay pèmisyon.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Entegrasyon Kalandriye";
+"Holiday Display" = "Afichaj Jou Ferye";
+"Holiday Categories" = "Kategori Jou Ferye";
+"Appearance" = "Aparans";
+"Theme" = "Tèm";
+"About" = "Sou";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Kalandriye Sistèm";
+"Sync with macOS Calendar" = "Senkronize ak Kalandriye macOS";
+"Sync System Calendar" = "Senkronize Kalandriye Sistèm";
+"Google Calendar" = "Google Calendar";
+"Connect your Google Calendar" = "Konekte Google Calendar ou";
+"Signed in as %@" = "Konekte kòm %@";
+"Sync Google Calendar" = "Senkronize Google Calendar";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Montre Jou Ferye";
+"Display holidays on the calendar with educational information" = "Montre jou ferye sou kalandriye a ak enfòmasyon edikatif";
+"Enabled - Display holidays on the calendar" = "Pèmèt - Montre jou ferye sou kalandriye a";
+"Disabled - Hide holidays on the calendar" = "Dezaktive - Kache jou ferye sou kalandriye a";
+"Monthly Themes" = "Tèm Mensyèl";
+"Use different colors for each month to help understand calendar concepts" = "Itilize koulè diferan pou chak mwa pou ede konprann konsèp kalandriye";
+"Enabled - Theme changes automatically each month" = "Pèmèt - Tèm chanje otomatikman chak mwa";
+"Disabled - Use a fixed theme" = "Dezaktive - Itilize yon tèm fiks";
+"Automatic Backgrounds" = "Fond Otomatik";
+"Automatically set a beautiful background image from Unsplash" = "Mete otomatikman yon bèl imaj fon soti nan Unsplash";
+"Holiday Guide" = "Gid Jou Ferye";
+"Learn about holidays and their meanings (Coming Soon)" = "Aprann sou jou ferye ak siyifikasyon yo (Aparèt Byento)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Gwosè Nimewo Jou";
+"Adjust the size of day numbers in the calendar" = "Aji gwosè nimewo jou yo nan kalandriye a";
+"Monthly Theme" = "Tèm Mensyèl";
+"Theme changes automatically each month" = "Tèm chanje otomatikman chak mwa";
+"Use a fixed theme" = "Itilize yon tèm fiks";
+"Border Contrast" = "Kontras Fwontyè";
+"Adjust the contrast of day square borders" = "Aji kontras fwontyè kare jou yo";
+"Weekend Tinting" = "Tentaj Fèn Semèn";
+"Enabled - Weekends are visually distinguished" = "Pèmèt - Fèn semèn yo distenge vizyèlman";
+"Disabled - All days look the same" = "Dezaktive - Tout jou yo sanble";
+"Color Theme" = "Tèm Koulè";
+"Choose your preferred color scheme" = "Chwazi konbinezon koulè ou pi pito";
+"Go to Today" = "Ale nan Jodi a";
+"Move the selected date to today" = "Deplase dat chwazi a nan jodi a";
+
+/* Settings - About */
+"About the App" = "Sou Aplikasyon an";
+"Why I built this calendar" = "Poukisa mwen te konstwi kalandriye sa a";
+
+/* Event Creation */
+"New Event" = "Nouvo Evènman";
+"Event Details" = "Detay Evènman";
+"Title" = "Tit";
+"All Day" = "Tout Jounen";
+"Event will use current date and time" = "Evènman an pral itilize dat ak lè aktyèl yo";
+"Start Time" = "Lè Kòmanse";
+"End Time" = "Lè Fini";
+"Date" = "Dat";
+"Additional Information" = "Enfòmasyon Adisyonèl";
+"Location" = "Kote";
+"Notes" = "Nòt";
+"Invitees" = "Envite";
+"Email addresses (comma separated)" = "Adrès imèl (separe pa vigil)";
+"Image" = "Imaj";
+"Event Image" = "Imaj Evènman";
+"Image selected" = "Imaj chwazi";
+"Double tap to choose an image" = "Tape de fwa pou chwazi yon imaj";
+"Location Map" = "Kat Kote";
+"Repeat" = "Repete";
+"Double tap to set recurrence" = "Tape de fwa pou mete rekourens";
+"Reminder" = "Rapèl";
+"Double tap to set reminder" = "Tape de fwa pou mete rapèl";
+"Repeat Event" = "Repete Evènman";
+"Repeat Every" = "Repete Chak";
+"Frequency" = "Frekans";
+"Day" = "Jou";
+"Week" = "Semèn";
+"Month" = "Mwa";
+"Year" = "Ane";
+"Every %d %@" = "Chak %d %@";
+"End Repeat" = "Fini Repete";
+"Never" = "Janm";
+"After 30 occurrences" = "Apre 30 fwa";
+"End Date" = "Dat Fini";
+"Set Reminder" = "Mete Rapèl";
+"At time of event" = "Nan lè evènman an";
+"%d minutes before" = "%d minit anvan";
+"1 hour before" = "1 èdtan anvan";
+"%d hours before" = "%d èdtan anvan";
+"1 day before" = "1 jou anvan";
+"Invited: %@" = "Envite: %@";
+
+/* Day View */
+"%d holiday" = "%d jou ferye";
+"%d holidays" = "%d jou ferye";
+"%d event" = "%d evènman";
+"%d events" = "%d evènman";
+"No events" = "Pa gen evènman";
+"Double tap to view details" = "Tape de fwa pou wè detay";
+"+%d more" = "+%d plis";
+
+/* Accessibility */
+"Today, %@" = "Jodi a, %@";
+

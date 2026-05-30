@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 12/01/25.
+*/
+
+/* General */
+"Calendar" = "Takvim";
+"Settings" = "Ayarlar";
+"Done" = "Bitti";
+"Cancel" = "İptal";
+"Save" = "Kaydet";
+"Close" = "Kapat";
+"None" = "Hiçbiri";
+"Today" = "Bugün";
+"Version" = "Sürüm";
+
+/* Permission Primer */
+"Calendar Access" = "Takvim Erişimi";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play, programınızı görüntülemek ve etkinlikleri doğrudan uygulamadan yönetmenize yardımcı olmak için takviminize erişime ihtiyaç duyar.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "Gizliliğinize saygı duyuyoruz ve bu erişimi yalnızca takvim etkinliklerinizi göstermek ve düzenlemek için kullanıyoruz.";
+"Allow Access" = "Erişime İzin Ver";
+"Not Now" = "Şimdi Değil";
+"Allow Calendar Access" = "Takvim Erişimine İzin Ver";
+"Prompts the system dialog to grant calendar permissions." = "Takvim izinlerini vermek için sistem iletişim kutusunu ister.";
+"Dismisses this screen without granting permission." = "İzin vermeden bu ekranı kapatır.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Takvim Entegrasyonu";
+"Holiday Display" = "Tatil Gösterimi";
+"Holiday Categories" = "Tatil Kategorileri";
+"Appearance" = "Görünüm";
+"Theme" = "Tema";
+"About" = "Hakkında";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Sistem Takvimi";
+"Sync with macOS Calendar" = "macOS Takvimi ile Senkronize Et";
+"Sync System Calendar" = "Sistem Takvimini Senkronize Et";
+"Google Calendar" = "Google Takvim";
+"Connect your Google Calendar" = "Google Takviminizi Bağlayın";
+"Signed in as %@" = "%@ olarak giriş yapıldı";
+"Sync Google Calendar" = "Google Takvimini Senkronize Et";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Tatilleri Göster";
+"Display holidays on the calendar with educational information" = "Tatilleri takvimde eğitici bilgilerle göster";
+"Enabled - Display holidays on the calendar" = "Etkin - Tatilleri takvimde göster";
+"Disabled - Hide holidays on the calendar" = "Devre Dışı - Tatilleri takvimde gizle";
+"Monthly Themes" = "Aylık Temalar";
+"Use different colors for each month to help understand calendar concepts" = "Takvim kavramlarını anlamaya yardımcı olmak için her ay farklı renkler kullanın";
+"Enabled - Theme changes automatically each month" = "Etkin - Tema her ay otomatik olarak değişir";
+"Disabled - Use a fixed theme" = "Devre Dışı - Sabit bir tema kullan";
+"Automatic Backgrounds" = "Otomatik Arka Planlar";
+"Automatically set a beautiful background image from Unsplash" = "Unsplash'tan otomatik olarak güzel bir arka plan resmi ayarla";
+"Holiday Guide" = "Tatil Rehberi";
+"Learn about holidays and their meanings (Coming Soon)" = "Tatiller ve anlamları hakkında bilgi edinin (Yakında)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Gün Numarası Boyutu";
+"Adjust the size of day numbers in the calendar" = "Takvimdeki gün numaralarının boyutunu ayarlayın";
+"Monthly Theme" = "Aylık Tema";
+"Theme changes automatically each month" = "Tema her ay otomatik olarak değişir";
+"Use a fixed theme" = "Sabit bir tema kullan";
+"Border Contrast" = "Kenarlık Kontrastı";
+"Adjust the contrast of day square borders" = "Gün karesi kenarlıklarının kontrastını ayarlayın";
+"Weekend Tinting" = "Hafta Sonu Renklendirme";
+"Enabled - Weekends are visually distinguished" = "Etkin - Hafta sonları görsel olarak ayırt edilir";
+"Disabled - All days look the same" = "Devre Dışı - Tüm günler aynı görünür";
+"Color Theme" = "Renk Teması";
+"Choose your preferred color scheme" = "Tercih ettiğiniz renk şemasını seçin";
+"Go to Today" = "Bugüne Git";
+"Move the selected date to today" = "Seçilen tarihi bugüne taşı";
+
+/* Settings - About */
+"About the App" = "Uygulama Hakkında";
+"Why I built this calendar" = "Bu takvimi neden yaptım";
+
+/* Event Creation */
+"New Event" = "Yeni Etkinlik";
+"Event Details" = "Etkinlik Detayları";
+"Title" = "Başlık";
+"All Day" = "Tüm Gün";
+"Event will use current date and time" = "Etkinlik geçerli tarih ve saati kullanacak";
+"Start Time" = "Başlangıç Saati";
+"End Time" = "Bitiş Saati";
+"Date" = "Tarih";
+"Additional Information" = "Ek Bilgiler";
+"Location" = "Konum";
+"Notes" = "Notlar";
+"Invitees" = "Davetliler";
+"Email addresses (comma separated)" = "E-posta adresleri (virgülle ayrılmış)";
+"Image" = "Resim";
+"Event Image" = "Etkinlik Resmi";
+"Image selected" = "Resim seçildi";
+"Double tap to choose an image" = "Resim seçmek için çift dokunun";
+"Location Map" = "Konum Haritası";
+"Repeat" = "Tekrarla";
+"Double tap to set recurrence" = "Tekrarlamayı ayarlamak için çift dokunun";
+"Reminder" = "Hatırlatıcı";
+"Double tap to set reminder" = "Hatırlatıcı ayarlamak için çift dokunun";
+"Repeat Event" = "Etkinliği Tekrarla";
+"Repeat Every" = "Her ... Tekrarla";
+"Frequency" = "Sıklık";
+"Day" = "Gün";
+"Week" = "Hafta";
+"Month" = "Ay";
+"Year" = "Yıl";
+"Every %d %@" = "Her %d %@";
+"End Repeat" = "Tekrarlamayı Bitir";
+"Never" = "Asla";
+"After 30 occurrences" = "30 tekrardan sonra";
+"End Date" = "Bitiş Tarihi";
+"Set Reminder" = "Hatırlatıcı Ayarla";
+"At time of event" = "Etkinlik saatinde";
+"%d minutes before" = "%d dakika önce";
+"1 hour before" = "1 saat önce";
+"%d hours before" = "%d saat önce";
+"1 day before" = "1 gün önce";
+"Invited: %@" = "Davet edildi: %@";
+
+/* Day View */
+"%d holiday" = "%d tatil";
+"%d holidays" = "%d tatil";
+"%d event" = "%d etkinlik";
+"%d events" = "%d etkinlik";
+"No events" = "Etkinlik yok";
+"Double tap to view details" = "Detayları görmek için çift dokunun";
+"+%d more" = "+%d daha";
+
+/* Accessibility */
+"Today, %@" = "Bugün, %@";

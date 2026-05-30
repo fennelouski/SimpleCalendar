@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 12/01/25.
+*/
+
+/* General */
+"Calendar" = "التقويم";
+"Settings" = "الإعدادات";
+"Done" = "تم";
+"Cancel" = "إلغاء";
+"Save" = "حفظ";
+"Close" = "إغلاق";
+"None" = "لا شيء";
+"Today" = "اليوم";
+"Version" = "الإصدار";
+
+/* Permission Primer */
+"Calendar Access" = "الوصول إلى التقويم";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "يحتاج Calendar Play إلى الوصول إلى التقويم الخاص بك لعرض جدولك ومساعدتك في إدارة الأحداث مباشرة من التطبيق.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "نحن نحترم خصوصيتك ونستخدم هذا الوصول فقط لعرض وتعديل أحداث التقويم الخاصة بك.";
+"Allow Access" = "السماح بالوصول";
+"Not Now" = "ليس الآن";
+"Allow Calendar Access" = "السماح بالوصول إلى التقويم";
+"Prompts the system dialog to grant calendar permissions." = "يطالب بمربع حوار النظام لمنح أذونات التقويم.";
+"Dismisses this screen without granting permission." = "يرفض هذه الشاشة دون منح الإذن.";
+
+/* Settings - Headers */
+"Calendar Integration" = "تكامل التقويم";
+"Holiday Display" = "عرض العطلات";
+"Holiday Categories" = "فئات العطلات";
+"Appearance" = "المظهر";
+"Theme" = "السمة";
+"About" = "حول";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "تقويم النظام";
+"Sync with macOS Calendar" = "المزامن مع تقويم macOS";
+"Sync System Calendar" = "مزامنة تقويم النظام";
+"Google Calendar" = "تقويم Google";
+"Connect your Google Calendar" = "ربط تقويم Google الخاص بك";
+"Signed in as %@" = "تم تسجيل الدخول باسم %@";
+"Sync Google Calendar" = "مزامنة تقويم Google";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "إظهار العطلات";
+"Display holidays on the calendar with educational information" = "عرض العطلات على التقويم مع معلومات تعليمية";
+"Enabled - Display holidays on the calendar" = "مفعل - عرض العطلات على التقويم";
+"Disabled - Hide holidays on the calendar" = "معطل - إخفاء العطلات على التقويم";
+"Monthly Themes" = "السمات الشهرية";
+"Use different colors for each month to help understand calendar concepts" = "استخدم ألوانًا مختلفة لكل شهر للمساعدة في فهم مفاهيم التقويم";
+"Enabled - Theme changes automatically each month" = "مفعل - تتغير السمة تلقائيًا كل شهر";
+"Disabled - Use a fixed theme" = "معطل - استخدام سمة ثابتة";
+"Automatic Backgrounds" = "خلفيات تلقائية";
+"Automatically set a beautiful background image from Unsplash" = "تعيين صورة خلفية جميلة تلقائيًا من Unsplash";
+"Holiday Guide" = "دليل العطلات";
+"Learn about holidays and their meanings (Coming Soon)" = "تعرف على العطلات ومعانيها (قريبًا)";
+
+/* Settings - Appearance */
+"Day Number Size" = "حجم رقم اليوم";
+"Adjust the size of day numbers in the calendar" = "ضبط حجم أرقام الأيام في التقويم";
+"Monthly Theme" = "السمة الشهرية";
+"Theme changes automatically each month" = "تتغير السمة تلقائيًا كل شهر";
+"Use a fixed theme" = "استخدام سمة ثابتة";
+"Border Contrast" = "تباين الحدود";
+"Adjust the contrast of day square borders" = "ضبط تباين حدود مربع اليوم";
+"Weekend Tinting" = "تلوين عطلة نهاية الأسبوع";
+"Enabled - Weekends are visually distinguished" = "مفعل - يتم تمييز عطلات نهاية الأسبوع بصريًا";
+"Disabled - All days look the same" = "معطل - تبدو جميع الأيام متشابهة";
+"Color Theme" = "سمة اللون";
+"Choose your preferred color scheme" = "اختر نظام الألوان المفضل لديك";
+"Go to Today" = "الذهاب إلى اليوم";
+"Move the selected date to today" = "نقل التاريخ المحدد إلى اليوم";
+
+/* Settings - About */
+"About the App" = "حول التطبيق";
+"Why I built this calendar" = "لماذا قمت ببناء هذا التقويم";
+
+/* Event Creation */
+"New Event" = "حدث جديد";
+"Event Details" = "تفاصيل الحدث";
+"Title" = "العنوان";
+"All Day" = "طوال اليوم";
+"Event will use current date and time" = "سيستخدم الحدث التاريخ والوقت الحاليين";
+"Start Time" = "وقت البدء";
+"End Time" = "وقت الانتهاء";
+"Date" = "التاريخ";
+"Additional Information" = "معلومات إضافية";
+"Location" = "الموقع";
+"Notes" = "ملاحظات";
+"Invitees" = "المدعوين";
+"Email addresses (comma separated)" = "عناوين البريد الإلكتروني (مفصولة بفواصل)";
+"Image" = "صورة";
+"Event Image" = "صورة الحدث";
+"Image selected" = "تم تحديد الصورة";
+"Double tap to choose an image" = "انقر نقرًا مزدوجًا لاختيار صورة";
+"Location Map" = "خريطة الموقع";
+"Repeat" = "تكرار";
+"Double tap to set recurrence" = "انقر نقرًا مزدوجًا لتعيين التكرار";
+"Reminder" = "تذكير";
+"Double tap to set reminder" = "انقر نقرًا مزدوجًا لتعيين تذكير";
+"Repeat Event" = "تكرار الحدث";
+"Repeat Every" = "تكرار كل";
+"Frequency" = "التكرار";
+"Day" = "يوم";
+"Week" = "أسبوع";
+"Month" = "شهر";
+"Year" = "سنة";
+"Every %d %@" = "كل %d %@";
+"End Repeat" = "إنهاء التكرار";
+"Never" = "أبدًا";
+"After 30 occurrences" = "بعد 30 تكرارًا";
+"End Date" = "تاريخ الانتهاء";
+"Set Reminder" = "تعيين تذكير";
+"At time of event" = "في وقت الحدث";
+"%d minutes before" = "قبل %d دقيقة";
+"1 hour before" = "قبل ساعة واحدة";
+"%d hours before" = "قبل %d ساعات";
+"1 day before" = "قبل يوم واحد";
+"Invited: %@" = "مدعو: %@";
+
+/* Day View */
+"%d holiday" = "%d عطلة";
+"%d holidays" = "%d عطلات";
+"%d event" = "%d حدث";
+"%d events" = "%d أحداث";
+"No events" = "لا توجد أحداث";
+"Double tap to view details" = "انقر نقرًا مزدوجًا لعرض التفاصيل";
+"+%d more" = "+%d المزيد";
+
+/* Accessibility */
+"Today, %@" = "اليوم، %@";

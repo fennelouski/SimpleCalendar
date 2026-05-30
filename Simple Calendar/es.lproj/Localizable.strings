@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 11/30/25.
+*/
+
+/* General */
+"Calendar" = "Calendario";
+"Settings" = "Configuración";
+"Done" = "Listo";
+"Cancel" = "Cancelar";
+"Save" = "Guardar";
+"Close" = "Cerrar";
+"None" = "Ninguno";
+"Today" = "Hoy";
+"Version" = "Versión";
+
+/* Permission Primer */
+"Calendar Access" = "Acceso al Calendario";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play necesita acceso a tu calendario para mostrar tu horario y ayudarte a gestionar eventos directamente desde la aplicación.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "Respetamos tu privacidad y solo usamos este acceso para mostrar y editar tus eventos del calendario.";
+"Allow Access" = "Permitir Acceso";
+"Not Now" = "Ahora No";
+"Allow Calendar Access" = "Permitir Acceso al Calendario";
+"Prompts the system dialog to grant calendar permissions." = "Muestra el diálogo del sistema para otorgar permisos de calendario.";
+"Dismisses this screen without granting permission." = "Cierra esta pantalla sin otorgar permiso.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Integración del Calendario";
+"Holiday Display" = "Visualización de Festivos";
+"Holiday Categories" = "Categorías de Festivos";
+"Appearance" = "Apariencia";
+"Theme" = "Tema";
+"About" = "Acerca de";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Calendario del Sistema";
+"Sync with macOS Calendar" = "Sincronizar con Calendario de macOS";
+"Sync System Calendar" = "Sincronizar Calendario del Sistema";
+"Google Calendar" = "Google Calendar";
+"Connect your Google Calendar" = "Conecta tu Google Calendar";
+"Signed in as %@" = "Iniciado sesión como %@";
+"Sync Google Calendar" = "Sincronizar Google Calendar";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Mostrar Festivos";
+"Display holidays on the calendar with educational information" = "Mostrar festivos en el calendario con información educativa";
+"Enabled - Display holidays on the calendar" = "Habilitado - Mostrar festivos en el calendario";
+"Disabled - Hide holidays on the calendar" = "Deshabilitado - Ocultar festivos en el calendario";
+"Monthly Themes" = "Temas Mensuales";
+"Use different colors for each month to help understand calendar concepts" = "Usar colores diferentes para cada mes para ayudar a entender conceptos del calendario";
+"Enabled - Theme changes automatically each month" = "Habilitado - El tema cambia automáticamente cada mes";
+"Disabled - Use a fixed theme" = "Deshabilitado - Usar un tema fijo";
+"Automatic Backgrounds" = "Fondos Automáticos";
+"Automatically set a beautiful background image from Unsplash" = "Establecer automáticamente una hermosa imagen de fondo de Unsplash";
+"Holiday Guide" = "Guía de Festivos";
+"Learn about holidays and their meanings (Coming Soon)" = "Aprende sobre los festivos y sus significados (Próximamente)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Tamaño del Número del Día";
+"Adjust the size of day numbers in the calendar" = "Ajustar el tamaño de los números de los días en el calendario";
+"Monthly Theme" = "Tema Mensual";
+"Theme changes automatically each month" = "El tema cambia automáticamente cada mes";
+"Use a fixed theme" = "Usar un tema fijo";
+"Border Contrast" = "Contraste del Borde";
+"Adjust the contrast of day square borders" = "Ajustar el contraste de los bordes de los cuadros de día";
+"Weekend Tinting" = "Tintado de Fin de Semana";
+"Enabled - Weekends are visually distinguished" = "Habilitado - Los fines de semana se distinguen visualmente";
+"Disabled - All days look the same" = "Deshabilitado - Todos los días se ven igual";
+"Color Theme" = "Tema de Color";
+"Choose your preferred color scheme" = "Elige tu esquema de color preferido";
+"Go to Today" = "Ir a Hoy";
+"Move the selected date to today" = "Mover la fecha seleccionada a hoy";
+
+/* Settings - About */
+"About the App" = "Acerca de la Aplicación";
+"Why I built this calendar" = "Por qué construí este calendario";
+
+/* Event Creation */
+"New Event" = "Nuevo Evento";
+"Event Details" = "Detalles del Evento";
+"Title" = "Título";
+"All Day" = "Todo el Día";
+"Event will use current date and time" = "El evento usará la fecha y hora actual";
+"Start Time" = "Hora de Inicio";
+"End Time" = "Hora de Finalización";
+"Date" = "Fecha";
+"Additional Information" = "Información Adicional";
+"Location" = "Ubicación";
+"Notes" = "Notas";
+"Invitees" = "Invitados";
+"Email addresses (comma separated)" = "Direcciones de correo (separadas por comas)";
+"Image" = "Imagen";
+"Event Image" = "Imagen del Evento";
+"Image selected" = "Imagen seleccionada";
+"Double tap to choose an image" = "Doble toque para elegir una imagen";
+"Location Map" = "Mapa de Ubicación";
+"Repeat" = "Repetir";
+"Double tap to set recurrence" = "Doble toque para establecer recurrencia";
+"Reminder" = "Recordatorio";
+"Double tap to set reminder" = "Doble toque para establecer recordatorio";
+"Repeat Event" = "Repetir Evento";
+"Repeat Every" = "Repetir Cada";
+"Frequency" = "Frecuencia";
+"Day" = "Día";
+"Week" = "Semana";
+"Month" = "Mes";
+"Year" = "Año";
+"Every %d %@" = "Cada %d %@";
+"End Repeat" = "Terminar Repetición";
+"Never" = "Nunca";
+"After 30 occurrences" = "Después de 30 ocurrencias";
+"End Date" = "Fecha Final";
+"Set Reminder" = "Establecer Recordatorio";
+"At time of event" = "A la hora del evento";
+"%d minutes before" = "%d minutos antes";
+"1 hour before" = "1 hora antes";
+"%d hours before" = "%d horas antes";
+"1 day before" = "1 día antes";
+"Invited: %@" = "Invitado: %@";
+
+/* Day View */
+"%d holiday" = "%d festivo";
+"%d holidays" = "%d festivos";
+"%d event" = "%d evento";
+"%d events" = "%d eventos";
+"No events" = "Sin eventos";
+"Double tap to view details" = "Doble toque para ver detalles";
+"+%d more" = "+%d más";
+
+/* Accessibility */
+"Today, %@" = "Hoy, %@";

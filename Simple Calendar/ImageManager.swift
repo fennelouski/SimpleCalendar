@@ -16,7 +16,17 @@ class ImageManager {
     private let unsplashAPI = UnsplashAPI.shared
     private let requestQueueManager = RequestQueueManager.shared
 
-    private init() {}
+    private init() {
+        // Set up periodic cleanup
+        setupPeriodicCleanup()
+    }
+
+    private func setupPeriodicCleanup() {
+        Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { [weak self] _ in
+            self?.imageRepository.clearExpiredImages()
+            self?.imageRepository.limitCacheSize()
+        }
+    }
 
     func getImageForEvent(_ event: CalendarEvent, completion: @escaping (String?) -> Void) {
         // Check if event already has an image URL (legacy support)

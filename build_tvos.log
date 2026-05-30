@@ -1,0 +1,698 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project "Simple Calendar.xcodeproj" -scheme "Simple Calendar" -destination "platform=tvOS Simulator,name=Apple TV" clean build
+
+2025-12-03 08:07:01.354 xcodebuild[68385:120454891] [MT] IDERunDestination: Supported platforms for the buildables in the current scheme is empty.
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+** CLEAN SUCCEEDED **
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'Simple Calendar' in project 'Simple Calendar' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator26.1.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: 9a552eda76bdf7ec196117bd346f641d
+Build description path: /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/XCBuildData/9a552eda76bdf7ec196117bd346f641d.xcbuilddata
+CreateBuildDirectory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar.xcodeproj
+    builtin-create-build-directory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex
+
+CreateBuildDirectory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar.xcodeproj
+    builtin-create-build-directory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products
+
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator26.1.sdk /Users/nathanfennel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/appletvsimulator26.1-23J576-e98bea4a630767aaf7e0488225fccbf6.sdkstatcache
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator26.1.sdk -o /Users/nathanfennel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/appletvsimulator26.1-23J576-e98bea4a630767aaf7e0488225fccbf6.sdkstatcache
+
+CreateBuildDirectory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/ExplicitPrecompiledModules
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar.xcodeproj
+    builtin-create-build-directory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/ExplicitPrecompiledModules
+
+CreateBuildDirectory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar.xcodeproj
+    builtin-create-build-directory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar-1addfdc1819bc74bf96bf5a7c6d2f202-VFS-appletvsimulator/all-product-headers.yaml
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar.xcodeproj
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar-1addfdc1819bc74bf96bf5a7c6d2f202-VFS-appletvsimulator/all-product-headers.yaml
+
+CreateBuildDirectory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-appletvsimulator
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar.xcodeproj
+    builtin-create-build-directory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-appletvsimulator
+
+CreateBuildDirectory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar.xcodeproj
+    builtin-create-build-directory /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-own-target-headers.hmap (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-generated-files.hmap (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-generated-files.hmap
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.hmap (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.hmap
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-all-target-headers.hmap (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-all-non-framework-target-headers.hmap (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-DebugDylibPath-normal-arm64.txt (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-DebugDylibPath-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-project-headers.hmap (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-project-headers.hmap
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.DependencyStaticMetadataFileList (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.DependencyMetadataFileList (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-DebugDylibInstallName-normal-arm64.txt (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-DebugDylibInstallName-normal-arm64.txt
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar_const_extract_protocols.json (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.SwiftFileList (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.SwiftFileList
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.SwiftConstValuesFileList (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.LinkFileList (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.LinkFileList
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar-OutputFileMap.json (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/Entitlements-Simulated.plist (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    write-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/Entitlements-Simulated.plist
+
+MkDir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /bin/mkdir -p /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app
+
+ProcessProductPackaging "" /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.app-Simulated.xcent (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+    Entitlements:
+    
+    {
+    "application-identifier" = "EJLR2RPSV2.com.nathanfennel.Simple-Calendar";
+}
+    
+    builtin-productPackagingUtility -entitlements -format xml -o /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.app-Simulated.xcent
+
+ProcessProductPackagingDER /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.app-Simulated.xcent /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.app-Simulated.xcent.der (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /usr/bin/derq query -f xml -i /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.app-Simulated.xcent -o /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.app-Simulated.xcent.der --raw
+
+Ld /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/__preview.dylib normal (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-tvos26.1-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator26.1.sdk -O0 -L/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -F/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -install_name @rpath/Simple\ Calendar.debug.dylib -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar_dependency_info.dat -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.app-Simulated.xcent.der -Xlinker -no_adhoc_codesign -o /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/__preview.dylib
+
+MkDir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_output/thinned (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /bin/mkdir -p /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_output/thinned
+
+MkDir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_output/unthinned (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /bin/mkdir -p /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_output/unthinned
+
+GenerateAssetSymbols /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Assets.xcassets (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Assets.xcassets --compile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_dependencies --output-partial-info-plist /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_generated_info.plist --app-icon tvOS\ Assets --include-all-app-icons --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --development-region en --leaderboard-identifier-prefix Simple_Calendar.game-center.leaderboard. --leaderboard-set-identifier-prefix Simple_Calendar.game-center.leaderboard-set. --target-device tv --minimum-deployment-target 26.1 --platform appletvsimulator --bundle-identifier com.nathanfennel.Simple-Calendar --generate-swift-asset-symbols /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple Calendar.build/Debug-appletvsimulator/Simple Calendar.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple Calendar.build/Debug-appletvsimulator/Simple Calendar.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple Calendar.build/Debug-appletvsimulator/Simple Calendar.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+CpResource /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/SettingsView.swift.backup /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/SettingsView.swift.backup (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/SettingsView.swift.backup /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/zh-Hans.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/zh-Hans.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/zh-Hans.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/zh-Hans.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/zh-Hans.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/vi.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/vi.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/vi.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/vi.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/vi.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/uk.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/uk.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/uk.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/uk.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/uk.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/tr.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/tr.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/tr.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/tr.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/tr.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/tl.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/tl.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/tl.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/tl.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/tl.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/ru.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ru.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/ru.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ru.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/ru.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/pt.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/pt.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/pt.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/pt.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/pt.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/pl.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/pl.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/pl.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/pl.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/pl.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/nl.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/nl.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/nl.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/nl.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/nl.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/ko.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ko.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/ko.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ko.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/ko.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/it.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/it.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/it.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/it.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/it.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/ht.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ht.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/ht.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ht.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/ht.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/fr.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/fr.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/fr.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/fr.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/fr.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/de.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/de.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/de.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/de.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/de.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/ar.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ar.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/ar.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ar.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/ar.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/es.lproj/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/es.lproj/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/es.lproj -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/es.lproj/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/es.lproj/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyStringsFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Localizable.strings /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Localizable.strings (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyStrings --validate --outputencoding binary --outfilename Localizable.strings --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Localizable.strings
+/Users/nathanfennel/Library/Mobile Documents/com~apple~CloudDocs/Xcode Projects/Simple Calendar/Simple Calendar/Localizable.strings:1:1: note: detected encoding of input file as Unicode (UTF-8) (in target 'Simple Calendar' from project 'Simple Calendar')
+
+CopyPlistFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Info.tvOS.plist /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Info.tvOS.plist (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copyPlist --convert binary1 --outdir /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app -- /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Info.tvOS.plist
+
+CompileAssetCatalogVariant thinned /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Assets.xcassets (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Assets.xcassets --compile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_generated_info.plist_thinned --app-icon tvOS\ Assets --include-all-app-icons --accent-color AccentColor --compress-pngs --enable-on-demand-resources YES --filter-for-thinning-device-configuration AppleTV5,3 --filter-for-device-os-version 26.1 --development-region en --leaderboard-identifier-prefix Simple_Calendar.game-center.leaderboard. --leaderboard-set-identifier-prefix Simple_Calendar.game-center.leaderboard-set. --target-device tv --minimum-deployment-target 26.1 --platform appletvsimulator
+/* com.apple.actool.compilation-results */
+/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple Calendar.build/Debug-appletvsimulator/Simple Calendar.build/assetcatalog_generated_info.plist_thinned
+/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple Calendar.build/Debug-appletvsimulator/Simple Calendar.build/assetcatalog_output/thinned/Assets.car
+
+
+SwiftDriver Simple\ Calendar normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Simple_Calendar -Onone -enforce-exclusivity\=checked @/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator26.1.sdk -target arm64-apple-tvos26.1-simulator -g -module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -F /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -emit-localized-strings -emit-localized-strings-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64 -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/appletvsimulator26.1-23J576-e98bea4a630767aaf7e0488225fccbf6.sdkstatcache -output-file-map /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar_const_extract_protocols.json -Xcc -iquote -Xcc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-generated-files.hmap -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-own-target-headers.hmap -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-all-target-headers.hmap -Xcc -iquote -Xcc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-project-headers.hmap -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/include -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources-normal/arm64 -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/arm64 -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar-Swift.h -working-directory /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal arm64 Compiling\ EventIconManager.swift,\ EventMapView.swift,\ EventTemplates.swift,\ EventTemplateSelector.swift,\ FeatureFlags.swift,\ GoogleCalendarAPI.swift,\ GoogleOAuthManager.swift,\ HelpView.swift,\ Holiday.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventIconManager.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventMapView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventTemplates.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventTemplateSelector.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/FeatureFlags.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/GoogleCalendarAPI.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/GoogleOAuthManager.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/HelpView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Holiday.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventIconManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventMapView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventTemplates.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventTemplateSelector.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/FeatureFlags.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/GoogleCalendarAPI.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/GoogleOAuthManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/HelpView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Holiday.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 Compiling\ AgendaView.swift,\ AnimationAlphaSettings.swift,\ AstronomicalInfoSectionTV.swift,\ BrowserSelectionView.swift,\ CalendarGradientBackground.swift,\ CalendarViewModel.swift,\ Color+Extension.swift,\ ColorPalette.swift,\ ColorTheme.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/AgendaView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/AnimationAlphaSettings.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/AstronomicalInfoSectionTV.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/BrowserSelectionView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/CalendarGradientBackground.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/CalendarViewModel.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Color+Extension.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ColorPalette.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ColorTheme.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/AgendaView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/AnimationAlphaSettings.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/AstronomicalInfoSectionTV.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/BrowserSelectionView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/CalendarGradientBackground.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/CalendarViewModel.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Color+Extension.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ColorPalette.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ColorTheme.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 Compiling\ KeyCommandRow.swift,\ KeyCommandsView.swift,\ LocationApproximator.swift,\ MonthAnimations.swift,\ MonthBackgroundAnimationView.swift,\ MonthlyThemeManager.swift,\ MonthMiniView.swift,\ OnThisDayCategoryView.swift,\ OnThisDayModels.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/KeyCommandRow.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/KeyCommandsView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/LocationApproximator.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/MonthAnimations.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/MonthBackgroundAnimationView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/MonthlyThemeManager.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/MonthMiniView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/OnThisDayCategoryView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/OnThisDayModels.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/KeyCommandRow.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/KeyCommandsView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/LocationApproximator.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/MonthAnimations.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/MonthBackgroundAnimationView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/MonthlyThemeManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/MonthMiniView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/OnThisDayCategoryView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/OnThisDayModels.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftEmitModule normal arm64 Emitting\ module\ for\ Simple_Calendar (in target 'Simple Calendar' from project 'Simple Calendar')
+
+EmitSwiftModule normal arm64 (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 Compiling\ OnThisDaySection.swift,\ OnThisDayService.swift,\ PermissionPrimerView.swift,\ PlatformTypes.swift,\ QuickAddView.swift,\ RequestQueueManager.swift,\ ScrollViewWithFade.swift,\ SearchResultRow.swift,\ SearchView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/OnThisDaySection.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/OnThisDayService.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/PermissionPrimerView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/PlatformTypes.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/QuickAddView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/RequestQueueManager.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ScrollViewWithFade.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/SearchResultRow.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/SearchView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/OnThisDaySection.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/OnThisDayService.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/PermissionPrimerView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/PlatformTypes.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/QuickAddView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/RequestQueueManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ScrollViewWithFade.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/SearchResultRow.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/SearchView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 Compiling\ HolidayCategoryManager.swift,\ HolidayDetailView.swift,\ HolidayImageManager.swift,\ HolidayManager.swift,\ ImageManager.swift,\ ImageRepository.swift,\ ImageSelectionView.swift,\ Item.swift,\ KeyboardShortcuts.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/HolidayCategoryManager.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/HolidayDetailView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/HolidayImageManager.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/HolidayManager.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ImageManager.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ImageRepository.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ImageSelectionView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Item.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/KeyboardShortcuts.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/HolidayCategoryManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/HolidayDetailView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/HolidayImageManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/HolidayManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ImageManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ImageRepository.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ImageSelectionView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Item.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/KeyboardShortcuts.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 Compiling\ TVEventManagementView.swift,\ UIConfiguration.swift,\ UnsplashAPI.swift,\ URLTextView.swift,\ ViewModeSelectorView.swift,\ WeatherDisplayState.swift,\ WeatherManager.swift,\ GeneratedAssetSymbols.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/TVEventManagementView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/UIConfiguration.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/UnsplashAPI.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/URLTextView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ViewModeSelectorView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/WeatherDisplayState.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/WeatherManager.swift /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/TVEventManagementView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/UIConfiguration.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/UnsplashAPI.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/URLTextView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ViewModeSelectorView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/WeatherDisplayState.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/WeatherManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 Compiling\ SettingsView.swift,\ Simple_CalendarApp.swift,\ SmallWeatherIndicator.swift,\ StatusBarView.swift,\ String+Localized.swift,\ ThemeCardTV.swift,\ ThemeManager.swift,\ TVEventCreationView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/SettingsView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Simple_CalendarApp.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/SmallWeatherIndicator.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/StatusBarView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/String+Localized.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ThemeCardTV.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ThemeManager.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/TVEventCreationView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/SettingsView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Simple_CalendarApp.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/SmallWeatherIndicator.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/StatusBarView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/String+Localized.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ThemeCardTV.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ThemeManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/TVEventCreationView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftDriverJobDiscovery normal arm64 Emitting module for Simple_Calendar (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftDriver\ Compilation\ Requirements Simple\ Calendar normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-Swift-Compilation-Requirements -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Simple_Calendar -Onone -enforce-exclusivity\=checked @/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator26.1.sdk -target arm64-apple-tvos26.1-simulator -g -module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -F /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -emit-localized-strings -emit-localized-strings-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64 -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/appletvsimulator26.1-23J576-e98bea4a630767aaf7e0488225fccbf6.sdkstatcache -output-file-map /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar_const_extract_protocols.json -Xcc -iquote -Xcc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-generated-files.hmap -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-own-target-headers.hmap -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-all-target-headers.hmap -Xcc -iquote -Xcc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-project-headers.hmap -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/include -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources-normal/arm64 -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/arm64 -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar-Swift.h -working-directory /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar -experimental-emit-module-separately -disable-cmo
+
+SwiftDriverJobDiscovery normal arm64 Compiling OnThisDaySection.swift, OnThisDayService.swift, PermissionPrimerView.swift, PlatformTypes.swift, QuickAddView.swift, RequestQueueManager.swift, ScrollViewWithFade.swift, SearchResultRow.swift, SearchView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftCompile normal arm64 Compiling\ ContentView.swift,\ DayDetailSlideOut.swift,\ DayDetailView.swift,\ DaylightManager.swift,\ DaylightVisualizationView.swift,\ DayView.swift,\ EventCreationView.swift,\ EventDetailView.swift,\ EventExporter.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ContentView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/DayDetailSlideOut.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/DayDetailView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/DaylightManager.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/DaylightVisualizationView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/DayView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventCreationView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventDetailView.swift /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventExporter.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/ContentView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/DayDetailSlideOut.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/DayDetailView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/DaylightManager.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/DaylightVisualizationView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/DayView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventCreationView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventDetailView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftCompile normal arm64 /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/EventExporter.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+
+SwiftMergeGeneratedHeaders /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/Simple_Calendar-Swift.h /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar-Swift.h (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-swiftHeaderTool -arch arm64 /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar-Swift.h -o /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/Simple_Calendar-Swift.h
+
+SwiftDriverJobDiscovery normal arm64 Compiling HolidayCategoryManager.swift, HolidayDetailView.swift, HolidayImageManager.swift, HolidayManager.swift, ImageManager.swift, ImageRepository.swift, ImageSelectionView.swift, Item.swift, KeyboardShortcuts.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+Copy /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple_Calendar.swiftmodule/arm64-apple-tvos-simulator.swiftmodule /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.swiftmodule (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.swiftmodule /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple_Calendar.swiftmodule/arm64-apple-tvos-simulator.swiftmodule
+
+Copy /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple_Calendar.swiftmodule/arm64-apple-tvos-simulator.swiftdoc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.swiftdoc (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.swiftdoc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple_Calendar.swiftmodule/arm64-apple-tvos-simulator.swiftdoc
+
+Copy /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple_Calendar.swiftmodule/arm64-apple-tvos-simulator.abi.json /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.abi.json (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.abi.json /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple_Calendar.swiftmodule/arm64-apple-tvos-simulator.abi.json
+
+Copy /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple_Calendar.swiftmodule/Project/arm64-apple-tvos-simulator.swiftsourceinfo /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.swiftsourceinfo (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks -rename /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.swiftsourceinfo /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple_Calendar.swiftmodule/Project/arm64-apple-tvos-simulator.swiftsourceinfo
+
+SwiftDriverJobDiscovery normal arm64 Compiling EventIconManager.swift, EventMapView.swift, EventTemplates.swift, EventTemplateSelector.swift, FeatureFlags.swift, GoogleCalendarAPI.swift, GoogleOAuthManager.swift, HelpView.swift, Holiday.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftDriverJobDiscovery normal arm64 Compiling AgendaView.swift, AnimationAlphaSettings.swift, AstronomicalInfoSectionTV.swift, BrowserSelectionView.swift, CalendarGradientBackground.swift, CalendarViewModel.swift, Color+Extension.swift, ColorPalette.swift, ColorTheme.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftDriverJobDiscovery normal arm64 Compiling TVEventManagementView.swift, UIConfiguration.swift, UnsplashAPI.swift, URLTextView.swift, ViewModeSelectorView.swift, WeatherDisplayState.swift, WeatherManager.swift, GeneratedAssetSymbols.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftDriverJobDiscovery normal arm64 Compiling KeyCommandRow.swift, KeyCommandsView.swift, LocationApproximator.swift, MonthAnimations.swift, MonthBackgroundAnimationView.swift, MonthlyThemeManager.swift, MonthMiniView.swift, OnThisDayCategoryView.swift, OnThisDayModels.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+LinkAssetCatalog /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Assets.xcassets (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-linkAssetCatalog --thinned /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_output/thinned --thinned-dependencies /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_dependencies_thinned --thinned-info-plist-content /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_generated_info.plist_thinned --unthinned /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_output/unthinned --unthinned-dependencies /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_dependencies_unthinned --unthinned-info-plist-content /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_generated_info.plist_unthinned --output /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app --plist-output /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_generated_info.plist
+note: Emplaced /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple Calendar.app/Assets.car (in target 'Simple Calendar' from project 'Simple Calendar')
+
+ProcessInfoPlistFile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Info.plist /Users/nathanfennel/Library/Mobile\ Documents/com~apple~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Info.plist (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-infoPlistUtility /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar/Simple\ Calendar/Info.plist -producttype com.apple.product-type.application -genpkginfo /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/PkgInfo -expandbuildsettings -format binary -platform appletvsimulator -additionalcontentfile /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/assetcatalog_generated_info.plist -o /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Info.plist
+
+SwiftDriverJobDiscovery normal arm64 Compiling SettingsView.swift, Simple_CalendarApp.swift, SmallWeatherIndicator.swift, StatusBarView.swift, String+Localized.swift, ThemeCardTV.swift, ThemeManager.swift, TVEventCreationView.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftDriverJobDiscovery normal arm64 Compiling ContentView.swift, DayDetailSlideOut.swift, DayDetailView.swift, DaylightManager.swift, DaylightVisualizationView.swift, DayView.swift, EventCreationView.swift, EventDetailView.swift, EventExporter.swift (in target 'Simple Calendar' from project 'Simple Calendar')
+
+SwiftDriver\ Compilation Simple\ Calendar normal arm64 com.apple.xcode.tools.swift.compiler (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-Swift-Compilation -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name Simple_Calendar -Onone -enforce-exclusivity\=checked @/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.SwiftFileList -DDEBUG -default-isolation\=MainActor -enable-bare-slash-regex -enable-upcoming-feature DisableOutwardActorInference -enable-upcoming-feature InferSendableFromCaptures -enable-upcoming-feature GlobalActorIsolatedTypesUsability -enable-upcoming-feature MemberImportVisibility -enable-upcoming-feature InferIsolatedConformances -enable-upcoming-feature NonisolatedNonsendingByDefault -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator26.1.sdk -target arm64-apple-tvos26.1-simulator -g -module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -profile-coverage-mapping -profile-generate -enable-testing -index-store-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Index.noindex/DataStore -Xcc -D_LIBCPP_HARDENING_MODE\=_LIBCPP_HARDENING_MODE_DEBUG -swift-version 5 -I /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -F /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -emit-localized-strings -emit-localized-strings-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64 -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/appletvsimulator26.1-23J576-e98bea4a630767aaf7e0488225fccbf6.sdkstatcache -output-file-map /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -explicit-module-build -module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/SwiftExplicitPrecompiledModules -clang-scanner-module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -sdk-module-cache-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar_const_extract_protocols.json -Xcc -iquote -Xcc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-generated-files.hmap -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-own-target-headers.hmap -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-all-target-headers.hmap -Xcc -iquote -Xcc /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-project-headers.hmap -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/include -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources-normal/arm64 -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources/arm64 -Xcc -I/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar-Swift.h -working-directory /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar -experimental-emit-module-separately -disable-cmo
+
+Ld /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Simple\ Calendar.debug.dylib normal (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-tvos26.1-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator26.1.sdk -O0 -L/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-appletvsimulator -L/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -F/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-appletvsimulator -F/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -filelist /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.LinkFileList -install_name @rpath/Simple\ Calendar.debug.dylib -Xlinker -rpath -Xlinker @executable_path/Frameworks -dead_strip -Xlinker -object_path_lto -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar_lto.o -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -Xlinker -dependency_info -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar_dependency_info.dat -fobjc-link-runtime -fprofile-instr-generate -L/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/appletvsimulator -L/usr/lib/swift -Xlinker -add_ast_path -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar.swiftmodule @/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple_Calendar-linker-args.resp -Xlinker -alias -Xlinker _main -Xlinker ___debug_main_executable_dylib_entry_point -Xlinker -no_adhoc_codesign -o /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Simple\ Calendar.debug.dylib
+
+ConstructStubExecutorLinkFileList /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-ExecutorLinkFileList-normal-arm64.txt (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    construct-stub-executor-link-file-list /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Simple\ Calendar.debug.dylib /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor_no_swift_entry_point.a /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/usr/lib/libPreviewsJITStubExecutor.a --output /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-ExecutorLinkFileList-normal-arm64.txt
+note: Using stub executor library with Swift entry point. (in target 'Simple Calendar' from project 'Simple Calendar')
+
+Ld /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Simple\ Calendar normal (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target arm64-apple-tvos26.1-simulator -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator26.1.sdk -O0 -L/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -F/Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator -Xlinker -rpath -Xlinker @executable_path -Xlinker -rpath -Xlinker @executable_path/Frameworks -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -debug_variant -e ___debug_blank_executor_main -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_dylib -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-DebugDylibPath-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __debug_instlnm -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-DebugDylibInstallName-normal-arm64.txt -Xlinker -filelist -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar-ExecutorLinkFileList-normal-arm64.txt -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.app-Simulated.xcent.der /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Simple\ Calendar.debug.dylib -Xlinker -no_adhoc_codesign -o /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Simple\ Calendar
+
+CopySwiftLibs /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-swiftStdLibTool --copy --verbose --sign - --scan-executable /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Simple\ Calendar.debug.dylib --scan-folder /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Frameworks --scan-folder /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/PlugIns --scan-folder /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/SystemExtensions --scan-folder /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Extensions --platform appletvsimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os
+
+ExtractAppIntentsMetadata (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/appintentsmetadataprocessor --toolchain-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --module-name Simple_Calendar --sdk-root /Applications/Xcode.app/Contents/Developer/Platforms/AppleTVSimulator.platform/Developer/SDKs/AppleTVSimulator26.1.sdk --xcode-version 17B100 --platform-family tvOS --deployment-target 26.1 --bundle-identifier com.nathanfennel.Simple-Calendar --output /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app --target-triple arm64-apple-tvos26.1-simulator --binary-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Simple\ Calendar --dependency-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar_dependency_info.dat --stringsdata-file /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/ExtractedAppShortcutsMetadata.stringsdata --source-file-list /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.SwiftFileList --metadata-file-list /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.DependencyMetadataFileList --static-metadata-file-list /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Simple\ Calendar.DependencyStaticMetadataFileList --swift-const-vals-list /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Intermediates.noindex/Simple\ Calendar.build/Debug-appletvsimulator/Simple\ Calendar.build/Objects-normal/arm64/Simple\ Calendar.SwiftConstValuesFileList --compile-time-extraction --deployment-aware-processing --validate-assistant-intents --no-app-shortcuts-localization
+2025-12-03 08:07:14.559 appintentsmetadataprocessor[68514:120456080] Starting appintentsmetadataprocessor export
+2025-12-03 08:07:14.561 appintentsmetadataprocessor[68514:120456080] warning: Metadata extraction skipped. No AppIntents.framework dependency found.
+
+CodeSign /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Simple\ Calendar.debug.dylib (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/Simple\ Calendar.debug.dylib
+
+CodeSign /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/__preview.dylib (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app/__preview.dylib
+
+CodeSign /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    
+    Signing Identity:     "Sign to Run Locally"
+    
+    /usr/bin/codesign --force --sign - --timestamp\=none --generate-entitlement-der /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app
+
+RegisterExecutionPolicyException /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-RegisterExecutionPolicyException /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app
+
+Validate /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    builtin-validationUtility /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app -shallow-bundle -infoplist-subpath Info.plist
+
+Touch /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app (in target 'Simple Calendar' from project 'Simple Calendar')
+    cd /Users/nathanfennel/Library/Mobile\ Documents/com\~apple\~CloudDocs/Xcode\ Projects/Simple\ Calendar
+    /usr/bin/touch -c /Users/nathanfennel/Library/Developer/Xcode/DerivedData/Simple_Calendar-ebdbavblwrmkibcmogqvhaymdqdg/Build/Products/Debug-appletvsimulator/Simple\ Calendar.app
+
+note: Disabling hardened runtime with ad-hoc codesigning. (in target 'Simple Calendar' from project 'Simple Calendar')
+** BUILD SUCCEEDED **
+

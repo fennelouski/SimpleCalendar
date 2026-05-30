@@ -9,7 +9,10 @@ import Foundation
 import CoreLocation
 import Combine
 import MapKit
-#if canImport(WeatherKit)
+
+#if os(tvOS) || NO_WEATHERKIT
+// WeatherKit not available on tvOS
+#else
 import WeatherKit
 #endif
 
@@ -85,7 +88,7 @@ struct WeatherForecast: Codable {
 }
 
 // MARK: - Open-Meteo API Models
-private nonisolated(unsafe) struct OpenMeteoResponse: Codable {
+private nonisolated struct OpenMeteoResponse: Codable {
     let currentWeather: CurrentWeather?
     let daily: DailyData?
     let current: CurrentData?
@@ -97,7 +100,7 @@ private nonisolated(unsafe) struct OpenMeteoResponse: Codable {
     }
 }
 
-private nonisolated(unsafe) struct CurrentWeather: Codable {
+private nonisolated struct CurrentWeather: Codable {
     let temperature: Double
     let windspeed: Double
     let winddirection: Double
@@ -105,7 +108,7 @@ private nonisolated(unsafe) struct CurrentWeather: Codable {
     let time: String
 }
 
-private nonisolated(unsafe) struct CurrentData: Codable {
+private nonisolated struct CurrentData: Codable {
     let temperature2m: Double
     let relativeHumidity2m: Double
     let windspeed10m: Double
@@ -121,7 +124,7 @@ private nonisolated(unsafe) struct CurrentData: Codable {
     }
 }
 
-private nonisolated(unsafe) struct DailyData: Codable {
+private nonisolated struct DailyData: Codable {
     let time: [String]
     let temperature2mMax: [Double]
     let temperature2mMin: [Double]
@@ -145,6 +148,37 @@ private nonisolated func decodeOpenMeteoResponse(from data: Data) throws -> Open
     return try decoder.decode(OpenMeteoResponse.self, from: data)
 }
 
+#if os(tvOS) || NO_WEATHERKIT
+// MARK: - Stub Implementation for tvOS
+class WeatherManager: ObservableObject {
+    static let shared = WeatherManager()
+    
+    // Stub methods that do nothing for tvOS
+    func getWeatherForCoordinates(latitude: Double, longitude: Double, date: Date, completion: @escaping (WeatherInfo?) -> Void) {
+        completion(nil)
+    }
+    
+    func getWeatherForecastForCoordinates(latitude: Double, longitude: Double, completion: @escaping (WeatherForecast?) -> Void) {
+        completion(nil)
+    }
+    
+    func getWeatherForEvent(_ event: CalendarEvent, completion: @escaping (WeatherInfo?) -> Void) {
+        completion(nil)
+    }
+    
+    func getWeatherForCurrentLocation(date: Date = Date(), completion: @escaping (WeatherInfo?) -> Void) {
+        completion(nil)
+    }
+    
+    // Add other required stubs with empty implementations
+    private func setupWeatherKit() {}
+    private func requestAuthorization() {}
+    private func geocodeAddressString(_ address: String, completion: @escaping (CLLocationCoordinate2D?) -> Void) {
+        completion(nil)
+    }
+}
+#else
+// MARK: - Full Implementation for iOS/macOS
 class WeatherManager: ObservableObject {
     static let shared = WeatherManager()
 
@@ -1555,3 +1589,4 @@ class WeatherManager: ObservableObject {
         lastGeocodingRequestTime = nil
     }
 }
+#endif

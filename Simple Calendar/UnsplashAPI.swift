@@ -8,14 +8,14 @@
 import Foundation
 import SwiftUI
 
-struct UnsplashPhoto: Codable {
+nonisolated struct UnsplashPhoto: Codable {
     let id: String
     let urls: UnsplashUrls
     let user: UnsplashUser
     let links: UnsplashLinks
     let tags: [UnsplashTag]?
 
-    struct UnsplashUrls: Codable {
+    nonisolated struct UnsplashUrls: Codable {
         let raw: String
         let full: String
         let regular: String
@@ -23,25 +23,25 @@ struct UnsplashPhoto: Codable {
         let thumb: String
     }
 
-    struct UnsplashUser: Codable {
+    nonisolated struct UnsplashUser: Codable {
         let name: String
         let links: UnsplashUserLinks
 
-        struct UnsplashUserLinks: Codable {
+        nonisolated struct UnsplashUserLinks: Codable {
             let html: String
         }
     }
 
-    struct UnsplashLinks: Codable {
+    nonisolated struct UnsplashLinks: Codable {
         let download_location: String
     }
 
-    struct UnsplashTag: Codable {
+    nonisolated struct UnsplashTag: Codable {
         let title: String
     }
 }
 
-struct UnsplashSearchResponse: Codable {
+nonisolated struct UnsplashSearchResponse: Codable {
     let results: [UnsplashPhoto]
     let total: Int
     let total_pages: Int
@@ -50,23 +50,28 @@ struct UnsplashSearchResponse: Codable {
 class UnsplashAPI {
     static let shared = UnsplashAPI()
 
-    private let accessKey = "YOUR_UNSPLASH_ACCESS_KEY"
-    private let secretKey = "YOUR_UNSPLASH_SECRET_KEY"
-    private let baseURL = "https://api.unsplash.com"
+    // Backend endpoint - configure this for your deployment
+    private var backendBaseURL: String {
+        #if DEBUG
+        return "http://localhost:3001/api/unsplash"
+        #else
+        return "https://calendar-play-seven.vercel.app/api/unsplash"
+        #endif
+    }
 
     private init() {}
 
     func searchPhotos(query: String, page: Int = 1, perPage: Int = 10, completion: @escaping ([UnsplashPhoto]?) -> Void) {
-        guard var urlComponents = URLComponents(string: "\(baseURL)/search/photos") else {
+        guard var urlComponents = URLComponents(string: backendBaseURL) else {
             completion(nil)
             return
         }
 
         urlComponents.queryItems = [
+            URLQueryItem(name: "action", value: "search"),
             URLQueryItem(name: "query", value: query),
             URLQueryItem(name: "page", value: String(page)),
-            URLQueryItem(name: "per_page", value: String(perPage)),
-            URLQueryItem(name: "client_id", value: accessKey)
+            URLQueryItem(name: "per_page", value: String(perPage))
         ]
 
         guard let url = urlComponents.url else {
@@ -75,28 +80,56 @@ class UnsplashAPI {
         }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else {
+            // Check for network errors
+            if let error = error {
+                print("❌ Network error fetching photos: \(error.localizedDescription)")
+                print("   URL: \(url.absoluteString)")
+                completion(nil)
+                return
+            }
+            
+            // Check HTTP response status
+            if let httpResponse = response as? HTTPURLResponse {
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    print("❌ HTTP error fetching photos: Status \(httpResponse.statusCode)")
+                    print("   URL: \(url.absoluteString)")
+                    if let data = data, let errorMessage = String(data: data, encoding: .utf8) {
+                        print("   Response: \(errorMessage)")
+                    }
+                    completion(nil)
+                    return
+                }
+            }
+            
+            // Check for data
+            guard let data = data else {
+                print("❌ No data received from backend")
+                print("   URL: \(url.absoluteString)")
                 completion(nil)
                 return
             }
 
             do {
-                let searchResponse = try JSONDecoder().decode(UnsplashSearchResponse.self, from: data)
-                completion(searchResponse.results)
+                let photos = try JSONDecoder().decode([UnsplashPhoto].self, from: data)
+                completion(photos)
             } catch {
-                print("Error decoding Unsplash response: \(error)")
+                print("❌ Error decoding backend response: \(error)")
+                print("   URL: \(url.absoluteString)")
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("   Response data: \(responseString.prefix(200))")
+                }
                 completion(nil)
             }
         }.resume()
     }
 
     func getRandomPhoto(query: String? = nil, completion: @escaping (UnsplashPhoto?) -> Void) {
-        guard var urlComponents = URLComponents(string: "\(baseURL)/photos/random") else {
+        guard var urlComponents = URLComponents(string: backendBaseURL) else {
             completion(nil)
             return
         }
 
-        var queryItems = [URLQueryItem(name: "client_id", value: accessKey)]
+        var queryItems = [URLQueryItem(name: "action", value: "random")]
         if let query = query {
             queryItems.append(URLQueryItem(name: "query", value: query))
         }
@@ -109,16 +142,44 @@ class UnsplashAPI {
         }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else {
+            // Check for network errors
+            if let error = error {
+                print("❌ Network error fetching random photo: \(error.localizedDescription)")
+                print("   URL: \(url.absoluteString)")
+                completion(nil)
+                return
+            }
+            
+            // Check HTTP response status
+            if let httpResponse = response as? HTTPURLResponse {
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    print("❌ HTTP error fetching random photo: Status \(httpResponse.statusCode)")
+                    print("   URL: \(url.absoluteString)")
+                    if let data = data, let errorMessage = String(data: data, encoding: .utf8) {
+                        print("   Response: \(errorMessage)")
+                    }
+                    completion(nil)
+                    return
+                }
+            }
+            
+            // Check for data
+            guard let data = data else {
+                print("❌ No data received from backend")
+                print("   URL: \(url.absoluteString)")
                 completion(nil)
                 return
             }
 
             do {
-                let photo = try JSONDecoder().decode(UnsplashPhoto.self, from: data)
-                completion(photo)
+                let photos = try JSONDecoder().decode([UnsplashPhoto].self, from: data)
+                completion(photos.first)
             } catch {
-                print("Error decoding random Unsplash photo: \(error)")
+                print("❌ Error decoding random photo from backend: \(error)")
+                print("   URL: \(url.absoluteString)")
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("   Response data: \(responseString.prefix(200))")
+                }
                 completion(nil)
             }
         }.resume()
@@ -131,20 +192,66 @@ class UnsplashAPI {
         }
 
         URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else {
+            // Check for network errors
+            if let error = error {
+                print("❌ Network error downloading image: \(error.localizedDescription)")
+                print("   URL: \(urlString)")
                 completion(nil)
                 return
             }
+            
+            // Check HTTP response status
+            if let httpResponse = response as? HTTPURLResponse {
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    print("❌ HTTP error downloading image: Status \(httpResponse.statusCode)")
+                    print("   URL: \(urlString)")
+                    completion(nil)
+                    return
+                }
+            }
+            
+            // Return data if available
+            guard let data = data else {
+                print("❌ No image data received")
+                print("   URL: \(urlString)")
+                completion(nil)
+                return
+            }
+            
             completion(data)
         }.resume()
     }
 
     func trackDownload(for photoId: String) {
-        // Track the download as per Unsplash API guidelines
-        guard let downloadURL = URL(string: "https://api.unsplash.com/photos/\(photoId)/download?client_id=\(accessKey)") else {
+        // Track the download through our backend
+        guard let url = URL(string: backendBaseURL) else {
             return
         }
 
-        URLSession.shared.dataTask(with: downloadURL).resume()
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = ["action": "track_download", "photoId": photoId]
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+        } catch {
+            print("Error creating track download request: \(error)")
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("⚠️ Failed to track download: \(error.localizedDescription)")
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                guard (200...299).contains(httpResponse.statusCode) else {
+                    print("⚠️ Failed to track download: HTTP \(httpResponse.statusCode)")
+                    return
+                }
+            }
+        }.resume()
     }
 }

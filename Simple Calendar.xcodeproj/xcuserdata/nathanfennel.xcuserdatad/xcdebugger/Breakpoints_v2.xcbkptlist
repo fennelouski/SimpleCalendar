@@ -14,9 +14,9 @@
             filePath = "Simple Calendar/CalendarViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "213"
-            endingLineNumber = "213"
-            landmarkName = "navigateToNextMonth()"
+            startingLineNumber = "215"
+            endingLineNumber = "215"
+            landmarkName = "setupKeyboardShortcuts()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -30,9 +30,9 @@
             filePath = "Simple Calendar/CalendarViewModel.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "228"
-            endingLineNumber = "228"
-            landmarkName = "navigateToPreviousMonth()"
+            startingLineNumber = "230"
+            endingLineNumber = "230"
+            landmarkName = "navigateToNextMonth()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

@@ -1,0 +1,134 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 11/30/25.
+*/
+
+/* General */
+"Calendar" = "日曆";
+"Settings" = "設定";
+"Done" = "完成";
+"Cancel" = "取消";
+"Save" = "儲存";
+"Close" = "關閉";
+"None" = "無";
+"Today" = "今天";
+"Version" = "版本";
+
+/* Permission Primer */
+"Calendar Access" = "存取日曆";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play 需要存取您的日曆以顯示行程安排並協助您直接在應用程式中管理活動。";
+"We respect your privacy and only use this access to show and edit your calendar events." = "我們尊重您的隱私，僅使用此權限來顯示和編輯您的日曆活動。";
+"Allow Access" = "允許存取";
+"Not Now" = "稍後";
+"Allow Calendar Access" = "允許存取日曆";
+"Prompts the system dialog to grant calendar permissions." = "提示系統對話框以授予日曆權限。";
+"Dismisses this screen without granting permission." = "關閉此畫面而不授予權限。";
+
+/* Settings - Headers */
+"Calendar Integration" = "日曆整合";
+"Holiday Display" = "假期顯示";
+"Holiday Categories" = "假期類別";
+"Appearance" = "外觀";
+"Theme" = "主題";
+"About" = "關於";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "系統日曆";
+"Sync with macOS Calendar" = "與 macOS 日曆同步";
+"Sync System Calendar" = "同步系統日曆";
+"Google Calendar" = "Google 日曆";
+"Connect your Google Calendar" = "連接您的 Google 日曆";
+"Signed in as %@" = "已登入為 %@";
+"Sync Google Calendar" = "同步 Google 日曆";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "顯示假期";
+"Display holidays on the calendar with educational information" = "在日曆上顯示假期及教育資訊";
+"Enabled - Display holidays on the calendar" = "已啟用 - 在日曆上顯示假期";
+"Disabled - Hide holidays on the calendar" = "已停用 - 在日曆上隱藏假期";
+"Monthly Themes" = "每月主題";
+"Use different colors for each month to help understand calendar concepts" = "每個月使用不同的顏色以協助理解日曆概念";
+"Enabled - Theme changes automatically each month" = "已啟用 - 主題每月自動變更";
+"Disabled - Use a fixed theme" = "已停用 - 使用固定主題";
+"Automatic Backgrounds" = "自動背景";
+"Automatically set a beautiful background image from Unsplash" = "自動從 Unsplash 設定精美的背景圖片";
+"Holiday Guide" = "假期指南";
+"Learn about holidays and their meanings (Coming Soon)" = "瞭解假期及其意義（即將推出）";
+
+/* Settings - Appearance */
+"Day Number Size" = "日期數字大小";
+"Adjust the size of day numbers in the calendar" = "調整日曆中日期數字的大小";
+"Monthly Theme" = "每月主題";
+"Theme changes automatically each month" = "主題每月自動變更";
+"Use a fixed theme" = "使用固定主題";
+"Border Contrast" = "邊框對比度";
+"Adjust the contrast of day square borders" = "調整日期方塊邊框的對比度";
+"Weekend Tinting" = "週末著色";
+"Enabled - Weekends are visually distinguished" = "已啟用 - 週末在視覺上有所區分";
+"Disabled - All days look the same" = "已停用 - 所有日期看起來相同";
+"Color Theme" = "顏色主題";
+"Choose your preferred color scheme" = "選擇您喜歡的配色方案";
+"Go to Today" = "回到今天";
+"Move the selected date to today" = "將選定日期移至今天";
+
+/* Settings - About */
+"About the App" = "關於應用程式";
+"Why I built this calendar" = "我為何建立此日曆";
+
+/* Event Creation */
+"New Event" = "新活動";
+"Event Details" = "活動詳情";
+"Title" = "標題";
+"All Day" = "全天";
+"Event will use current date and time" = "活動將使用目前日期和時間";
+"Start Time" = "開始時間";
+"End Time" = "結束時間";
+"Date" = "日期";
+"Additional Information" = "附加資訊";
+"Location" = "地點";
+"Notes" = "備註";
+"Invitees" = "受邀者";
+"Email addresses (comma separated)" = "電子郵件地址（以逗號分隔）";
+"Image" = "圖片";
+"Event Image" = "活動圖片";
+"Image selected" = "已選擇圖片";
+"Double tap to choose an image" = "雙擊選擇圖片";
+"Location Map" = "位置地圖";
+"Repeat" = "重複";
+"Double tap to set recurrence" = "雙擊設定重複";
+"Reminder" = "提醒";
+"Double tap to set reminder" = "雙擊設定提醒";
+"Repeat Event" = "重複活動";
+"Repeat Every" = "每...重複";
+"Frequency" = "頻率";
+"Day" = "天";
+"Week" = "週";
+"Month" = "月";
+"Year" = "年";
+"Every %d %@" = "每 %d %@";
+"End Repeat" = "結束重複";
+"Never" = "從不";
+"After 30 occurrences" = "30 次後";
+"End Date" = "結束日期";
+"Set Reminder" = "設定提醒";
+"At time of event" = "活動發生時";
+"%d minutes before" = "%d 分鐘前";
+"1 hour before" = "1 小時前";
+"%d hours before" = "%d 小時前";
+"1 day before" = "1 天前";
+"Invited: %@" = "受邀： %@";
+
+/* Day View */
+"%d holiday" = "%d 個假期";
+"%d holidays" = "%d 個假期";
+"%d event" = "%d 個活動";
+"%d events" = "%d 個活動";
+"No events" = "無活動";
+"Double tap to view details" = "雙擊查看詳情";
+"+%d more" = "+%d 更多";
+
+/* Accessibility */
+"Today, %@" = "今天，%@";
+

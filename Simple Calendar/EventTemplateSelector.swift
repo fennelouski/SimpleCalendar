@@ -28,11 +28,11 @@ struct EventTemplateSelector: View {
         VStack(spacing: 0) {
             // Header with title and cancel button
             HStack {
-                Text("Quick Create Event")
+                Text("Quick Create Event".localized)
                     .font(.title)
                     .fontWeight(.bold)
                 Spacer()
-                Button("Cancel") {
+                Button("Cancel".localized) {
                     presentationMode.wrappedValue.dismiss()
                 }
             }
@@ -44,17 +44,17 @@ struct EventTemplateSelector: View {
                 // Date picker
                 #if os(tvOS)
                 // tvOS simplified date selection - uses selected date
-                Text("Event will use the selected date")
+                Text("Event will use the selected date".localized)
                     .font(.headline)
                     .padding(.horizontal)
                 #else
-                DatePicker("Event Date & Time", selection: $selectedDate)
+                DatePicker("Event Date & Time".localized, selection: $selectedDate)
                     .datePickerStyle(.graphical)
                     .padding()
                 #endif
 
                 // Category picker
-                Picker("Category", selection: $selectedCategory) {
+                Picker("Category".localized, selection: $selectedCategory) {
                     ForEach(EventTemplate.EventCategory.allCases, id: \.self) { category in
                         Text(category.rawValue).tag(category)
                     }
@@ -144,13 +144,13 @@ struct TemplateCard: View {
         let minutes = Int((template.duration.truncatingRemainder(dividingBy: 3600)) / 60)
 
         if template.isAllDay {
-            return "All day"
+            return "All day".localized
         } else if hours > 0 && minutes > 0 {
-            return "\(hours)h \(minutes)m"
+            return "%dh %dm".localized(with: hours, minutes)
         } else if hours > 0 {
-            return "\(hours) hour\(hours > 1 ? "s" : "")"
+            return hours == 1 ? "1 hour".localized : "%d hours".localized(with: hours)
         } else {
-            return "\(minutes) minute\(minutes > 1 ? "s" : "")"
+            return minutes == 1 ? "1 minute".localized : "%d minutes".localized(with: minutes)
         }
     }
 
@@ -208,22 +208,22 @@ struct EventCreationFromTemplateView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("Event Details")) {
-                    TextField("Title", text: $event.title)
+                Section(header: Text("Event Details".localized)) {
+                    TextField("Title".localized, text: $event.title)
                         .font(.headline)
 
-                    Toggle("All Day", isOn: $event.isAllDay)
+                    Toggle("All Day".localized, isOn: $event.isAllDay)
 
                     if !event.isAllDay {
-                        DatePicker("Start Time", selection: $event.startDate, displayedComponents: [.date, .hourAndMinute])
-                        DatePicker("End Time", selection: $event.endDate, displayedComponents: [.date, .hourAndMinute])
+                        DatePicker("Start Time".localized, selection: $event.startDate, displayedComponents: [.date, .hourAndMinute])
+                        DatePicker("End Time".localized, selection: $event.endDate, displayedComponents: [.date, .hourAndMinute])
                     } else {
-                        DatePicker("Date", selection: $event.startDate, displayedComponents: [.date])
+                        DatePicker("Date".localized, selection: $event.startDate, displayedComponents: [.date])
                     }
                 }
 
-                Section(header: Text("Additional Information")) {
-                    TextField("Location", text: Binding(
+                Section(header: Text("Additional Information".localized)) {
+                    TextField("Location".localized, text: Binding(
                         get: { event.location ?? "" },
                         set: { event.location = $0.isEmpty ? nil : $0 }
                     ))
@@ -236,7 +236,7 @@ struct EventCreationFromTemplateView: View {
                         .frame(minHeight: 80)
 
                         if event.notes?.isEmpty ?? true {
-                            Text("Notes")
+                            Text("Notes".localized)
                                 .foregroundColor(themeManager.currentPalette.textSecondary)
                                 .padding(.top, 8)
                                 .padding(.leading, 4)
@@ -249,9 +249,9 @@ struct EventCreationFromTemplateView: View {
                 Section {
                     Button(action: { showRecurrencePicker = true }) {
                         HStack {
-                            Text("Repeat")
+                            Text("Repeat".localized)
                             Spacer()
-                            Text(recurrenceRule?.description ?? "Never")
+                            Text(recurrenceRule?.description ?? "Never".localized)
                                 .foregroundColor(themeManager.currentPalette.textSecondary)
                         }
                     }
@@ -261,7 +261,7 @@ struct EventCreationFromTemplateView: View {
                 Section {
                     Button(action: { showReminderPicker = true }) {
                         HStack {
-                            Text("Reminder")
+                            Text("Reminder".localized)
                             Spacer()
                             Text(reminderText)
                                 .foregroundColor(themeManager.currentPalette.textSecondary)
@@ -269,13 +269,13 @@ struct EventCreationFromTemplateView: View {
                     }
                 }
             }
-            .navigationTitle("Create \(template.name)")
+            .navigationTitle("Create %@".localized(with: template.name))
             HStack {
-                Button("Cancel") {
+                Button("Cancel".localized) {
                     presentationMode.wrappedValue.dismiss()
                 }
                 Spacer()
-                Button("Save") {
+                Button("Save".localized) {
                     saveEvent()
                 }
                 .buttonStyle(.borderedProminent)
@@ -296,12 +296,12 @@ struct EventCreationFromTemplateView: View {
 
     private var reminderText: String {
         if reminderMinutes == 0 {
-            return "At time of event"
+            return "At time of event".localized
         } else if reminderMinutes < 60 {
-            return "\(reminderMinutes) minutes before"
+            return reminderMinutes == 1 ? "1 minute before".localized : "%d minutes before".localized(with: reminderMinutes)
         } else {
             let hours = reminderMinutes / 60
-            return "\(hours) hour\(hours > 1 ? "s" : "") before"
+            return hours == 1 ? "1 hour before".localized : "%d hours before".localized(with: hours)
         }
     }
 

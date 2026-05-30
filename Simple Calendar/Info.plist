@@ -8,7 +8,7 @@
 		<dict>
 			<key>CFBundleIconFiles</key>
 			<array>
-				<string>App Icon</string>
+				<string>AppIcon</string>
 			</array>
 		</dict>
 	</dict>
@@ -21,8 +21,6 @@
 			</array>
 		</dict>
 	</array>
-	<key>NSCalendarsUsageDescription</key>
-	<string>This app needs access to your calendar to display and manage events.</string>
 	<key>TVTopShelfImage</key>
 	<dict>
 		<key>TVTopShelfPrimaryImage</key>
@@ -34,5 +32,11 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<key>UIPrerenderedIcon</key>
+	<false/>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Calendar Play needs access to your calendar to display and manage your events.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Calendar Play needs full access to your calendar to create, edit, and delete events.</string>
 </dict>
 </plist>

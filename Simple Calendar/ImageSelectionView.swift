@@ -22,15 +22,15 @@ struct ImageSelectionView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Text("Select Image for Event")
+                Text("Select Image for Event".localized)
                     .font(.title)
                     .fontWeight(.bold)
                 Spacer()
                 HStack(spacing: 16) {
-                    Button("Cancel") {
+                    Button("Cancel".localized) {
                         presentationMode.wrappedValue.dismiss()
                     }
-                    Button("Done") {
+                    Button("Done".localized) {
                         if let selectedImageId = selectedImageId {
                             onImageSelected(selectedImageId)
                         }
@@ -48,7 +48,7 @@ struct ImageSelectionView: View {
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(themeManager.currentPalette.textSecondary)
-                TextField("Search for images...", text: $searchQuery)
+                TextField("Search for images...".localized, text: $searchQuery)
                     .textFieldStyle(.plain)
                     .onSubmit {
                         performSearch()
@@ -70,16 +70,16 @@ struct ImageSelectionView: View {
 
             // Content
             if isSearching {
-                ProgressView("Searching...")
+                ProgressView("Searching...".localized)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if searchResults.isEmpty && !searchQuery.isEmpty {
                 VStack {
                     Image(systemName: "photo")
                         .font(.largeTitle)
                         .foregroundColor(themeManager.currentPalette.textSecondary)
-                    Text("No images found")
+                    Text("No images found".localized)
                         .foregroundColor(themeManager.currentPalette.textSecondary)
-                    Button("Try a different search") {
+                    Button("Try a different search".localized) {
                         searchQuery = ""
                     }
                     .padding(.top)
@@ -90,10 +90,10 @@ struct ImageSelectionView: View {
                     Image(systemName: "photo.on.rectangle")
                         .font(.largeTitle)
                         .foregroundColor(themeManager.currentPalette.textSecondary)
-                    Text("Search for images to add to your event")
+                    Text("Search for images to add to your event".localized)
                         .foregroundColor(themeManager.currentPalette.textSecondary)
                         .multilineTextAlignment(.center)
-                    Text("Try searching for '\(suggestedSearchTerm)'")
+                    Text("Try searching for '%@'".localized(with: suggestedSearchTerm))
                         .foregroundColor(themeManager.currentPalette.primary)
                         .padding(.top, 4)
                         .onTapGesture {
@@ -205,7 +205,7 @@ struct ImageThumbnailView: View {
                     Spacer()
                     HStack {
                         Spacer()
-                        Text("Photo by \(metadata.author)")
+                        Text("Photo by %@".localized(with: metadata.author))
                             .font(.caption2)
                             .foregroundColor(.white)
                             .padding(4)

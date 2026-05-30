@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 12/01/25.
+*/
+
+/* General */
+"Calendar" = "Календар";
+"Settings" = "Налаштування";
+"Done" = "Готово";
+"Cancel" = "Скасувати";
+"Save" = "Зберегти";
+"Close" = "Закрити";
+"None" = "Немає";
+"Today" = "Сьогодні";
+"Version" = "Версія";
+
+/* Permission Primer */
+"Calendar Access" = "Доступ до календаря";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play потребує доступу до вашого календаря, щоб відображати ваш розклад і допомагати керувати подіями безпосередньо з програми.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "Ми поважаємо вашу конфіденційність і використовуємо цей доступ лише для показу та редагування подій вашого календаря.";
+"Allow Access" = "Дозволити доступ";
+"Not Now" = "Не зараз";
+"Allow Calendar Access" = "Дозволити доступ до календаря";
+"Prompts the system dialog to grant calendar permissions." = "Викликає системний діалог для надання дозволів календарю.";
+"Dismisses this screen without granting permission." = "Закриває цей екран без надання дозволу.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Інтеграція календаря";
+"Holiday Display" = "Відображення свят";
+"Holiday Categories" = "Категорії свят";
+"Appearance" = "Вигляд";
+"Theme" = "Тема";
+"About" = "Про програму";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Системний календар";
+"Sync with macOS Calendar" = "Синхронізація з календарем macOS";
+"Sync System Calendar" = "Синхронізувати системний календар";
+"Google Calendar" = "Google Календар";
+"Connect your Google Calendar" = "Підключити Google Календар";
+"Signed in as %@" = "Ви увійшли як %@";
+"Sync Google Calendar" = "Синхронізувати Google Календар";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Показувати свята";
+"Display holidays on the calendar with educational information" = "Відображати свята в календарі з освітньою інформацією";
+"Enabled - Display holidays on the calendar" = "Увімкнено - Відображати свята в календарі";
+"Disabled - Hide holidays on the calendar" = "Вимкнено - Приховати свята в календарі";
+"Monthly Themes" = "Щомісячні теми";
+"Use different colors for each month to help understand calendar concepts" = "Використовувати різні кольори для кожного місяця, щоб допомогти зрозуміти концепції календаря";
+"Enabled - Theme changes automatically each month" = "Увімкнено - Тема змінюється автоматично щомісяця";
+"Disabled - Use a fixed theme" = "Вимкнено - Використовувати фіксовану тему";
+"Automatic Backgrounds" = "Автоматичні фони";
+"Automatically set a beautiful background image from Unsplash" = "Автоматично встановлювати красиве фонове зображення з Unsplash";
+"Holiday Guide" = "Гід по святах";
+"Learn about holidays and their meanings (Coming Soon)" = "Дізнайтеся про свята та їх значення (Скоро)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Розмір номера дня";
+"Adjust the size of day numbers in the calendar" = "Налаштувати розмір номерів днів у календарі";
+"Monthly Theme" = "Щомісячна тема";
+"Theme changes automatically each month" = "Тема змінюється автоматично щомісяця";
+"Use a fixed theme" = "Використовувати фіксовану тему";
+"Border Contrast" = "Контраст меж";
+"Adjust the contrast of day square borders" = "Налаштувати контраст меж клітинок днів";
+"Weekend Tinting" = "Виділення вихідних";
+"Enabled - Weekends are visually distinguished" = "Увімкнено - Вихідні візуально виділяються";
+"Disabled - All days look the same" = "Вимкнено - Всі дні виглядають однаково";
+"Color Theme" = "Колірна тема";
+"Choose your preferred color scheme" = "Виберіть бажану колірну схему";
+"Go to Today" = "Перейти до сьогодні";
+"Move the selected date to today" = "Перемістити вибрану дату на сьогодні";
+
+/* Settings - About */
+"About the App" = "Про програму";
+"Why I built this calendar" = "Чому я створив цей календар";
+
+/* Event Creation */
+"New Event" = "Нова подія";
+"Event Details" = "Деталі події";
+"Title" = "Назва";
+"All Day" = "Весь день";
+"Event will use current date and time" = "Подія використовуватиме поточну дату та час";
+"Start Time" = "Час початку";
+"End Time" = "Час закінчення";
+"Date" = "Дата";
+"Additional Information" = "Додаткова інформація";
+"Location" = "Місцезнаходження";
+"Notes" = "Нотатки";
+"Invitees" = "Запрошені";
+"Email addresses (comma separated)" = "Адреси електронної пошти (через кому)";
+"Image" = "Зображення";
+"Event Image" = "Зображення події";
+"Image selected" = "Зображення вибрано";
+"Double tap to choose an image" = "Двічі торкніться, щоб вибрати зображення";
+"Location Map" = "Карта місцезнаходження";
+"Repeat" = "Повтор";
+"Double tap to set recurrence" = "Двічі торкніться, щоб налаштувати повтор";
+"Reminder" = "Нагадування";
+"Double tap to set reminder" = "Двічі торкніться, щоб налаштувати нагадування";
+"Repeat Event" = "Повторювати подію";
+"Repeat Every" = "Повторювати кожні";
+"Frequency" = "Частота";
+"Day" = "День";
+"Week" = "Тиждень";
+"Month" = "Місяць";
+"Year" = "Рік";
+"Every %d %@" = "Кожні %d %@";
+"End Repeat" = "Закінчити повтор";
+"Never" = "Ніколи";
+"After 30 occurrences" = "Після 30 повторень";
+"End Date" = "Дата закінчення";
+"Set Reminder" = "Встановити нагадування";
+"At time of event" = "У момент події";
+"%d minutes before" = "За %d хвилин";
+"1 hour before" = "За 1 годину";
+"%d hours before" = "За %d годин";
+"1 day before" = "За 1 день";
+"Invited: %@" = "Запрошено: %@";
+
+/* Day View */
+"%d holiday" = "%d свято";
+"%d holidays" = "%d свят";
+"%d event" = "%d подія";
+"%d events" = "%d подій";
+"No events" = "Немає подій";
+"Double tap to view details" = "Двічі торкніться для перегляду деталей";
+"+%d more" = "ще +%d";
+
+/* Accessibility */
+"Today, %@" = "Сьогодні, %@";

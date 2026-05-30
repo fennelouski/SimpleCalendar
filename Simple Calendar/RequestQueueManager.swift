@@ -14,6 +14,7 @@ class RequestQueueManager {
     private let minIntervalBetweenRequests: TimeInterval = 5.0 // 5 seconds minimum between requests
     private let maxRequestsPerMinute = 3
     private let minuteWindow: TimeInterval = 60.0 // 1 minute
+    private let maxQueueSize = 50 // Maximum number of queued requests
 
     // Queue management
     private var requestQueue: [(id: String, operation: () -> Void)] = []
@@ -37,6 +38,13 @@ class RequestQueueManager {
                 print("⚠️ Request already queued: \(id)")
                 self.semaphore.signal()
                 return
+            }
+
+            // Limit queue size - remove oldest requests if we're at the limit
+            if self.requestQueue.count >= self.maxQueueSize {
+                let removedCount = self.requestQueue.count - self.maxQueueSize + 1
+                self.requestQueue.removeFirst(removedCount)
+                print("🗑️ Removed \(removedCount) old requests to limit queue size")
             }
 
             // Add to queue

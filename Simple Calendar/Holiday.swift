@@ -214,12 +214,6 @@ struct CalendarHoliday: Identifiable, Hashable {
                     return createDateForYear(month: 2, day: 29, year: year)
                 }
                 return nil // Not a leap year
-            case "Election Day":
-                // First Tuesday after the first Monday in November
-                if let firstMonday = nthWeekdayOfMonth(year: year, month: 11, weekday: .monday, n: 1) {
-                    return Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: firstMonday)
-                }
-                return nil
             case "Teacher Appreciation Day":
                 // First Tuesday of first full week in May (effectively first Tuesday)
                 return nthWeekdayOfMonth(year: year, month: 5, weekday: .tuesday, n: 1)
@@ -266,6 +260,26 @@ struct CalendarHoliday: Identifiable, Hashable {
                         return Calendar(identifier: .gregorian).date(byAdding: .day, value: 5, to: fathersDay)
                     }
                     return Calendar(identifier: .gregorian).date(byAdding: .day, value: daysToFriday, to: fathersDay)
+                }
+                return nil
+            case "New Moon":
+                let components = Calendar(identifier: .gregorian).dateComponents([.month], from: self.date)
+                guard let month = components.month else { return nil }
+                return newMoonInMonth(month, year: year)
+            case "Full Moon":
+                let components = Calendar(identifier: .gregorian).dateComponents([.month], from: self.date)
+                guard let month = components.month else { return nil }
+                for offset in [0, -1] {
+                    var searchMonth = month + offset
+                    var searchYear = year
+                    if searchMonth < 1 { searchMonth = 12; searchYear -= 1 }
+                    if let newMoon = newMoonInMonth(searchMonth, year: searchYear) {
+                        let fullMoon = newMoon.addingTimeInterval(14.77 * 86400.0)
+                        let cal = Calendar(identifier: .gregorian)
+                        if cal.component(.month, from: fullMoon) == month && cal.component(.year, from: fullMoon) == year {
+                            return fullMoon
+                        }
+                    }
                 }
                 return nil
             default:
@@ -410,6 +424,39 @@ struct CalendarHoliday: Identifiable, Hashable {
         return createDateForYear(month: 1, day: 11, year: year)
     }
     
+    /// Find the new moon occurring within a specific month and year.
+    /// Uses the verified reference new moon of January 6, 2000 at 18:14 UTC.
+    private func newMoonInMonth(_ month: Int, year: Int) -> Date? {
+        let lunarCycle: Double = 29.53058867
+
+        var utcCalendar = Calendar(identifier: .gregorian)
+        utcCalendar.timeZone = TimeZone(identifier: "UTC")!
+
+        var refComponents = DateComponents()
+        refComponents.year = 2000
+        refComponents.month = 1
+        refComponents.day = 6
+        refComponents.hour = 18
+        refComponents.minute = 14
+        guard let referenceNewMoon = utcCalendar.date(from: refComponents) else { return nil }
+
+        guard let monthStart = utcCalendar.date(from: DateComponents(year: year, month: month, day: 1)),
+              let nextMonthStart = utcCalendar.date(byAdding: .month, value: 1, to: monthStart) else { return nil }
+
+        let daysToMonthStart = monthStart.timeIntervalSince(referenceNewMoon) / 86400.0
+        let approxCycle = Int(daysToMonthStart / lunarCycle)
+
+        for cycleOffset in -1...2 {
+            let candidate = referenceNewMoon.addingTimeInterval(
+                Double(approxCycle + cycleOffset) * lunarCycle * 86400.0
+            )
+            if candidate >= monthStart && candidate < nextMonthStart {
+                return candidate
+            }
+        }
+        return nil // no new moon this month (can occur in short months)
+    }
+
     /// Calculate approximate full moon date for a given year
     private func fullMoonDate(for year: Int) -> Date? {
         // Full moon is approximately 14.77 days after new moon

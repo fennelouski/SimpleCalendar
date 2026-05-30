@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 12/01/25.
+*/
+
+/* General */
+"Calendar" = "Календарь";
+"Settings" = "Настройки";
+"Done" = "Готово";
+"Cancel" = "Отмена";
+"Save" = "Сохранить";
+"Close" = "Закрыть";
+"None" = "Нет";
+"Today" = "Сегодня";
+"Version" = "Версия";
+
+/* Permission Primer */
+"Calendar Access" = "Доступ к календарю";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Calendar Play требуется доступ к вашему календарю для отображения расписания и управления событиями прямо из приложения.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "Мы уважаем вашу конфиденциальность и используем этот доступ только для отображения и редактирования событий вашего календаря.";
+"Allow Access" = "Разрешить доступ";
+"Not Now" = "Не сейчас";
+"Allow Calendar Access" = "Разрешить доступ к календарю";
+"Prompts the system dialog to grant calendar permissions." = "Вызывает системный диалог для предоставления разрешений календарю.";
+"Dismisses this screen without granting permission." = "Закрывает этот экран без предоставления разрешения.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Интеграция календаря";
+"Holiday Display" = "Отображение праздников";
+"Holiday Categories" = "Категории праздников";
+"Appearance" = "Внешний вид";
+"Theme" = "Тема";
+"About" = "О приложении";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Системный календарь";
+"Sync with macOS Calendar" = "Синхронизация с календарем macOS";
+"Sync System Calendar" = "Синхронизировать системный календарь";
+"Google Calendar" = "Google Календарь";
+"Connect your Google Calendar" = "Подключить Google Календарь";
+"Signed in as %@" = "Вы вошли как %@";
+"Sync Google Calendar" = "Синхронизировать Google Календарь";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Показывать праздники";
+"Display holidays on the calendar with educational information" = "Отображать праздники в календаре с образовательной информацией";
+"Enabled - Display holidays on the calendar" = "Включено - Отображать праздники в календаре";
+"Disabled - Hide holidays on the calendar" = "Отключено - Скрыть праздники в календаре";
+"Monthly Themes" = "Ежемесячные темы";
+"Use different colors for each month to help understand calendar concepts" = "Использовать разные цвета для каждого месяца, чтобы помочь понять концепции календаря";
+"Enabled - Theme changes automatically each month" = "Включено - Тема меняется автоматически каждый месяц";
+"Disabled - Use a fixed theme" = "Отключено - Использовать фиксированную тему";
+"Automatic Backgrounds" = "Автоматические фоны";
+"Automatically set a beautiful background image from Unsplash" = "Автоматически устанавливать красивое фоновое изображение из Unsplash";
+"Holiday Guide" = "Гид по праздникам";
+"Learn about holidays and their meanings (Coming Soon)" = "Узнайте о праздниках и их значении (Скоро)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Размер номера дня";
+"Adjust the size of day numbers in the calendar" = "Настроить размер номеров дней в календаре";
+"Monthly Theme" = "Ежемесячная тема";
+"Theme changes automatically each month" = "Тема меняется автоматически каждый месяц";
+"Use a fixed theme" = "Использовать фиксированную тему";
+"Border Contrast" = "Контраст границ";
+"Adjust the contrast of day square borders" = "Настроить контраст границ ячеек дней";
+"Weekend Tinting" = "Выделение выходных";
+"Enabled - Weekends are visually distinguished" = "Включено - Выходные визуально выделяются";
+"Disabled - All days look the same" = "Отключено - Все дни выглядят одинаково";
+"Color Theme" = "Цветовая тема";
+"Choose your preferred color scheme" = "Выберите предпочитаемую цветовую схему";
+"Go to Today" = "Перейти к сегодня";
+"Move the selected date to today" = "Переместить выбранную дату на сегодня";
+
+/* Settings - About */
+"About the App" = "О приложении";
+"Why I built this calendar" = "Почему я создал этот календарь";
+
+/* Event Creation */
+"New Event" = "Новое событие";
+"Event Details" = "Детали события";
+"Title" = "Название";
+"All Day" = "Весь день";
+"Event will use current date and time" = "Событие будет использовать текущую дату и время";
+"Start Time" = "Время начала";
+"End Time" = "Время окончания";
+"Date" = "Дата";
+"Additional Information" = "Дополнительная информация";
+"Location" = "Местоположение";
+"Notes" = "Заметки";
+"Invitees" = "Приглашенные";
+"Email addresses (comma separated)" = "Адреса электронной почты (через запятую)";
+"Image" = "Изображение";
+"Event Image" = "Изображение события";
+"Image selected" = "Изображение выбрано";
+"Double tap to choose an image" = "Дважды коснитесь, чтобы выбрать изображение";
+"Location Map" = "Карта местоположения";
+"Repeat" = "Повтор";
+"Double tap to set recurrence" = "Дважды коснитесь, чтобы настроить повтор";
+"Reminder" = "Напоминание";
+"Double tap to set reminder" = "Дважды коснитесь, чтобы настроить напоминание";
+"Repeat Event" = "Повторять событие";
+"Repeat Every" = "Повторять каждые";
+"Frequency" = "Частота";
+"Day" = "День";
+"Week" = "Неделя";
+"Month" = "Месяц";
+"Year" = "Год";
+"Every %d %@" = "Каждые %d %@";
+"End Repeat" = "Закончить повтор";
+"Never" = "Никогда";
+"After 30 occurrences" = "После 30 повторений";
+"End Date" = "Дата окончания";
+"Set Reminder" = "Установить напоминание";
+"At time of event" = "В момент события";
+"%d minutes before" = "За %d минут";
+"1 hour before" = "За 1 час";
+"%d hours before" = "За %d часов";
+"1 day before" = "За 1 день";
+"Invited: %@" = "Приглашено: %@";
+
+/* Day View */
+"%d holiday" = "%d праздник";
+"%d holidays" = "%d праздников";
+"%d event" = "%d событие";
+"%d events" = "%d событий";
+"No events" = "Нет событий";
+"Double tap to view details" = "Дважды коснитесь для просмотра деталей";
+"+%d more" = "еще +%d";
+
+/* Accessibility */
+"Today, %@" = "Сегодня, %@";

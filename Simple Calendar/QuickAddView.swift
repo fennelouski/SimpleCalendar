@@ -24,7 +24,7 @@ struct QuickAddView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                Text("Quick Add Event")
+                Text("Quick Add Event".localized)
                     .font(uiConfig.scaledFont(.headline, weight: .bold))
                     .foregroundColor(themeManager.currentPalette.textPrimary)
                 Spacer()
@@ -41,7 +41,7 @@ struct QuickAddView: View {
             // Content
             VStack(alignment: .leading, spacing: 16) {
                 // Title
-                TextField("Event title", text: $title)
+                TextField("Event title".localized, text: $title)
                     .font(uiConfig.scaledFont(.body))
                     #if !os(tvOS)
                     .textFieldStyle(.roundedBorder)
@@ -50,26 +50,26 @@ struct QuickAddView: View {
 
                 // Date and Time
                 VStack(alignment: .leading, spacing: 8) {
-                    Toggle("All Day", isOn: $isAllDay)
+                    Toggle("All Day".localized, isOn: $isAllDay)
                         .font(uiConfig.scaledFont(.body))
 
                     #if os(tvOS)
                     // tvOS simplified date/time selection - uses current date/time
-                    Text("Event will be created for today")
+                    Text("Event will be created for today".localized)
                         .font(uiConfig.scaledFont(.body))
                         .foregroundColor(themeManager.currentPalette.textSecondary)
                     #else
                     if isAllDay {
-                        DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
+                        DatePicker("Date".localized, selection: $selectedDate, displayedComponents: .date)
                             .font(uiConfig.scaledFont(.body))
                     } else {
-                        DatePicker("Date", selection: $selectedDate, displayedComponents: .date)
+                        DatePicker("Date".localized, selection: $selectedDate, displayedComponents: .date)
                             .font(uiConfig.scaledFont(.body))
 
                         HStack {
-                            DatePicker("Start", selection: $startTime, displayedComponents: .hourAndMinute)
+                            DatePicker("Start".localized, selection: $startTime, displayedComponents: .hourAndMinute)
                                 .font(uiConfig.scaledFont(.body))
-                            DatePicker("End", selection: $endTime, displayedComponents: .hourAndMinute)
+                            DatePicker("End".localized, selection: $endTime, displayedComponents: .hourAndMinute)
                                 .font(uiConfig.scaledFont(.body))
                         }
                     }
@@ -78,7 +78,7 @@ struct QuickAddView: View {
                 .padding(.horizontal)
 
                 // Location
-                TextField("Location (optional)", text: $location)
+                TextField("Location (optional)".localized, text: $location)
                     .font(uiConfig.scaledFont(.body))
                     #if !os(tvOS)
                     .textFieldStyle(.roundedBorder)
@@ -87,7 +87,7 @@ struct QuickAddView: View {
 
                 // Action Buttons
                 HStack {
-                    Button("Cancel") {
+                    Button("Cancel".localized) {
                         isPresented = false
                     }
                     .font(uiConfig.scaledFont(.body))
@@ -95,7 +95,7 @@ struct QuickAddView: View {
 
                     Spacer()
 
-                    Button("Add Event") {
+                    Button("Add Event".localized) {
                         addEvent()
                     }
                     .font(uiConfig.scaledFont(.body, weight: .medium))

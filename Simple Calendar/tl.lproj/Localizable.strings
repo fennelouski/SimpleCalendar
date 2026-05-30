@@ -1,0 +1,133 @@
+/* 
+  Localizable.strings
+  Simple Calendar
+
+  Created by Nathan Fennel on 11/30/25.
+*/
+
+/* General */
+"Calendar" = "Kalendaryo";
+"Settings" = "Mga Setting";
+"Done" = "Tapos na";
+"Cancel" = "Kanselahin";
+"Save" = "I-save";
+"Close" = "Isara";
+"None" = "Wala";
+"Today" = "Ngayon";
+"Version" = "Bersyon";
+
+/* Permission Primer */
+"Calendar Access" = "Access sa Kalendaryo";
+"Calendar Play needs access to your calendar to display your schedule and help you manage events directly from the app." = "Kailangan ng Calendar Play ng access sa iyong kalendaryo upang maipakita ang iyong iskedyul at matulungan kang pamahalaan ang mga kaganapan nang direkta mula sa app.";
+"We respect your privacy and only use this access to show and edit your calendar events." = "Iginagalang namin ang iyong privacy at ginagamit lamang ang access na ito upang ipakita at i-edit ang iyong mga kaganapan sa kalendaryo.";
+"Allow Access" = "Payagan ang Access";
+"Not Now" = "Huwag Muna";
+"Allow Calendar Access" = "Payagan ang Access sa Kalendaryo";
+"Prompts the system dialog to grant calendar permissions." = "Hinihimok ang dialog ng system upang magbigay ng mga pahintulot sa kalendaryo.";
+"Dismisses this screen without granting permission." = "Isinasara ang screen na ito nang hindi nagbibigay ng pahintulot.";
+
+/* Settings - Headers */
+"Calendar Integration" = "Pagsasama ng Kalendaryo";
+"Holiday Display" = "Pagpapakita ng Piyesta Opisyal";
+"Holiday Categories" = "Mga Kategorya ng Piyesta Opisyal";
+"Appearance" = "Hitsura";
+"Theme" = "Tema";
+"About" = "Tungkol sa";
+
+/* Settings - Calendar Integration */
+"System Calendar" = "Kalendaryo ng System";
+"Sync with macOS Calendar" = "I-sync sa macOS Calendar";
+"Sync System Calendar" = "I-sync ang Kalendaryo ng System";
+"Google Calendar" = "Google Calendar";
+"Connect your Google Calendar" = "Ikonekta ang iyong Google Calendar";
+"Signed in as %@" = "Naka-sign in bilang %@";
+"Sync Google Calendar" = "I-sync ang Google Calendar";
+
+/* Settings - Holiday Display */
+"Show Holidays" = "Ipakita ang mga Piyesta Opisyal";
+"Display holidays on the calendar with educational information" = "Ipakita ang mga piyesta opisyal sa kalendaryo na may impormasyong pang-edukasyon";
+"Enabled - Display holidays on the calendar" = "Pinagana - Ipakita ang mga piyesta opisyal sa kalendaryo";
+"Disabled - Hide holidays on the calendar" = "Hindi Pinagana - Itago ang mga piyesta opisyal sa kalendaryo";
+"Monthly Themes" = "Mga Buwanang Tema";
+"Use different colors for each month to help understand calendar concepts" = "Gumamit ng iba't ibang kulay para sa bawat buwan upang makatulong na maunawaan ang mga konsepto ng kalendaryo";
+"Enabled - Theme changes automatically each month" = "Pinagana - Awtomatikong nagbabago ang tema bawat buwan";
+"Disabled - Use a fixed theme" = "Hindi Pinagana - Gumamit ng nakapirming tema";
+"Automatic Backgrounds" = "Mga Awtomatikong Background";
+"Automatically set a beautiful background image from Unsplash" = "Awtomatikong magtakda ng magandang background image mula sa Unsplash";
+"Holiday Guide" = "Gabay sa Piyesta Opisyal";
+"Learn about holidays and their meanings (Coming Soon)" = "Alamin ang tungkol sa mga piyesta opisyal at ang kanilang mga kahulugan (Malapit na)";
+
+/* Settings - Appearance */
+"Day Number Size" = "Laki ng Numero ng Araw";
+"Adjust the size of day numbers in the calendar" = "Ayusin ang laki ng mga numero ng araw sa kalendaryo";
+"Monthly Theme" = "Buwanang Tema";
+"Theme changes automatically each month" = "Awtomatikong nagbabago ang tema bawat buwan";
+"Use a fixed theme" = "Gumamit ng nakapirming tema";
+"Border Contrast" = "Contrast ng Border";
+"Adjust the contrast of day square borders" = "Ayusin ang contrast ng mga border ng araw";
+"Weekend Tinting" = "Pagkukulay ng Weekend";
+"Enabled - Weekends are visually distinguished" = "Pinagana - Ang mga katapusan ng linggo ay biswal na nakikilala";
+"Disabled - All days look the same" = "Hindi Pinagana - Ang lahat ng araw ay magkamukha";
+"Color Theme" = "Tema ng Kulay";
+"Choose your preferred color scheme" = "Piliin ang iyong ginustong scheme ng kulay";
+"Go to Today" = "Pumunta sa Ngayon";
+"Move the selected date to today" = "Ilipat ang napiling petsa sa ngayon";
+
+/* Settings - About */
+"About the App" = "Tungkol sa App";
+"Why I built this calendar" = "Bakit ko ginawa ang kalendaryong ito";
+
+/* Event Creation */
+"New Event" = "Bagong Kaganapan";
+"Event Details" = "Mga Detalye ng Kaganapan";
+"Title" = "Pamagat";
+"All Day" = "Buong Araw";
+"Event will use current date and time" = "Gagamitin ng kaganapan ang kasalukuyang petsa at oras";
+"Start Time" = "Oras ng Pagsisimula";
+"End Time" = "Oras ng Pagtatapos";
+"Date" = "Petsa";
+"Additional Information" = "Karagdagang Impormasyon";
+"Location" = "Lokasyon";
+"Notes" = "Mga Tala";
+"Invitees" = "Mga Inimbitahan";
+"Email addresses (comma separated)" = "Mga email address (pinaghihiwalay ng kuwit)";
+"Image" = "Larawan";
+"Event Image" = "Larawan ng Kaganapan";
+"Image selected" = "Napili ang larawan";
+"Double tap to choose an image" = "Mag-double tap upang pumili ng larawan";
+"Location Map" = "Mapa ng Lokasyon";
+"Repeat" = "Ulitin";
+"Double tap to set recurrence" = "Mag-double tap upang itakda ang pag-uulit";
+"Reminder" = "Paalala";
+"Double tap to set reminder" = "Mag-double tap upang itakda ang paalala";
+"Repeat Event" = "Ulitin ang Kaganapan";
+"Repeat Every" = "Ulitin Bawat";
+"Frequency" = "Dalas";
+"Day" = "Araw";
+"Week" = "Linggo";
+"Month" = "Buwan";
+"Year" = "Taon";
+"Every %d %@" = "Bawat %d %@";
+"End Repeat" = "Tapusin ang Pag-uulit";
+"Never" = "Hindi Kailanman";
+"After 30 occurrences" = "Pagkatapos ng 30 beses";
+"End Date" = "Petsa ng Pagtatapos";
+"Set Reminder" = "Magtakda ng Paalala";
+"At time of event" = "Sa oras ng kaganapan";
+"%d minutes before" = "%d minuto bago";
+"1 hour before" = "1 oras bago";
+"%d hours before" = "%d oras bago";
+"1 day before" = "1 araw bago";
+"Invited: %@" = "Inimbitahan: %@";
+
+/* Day View */
+"%d holiday" = "%d piyesta opisyal";
+"%d holidays" = "%d piyesta opisyal";
+"%d event" = "%d kaganapan";
+"%d events" = "%d kaganapan";
+"No events" = "Walang kaganapan";
+"Double tap to view details" = "Mag-double tap upang tingnan ang mga detalye";
+"+%d more" = "+%d pa";
+
+/* Accessibility */
+"Today, %@" = "Ngayon, %@";
