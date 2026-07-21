@@ -269,19 +269,7 @@ struct CalendarHoliday: Identifiable, Hashable {
             case "Full Moon":
                 let components = Calendar(identifier: .gregorian).dateComponents([.month], from: self.date)
                 guard let month = components.month else { return nil }
-                for offset in [0, -1] {
-                    var searchMonth = month + offset
-                    var searchYear = year
-                    if searchMonth < 1 { searchMonth = 12; searchYear -= 1 }
-                    if let newMoon = newMoonInMonth(searchMonth, year: searchYear) {
-                        let fullMoon = newMoon.addingTimeInterval(14.77 * 86400.0)
-                        let cal = Calendar(identifier: .gregorian)
-                        if cal.component(.month, from: fullMoon) == month && cal.component(.year, from: fullMoon) == year {
-                            return fullMoon
-                        }
-                    }
-                }
-                return nil
+                return fullMoonInMonth(month, year: year)
             default:
                 // For other recurring holidays, use the stored date but update the year
                 let calendar = Calendar(identifier: .gregorian)
@@ -425,9 +413,21 @@ struct CalendarHoliday: Identifiable, Hashable {
     }
     
     /// Find the new moon occurring within a specific month and year.
-    /// Uses the verified reference new moon of January 6, 2000 at 18:14 UTC.
     private func newMoonInMonth(_ month: Int, year: Int) -> Date? {
-        let lunarCycle: Double = 29.53058867
+        return moonPhaseInMonth(month, year: year, isFull: false)
+    }
+
+    /// Find the full moon occurring within a specific month and year.
+    private func fullMoonInMonth(_ month: Int, year: Int) -> Date? {
+        return moonPhaseInMonth(month, year: year, isFull: true)
+    }
+
+    /// Find the new (or full) moon occurring within a specific month and year, using
+    /// Meeus' periodic correction terms so results line up with real astronomical
+    /// almanac data (a plain mean-synodic-month approximation drifts by up to ~17
+    /// hours and occasionally lands on the wrong calendar day).
+    private func moonPhaseInMonth(_ month: Int, year: Int, isFull: Bool) -> Date? {
+        let lunarCycle: Double = 29.530588861
 
         var utcCalendar = Calendar(identifier: .gregorian)
         utcCalendar.timeZone = TimeZone(identifier: "UTC")!
@@ -444,17 +444,81 @@ struct CalendarHoliday: Identifiable, Hashable {
               let nextMonthStart = utcCalendar.date(byAdding: .month, value: 1, to: monthStart) else { return nil }
 
         let daysToMonthStart = monthStart.timeIntervalSince(referenceNewMoon) / 86400.0
-        let approxCycle = Int(daysToMonthStart / lunarCycle)
+        let baseK = (daysToMonthStart / lunarCycle).rounded(.down)
+        let phaseOffset = isFull ? 0.5 : 0.0
 
         for cycleOffset in -1...2 {
-            let candidate = referenceNewMoon.addingTimeInterval(
-                Double(approxCycle + cycleOffset) * lunarCycle * 86400.0
-            )
+            let k = baseK + Double(cycleOffset) + phaseOffset
+            let candidate = moonPhaseDate(k: k)
             if candidate >= monthStart && candidate < nextMonthStart {
                 return candidate
             }
         }
-        return nil // no new moon this month (can occur in short months)
+        return nil // no matching phase this month (can occur in short months)
+    }
+
+    /// Computes the UTC instant of the new moon (k an integer) or full moon (k a
+    /// half-integer) for lunation number `k`, per Meeus' "Astronomical Algorithms"
+    /// (accurate to within a few minutes for the range of years this app covers).
+    private func moonPhaseDate(k: Double) -> Date {
+        func normalizedDegrees(_ degrees: Double) -> Double {
+            let remainder = degrees.truncatingRemainder(dividingBy: 360)
+            return remainder < 0 ? remainder + 360 : remainder
+        }
+        func sinDegrees(_ degrees: Double) -> Double {
+            sin(degrees * .pi / 180)
+        }
+
+        let isFull = k.truncatingRemainder(dividingBy: 1) != 0
+
+        let t = k / 1236.85
+        var jde = 2451550.09766 + 29.530588861 * k
+            + 0.00015437 * t * t
+            - 0.000000150 * t * t * t
+            + 0.00000000073 * t * t * t * t
+
+        let e = 1 - 0.002516 * t - 0.0000074 * t * t
+        let m = normalizedDegrees(2.5534 + 29.10535669 * k - 0.0000218 * t * t)
+        let mPrime = normalizedDegrees(201.5643 + 385.81693528 * k + 0.0107582 * t * t + 0.00001238 * t * t * t)
+        let f = normalizedDegrees(160.7108 + 390.67050284 * k - 0.0016118 * t * t - 0.00000227 * t * t * t)
+        let omega = normalizedDegrees(124.7746 - 1.56375588 * k + 0.0020672 * t * t)
+
+        let mpCoefficient = isFull ? -0.40614 : -0.40720
+        let mCoefficient = isFull ? 0.17302 : 0.17241
+        let mp2Coefficient = isFull ? 0.01614 : 0.01608
+        let f2Coefficient = isFull ? 0.01043 : 0.01039
+        let mpMinusMCoefficient = isFull ? 0.00734 : 0.00739
+        let mpPlusMCoefficient = isFull ? -0.00515 : -0.00514
+        let m2Coefficient = isFull ? 0.00209 : 0.00208
+
+        jde += mpCoefficient * sinDegrees(mPrime)
+        jde += mCoefficient * e * sinDegrees(m)
+        jde += mp2Coefficient * sinDegrees(2 * mPrime)
+        jde += f2Coefficient * sinDegrees(2 * f)
+        jde += mpMinusMCoefficient * e * sinDegrees(mPrime - m)
+        jde += mpPlusMCoefficient * e * sinDegrees(mPrime + m)
+        jde += m2Coefficient * e * e * sinDegrees(2 * m)
+        jde += -0.00111 * sinDegrees(mPrime - 2 * f)
+        jde += -0.00057 * sinDegrees(mPrime + 2 * f)
+        jde += 0.00056 * e * sinDegrees(2 * mPrime + m)
+        jde += -0.00042 * sinDegrees(3 * mPrime)
+        jde += 0.00042 * e * sinDegrees(m + 2 * f)
+        jde += 0.00038 * e * sinDegrees(m - 2 * f)
+        jde += -0.00024 * e * sinDegrees(2 * mPrime - m)
+        jde += -0.00017 * sinDegrees(omega)
+        jde += -0.00007 * sinDegrees(mPrime + 2 * m)
+        jde += 0.00004 * sinDegrees(2 * mPrime - 2 * f)
+        jde += 0.00004 * sinDegrees(3 * m)
+        jde += 0.00003 * sinDegrees(mPrime + m - 2 * f)
+        jde += 0.00003 * sinDegrees(2 * mPrime + 2 * f)
+        jde += -0.00003 * sinDegrees(mPrime + m + 2 * f)
+        jde += 0.00003 * sinDegrees(mPrime - m + 2 * f)
+        jde += -0.00002 * sinDegrees(mPrime - m - 2 * f)
+        jde += -0.00002 * sinDegrees(3 * mPrime + m)
+        jde += 0.00002 * sinDegrees(4 * mPrime)
+
+        // Julian Day 2440587.5 is the Unix epoch (1970-01-01T00:00:00 UTC).
+        return Date(timeIntervalSince1970: (jde - 2440587.5) * 86400.0)
     }
 
     /// Calculate approximate full moon date for a given year
