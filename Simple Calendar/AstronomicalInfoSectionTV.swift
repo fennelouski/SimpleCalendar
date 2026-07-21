@@ -338,30 +338,29 @@ struct AstronomicalInfoSection: View {
     
     private func moonPhaseIconForDate(_ date: Date, atSunset sunset: Date) -> String {
         // Calculate moon phase based on the lunar cycle (29.530588 days)
-        // Reference new moon: January 6, 2000, 18:14 UTC
-        var utcCalendar = Calendar(identifier: .gregorian)
-        utcCalendar.timeZone = TimeZone(identifier: "UTC")!
-        let referenceNewMoon = DateComponents(calendar: utcCalendar, year: 2000, month: 1, day: 6, hour: 18, minute: 14).date!
+        // Using a reference date for new moon (January 6, 2000 was a new moon)
+        let referenceNewMoon = DateComponents(calendar: Calendar(identifier: .gregorian), year: 2000, month: 1, day: 6, hour: 18, minute: 14).date!
         let lunarCycle: Double = 29.530588 // days
-
+        
         let daysSinceReference = date.timeIntervalSince(referenceNewMoon) / (24 * 3600)
         let phasePosition = daysSinceReference.truncatingRemainder(dividingBy: lunarCycle)
-        let normalizedPosition = phasePosition < 0 ? phasePosition + lunarCycle : phasePosition
-        let phasePercentage = normalizedPosition / lunarCycle
-
-        // Map phase to the 8 standard SF Symbol moon phase icons
+        let phasePercentage = phasePosition / lunarCycle
+        
+        // Map phase to SF Symbol moon phase icons (16 phases for higher precision)
+        // Each phase represents 1/16 of the lunar cycle (0.0625 = 6.25%)
         let phaseIcons: [String] = [
             "moonphase.new.moon",
             "moonphase.waxing.crescent",
             "moonphase.first.quarter",
             "moonphase.waxing.gibbous",
             "moonphase.full.moon",
-            "moonphase.waning.gibbous",
-            "moonphase.last.quarter",
-            "moonphase.waning.crescent",
+            "moonphase.waxing.crescent.inverse",
+            "moonphase.first.quarter.inverse",
+            "moonphase.waxing.gibbous.inverse",
+            "moonphase.full.moon.inverse",
         ]
-
-        let phaseIndex = Int((phasePercentage * Double(phaseIcons.count)).rounded()) % phaseIcons.count
+        
+        let phaseIndex = Int(phasePercentage * Double(phaseIcons.count) - ((1/Double(phaseIcons.count)) / 2)) % Int(phaseIcons.count)
         return phaseIcons[phaseIndex]
     }
     
