@@ -1147,6 +1147,7 @@ struct AugustSunCloudsAnimation: View {
     @State private var sunRotation: Double = 0
     @State private var clouds: [Cloud] = []
     @State private var cloudSpawnTimer: Timer?
+    @State private var sunGeneration: Int = 0
 
     struct Cloud: Identifiable {
         let id = UUID()
@@ -1209,24 +1210,40 @@ struct AugustSunCloudsAnimation: View {
     
     private func startAnimation(size: CGSize) {
         // Sun animation (1200 seconds - 5% speed)
+        sunGeneration += 1
+        let generation = sunGeneration
+
         // Start random transit between 0.4 and 0.6
         let startProgress = Double.random(in: 0.4...0.6)
         sunProgress = startProgress
-        
+
+        let fullDuration = 1200.0
         let remaining = 1.0 - startProgress
-        let duration = 1200.0 * remaining // Proportional duration
-        
-        withAnimation(.linear(duration: duration).repeatForever(autoreverses: false)) {
-            sunProgress = 1.0
-        }
-        
+        let firstLegDuration = fullDuration * remaining // Proportional duration for the initial partial leg
+        animateSunCycle(duration: firstLegDuration, fullDuration: fullDuration, generation: generation)
+
         // Slow rotation
         withAnimation(.linear(duration: 400).repeatForever(autoreverses: false)) {
             sunRotation = 360
         }
-        
+
         // Start clouds
         startClouds(size: size)
+    }
+
+    /// Sweeps the sun from its current position to the far edge, then snaps back
+    /// to the start (no animation) and repeats. Using repeatForever(autoreverses: false)
+    /// here would replay the interpolation from the animation's original starting value
+    /// every cycle, making the sun visibly jump backward mid-sky instead of wrapping cleanly.
+    private func animateSunCycle(duration: Double, fullDuration: Double, generation: Int) {
+        withAnimation(.linear(duration: duration)) {
+            sunProgress = 1.0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            guard generation == sunGeneration else { return }
+            sunProgress = 0 // Snap back off-screen instantly, unanimated
+            animateSunCycle(duration: fullDuration, fullDuration: fullDuration, generation: generation)
+        }
     }
     
     private func startClouds(size: CGSize) {
@@ -1316,6 +1333,7 @@ struct SeptemberLeavesAnimation: View {
     @State private var leaves: [Leaf] = []
     @State private var cloudSpawnTimer: Timer?
     @State private var leafSpawnTimer: Timer?
+    @State private var sunGeneration: Int = 0
 
     struct SeptemberCloud: Identifiable {
         let id = UUID()
@@ -1383,27 +1401,42 @@ struct SeptemberLeavesAnimation: View {
 
     private func startAnimation(size: CGSize) {
         // Sun animation (4000 seconds - 5% speed)
+        sunGeneration += 1
+        let generation = sunGeneration
+
         // Start random transit between 0.6 and 0.8
         let startProgress = Double.random(in: 0.6...0.8)
         sunProgress = startProgress
-        
+
+        let fullDuration = 4000.0
         let remaining = 1.0 - startProgress
-        let duration = 4000.0 * remaining
-        
-        withAnimation(.linear(duration: duration).repeatForever(autoreverses: false)) {
-            sunProgress = 1.0
-        }
-        
+        let firstLegDuration = fullDuration * remaining
+        animateSunCycle(duration: firstLegDuration, fullDuration: fullDuration, generation: generation)
+
         // Slow rotation (slower)
         withAnimation(.linear(duration: 1400).repeatForever(autoreverses: false)) {
             sunRotation = 360
         }
-        
+
         // Start clouds
         startClouds(size: size)
-        
+
         // Start leaves
         startLeaves(size: size)
+    }
+
+    /// See AugustSunCloudsAnimation.animateSunCycle: repeatForever(autoreverses: false)
+    /// would replay from the original starting value each cycle, snapping the sun
+    /// backward mid-sky. This reschedules a fresh full-length animation each wrap instead.
+    private func animateSunCycle(duration: Double, fullDuration: Double, generation: Int) {
+        withAnimation(.linear(duration: duration)) {
+            sunProgress = 1.0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            guard generation == sunGeneration else { return }
+            sunProgress = 0
+            animateSunCycle(duration: fullDuration, fullDuration: fullDuration, generation: generation)
+        }
     }
     
     private func startClouds(size: CGSize) {
@@ -1562,6 +1595,7 @@ struct OctoberMoonBatsAnimation: View {
     @State private var viewSize: CGSize = .zero
     @State private var simulationTime: Double = 0
     @State private var cloudGeneration: Int = 0
+    @State private var moonGeneration: Int = 0
 
     // Boid Configuration
     struct BatBoid: Identifiable {
@@ -1631,29 +1665,44 @@ struct OctoberMoonBatsAnimation: View {
     
     private func startAnimation(size: CGSize) {
         // Moon animation (1200 seconds - 5% speed)
+        moonGeneration += 1
+        let generation = moonGeneration
+
         // Start random transit between 0.75 and 0.9
         let startProgress = Double.random(in: 0.75...0.9)
         moonProgress = startProgress
-        
+
+        let fullDuration = 1200.0
         let remaining = 1.0 - startProgress
-        let duration = 1200.0 * remaining
-        
-        withAnimation(.linear(duration: duration).repeatForever(autoreverses: false)) {
-            moonProgress = 1.0
-        }
-        
+        let firstLegDuration = fullDuration * remaining
+        animateMoonCycle(duration: firstLegDuration, fullDuration: fullDuration, generation: generation)
+
         // Start clouds
         startClouds(size: size)
-        
+
         // Initialize Bats for Murmuration
         initBats(size: size)
-        
+
         // Start Simulation Timer
         timer?.invalidate()
         simulationTime = 0
         timer = Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { _ in
             simulationTime += 0.03
             updateBats()
+        }
+    }
+
+    /// See AugustSunCloudsAnimation.animateSunCycle: repeatForever(autoreverses: false)
+    /// would replay from the original starting value each cycle, snapping the moon
+    /// backward mid-sky. This reschedules a fresh full-length animation each wrap instead.
+    private func animateMoonCycle(duration: Double, fullDuration: Double, generation: Int) {
+        withAnimation(.linear(duration: duration)) {
+            moonProgress = 1.0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            guard generation == moonGeneration else { return }
+            moonProgress = 0
+            animateMoonCycle(duration: fullDuration, fullDuration: fullDuration, generation: generation)
         }
     }
     
