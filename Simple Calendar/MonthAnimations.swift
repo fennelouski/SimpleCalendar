@@ -22,7 +22,8 @@ struct LinearCongruentialGenerator: RandomNumberGenerator {
 struct JanuarySnowAnimation: View {
     let alpha: Double
     @State private var snowflakes: [Snowflake] = []
-    
+    @State private var spawnTimer: Timer?
+
     struct Snowflake: Identifiable {
         let id = UUID()
         var x: CGFloat
@@ -30,11 +31,11 @@ struct JanuarySnowAnimation: View {
         var size: CGFloat
         var opacity: Double
     }
-    
+
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
+
     var body: some View {
         GeometryReader { geometry in
             ZStack {
@@ -51,19 +52,23 @@ struct JanuarySnowAnimation: View {
             .onChange(of: geometry.size) { _, newSize in
                 startSnowfall(size: newSize)
             }
+            .onDisappear {
+                spawnTimer?.invalidate()
+            }
         }
     }
-    
+
     private func startSnowfall(size: CGSize) {
+        spawnTimer?.invalidate()
         snowflakes = []
-        
+
         // Initial snowflakes scattered
         for _ in 0..<50 {
             addSnowflake(size: size, startRandomY: true)
         }
-        
+
         // Continuous snowfall
-        Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+        spawnTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             if snowflakes.count < 150 {
                 addSnowflake(size: size)
             }
@@ -115,6 +120,7 @@ struct FebruaryHeartCloudsAnimation: View {
     @State private var clouds: [HeartCloud] = []
     @State private var sineWaveTime: Double = 0
     @State private var sineTimer: Timer?
+    @State private var cloudSpawnTimer: Timer?
     
     struct HeartCloud: Identifiable {
         let id = UUID()
@@ -146,28 +152,29 @@ struct FebruaryHeartCloudsAnimation: View {
                 startSineWave()
             }
             .onChange(of: geometry.size) { _, newSize in
-                sineTimer?.invalidate()
                 startClouds(size: newSize)
                 startSineWave()
             }
             .onDisappear {
                 sineTimer?.invalidate()
+                cloudSpawnTimer?.invalidate()
             }
         }
     }
-    
+
     private func startSineWave() {
         // Slow sine wave animation (one complete cycle every 12-15 seconds)
-        sineTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { [weak sineTimer] _ in
-            guard sineTimer != nil else { return }
+        sineTimer?.invalidate()
+        sineTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
             sineWaveTime += 0.01 // Slow increment for smooth sine wave
             if sineWaveTime > 2 * .pi {
                 sineWaveTime = 0 // Reset to prevent overflow
             }
         }
     }
-    
+
     private func startClouds(size: CGSize) {
+        cloudSpawnTimer?.invalidate()
         clouds = []
         // More clouds (3-4 instead of 1-2)
         let cloudCount = Int.random(in: 3...4)
@@ -195,7 +202,7 @@ struct FebruaryHeartCloudsAnimation: View {
         }
         
         // Add new clouds periodically
-        Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
+        cloudSpawnTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
             if clouds.count < 6 { // Allow more clouds
                 let cloud = HeartCloud(
                     x: -200,
@@ -315,7 +322,8 @@ struct HeartCloudShape: Shape {
 struct MarchShamrocksAnimation: View {
     let alpha: Double
     @State private var shamrocks: [Shamrock] = []
-    
+    @State private var spawnTimer: Timer?
+
     struct Shamrock: Identifiable {
         let id = UUID()
         var x: CGFloat
@@ -366,17 +374,21 @@ struct MarchShamrocksAnimation: View {
             .onChange(of: geometry.size) { _, newSize in
                 startShamrocks(size: newSize)
             }
+            .onDisappear {
+                spawnTimer?.invalidate()
+            }
         }
     }
-    
+
     private func startShamrocks(size: CGSize) {
+        spawnTimer?.invalidate()
         // Start with a few shamrocks
         for _ in 0..<3 {
             addShamrock(size: size)
         }
-        
+
         // Schedule new shamrocks more frequently
-        Timer.scheduledTimer(withTimeInterval: 8, repeats: true) { _ in
+        spawnTimer = Timer.scheduledTimer(withTimeInterval: 8, repeats: true) { _ in
             addShamrock(size: size)
         }
     }
@@ -466,7 +478,8 @@ struct ShamrockPetalsShape: Shape {
 struct AprilRainAnimation: View {
     let alpha: Double
     @State private var raindrops: [Raindrop] = []
-    
+    @State private var spawnTimer: Timer?
+
     struct Raindrop: Identifiable {
         let id = UUID()
         var x: CGFloat
@@ -495,19 +508,23 @@ struct AprilRainAnimation: View {
             .onChange(of: geometry.size) { _, newSize in
                 startRain(size: newSize)
             }
+            .onDisappear {
+                spawnTimer?.invalidate()
+            }
         }
     }
-    
+
     private func startRain(size: CGSize) {
+        spawnTimer?.invalidate()
         raindrops = []
-        
+
         // Initial raindrops
         for _ in 0..<100 {
             addRaindrop(size: size, startRandomY: true)
         }
-        
+
         // Continuous rain
-        Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { _ in
+        spawnTimer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { _ in
             if raindrops.count < 300 {
                 addRaindrop(size: size)
             }
@@ -555,7 +572,8 @@ struct AprilRainAnimation: View {
 struct MayFlowersAnimation: View {
     let alpha: Double
     @State private var flowers: [Flower] = []
-    
+    @State private var spawnTimer: Timer?
+
     struct Flower: Identifiable {
         let id = UUID()
         var x: CGFloat
@@ -601,15 +619,19 @@ struct MayFlowersAnimation: View {
             .onChange(of: geometry.size) { _, newSize in
                 startFlowers(size: newSize)
             }
+            .onDisappear {
+                spawnTimer?.invalidate()
+            }
         }
     }
-    
+
     private func startFlowers(size: CGSize) {
+        spawnTimer?.invalidate()
         // Add flowers periodically
         addFlower(size: size)
         // Make new ones bloom in 3 seconds after one fades away?
         // Actually, just consistent blooming every 3 seconds keeps the cycle going.
-        Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
+        spawnTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
             addFlower(size: size)
         }
     }
@@ -968,6 +990,7 @@ struct JulyFireworksAnimation: View {
     let alpha: Double
     @State private var fireworks: [Firework] = []
     @State private var explosionCounter = 0
+    @State private var spawnTimer: Timer?
 
     
     struct Firework: Identifiable {
@@ -1025,15 +1048,19 @@ struct JulyFireworksAnimation: View {
             .onChange(of: geometry.size) { _, newSize in
                 startFireworks(size: newSize)
             }
+            .onDisappear {
+                spawnTimer?.invalidate()
+            }
         }
     }
-    
+
     private func startFireworks(size: CGSize) {
+        spawnTimer?.invalidate()
         // Start first firework
         addFirework(size: size)
-        
+
         // Schedule new fireworks (Twice as often -> 3.75s)
-        Timer.scheduledTimer(withTimeInterval: 3.75, repeats: true) { _ in
+        spawnTimer = Timer.scheduledTimer(withTimeInterval: 3.75, repeats: true) { _ in
             DispatchQueue.main.async {
                 explosionCounter += 1
                 
@@ -1119,7 +1146,8 @@ struct AugustSunCloudsAnimation: View {
     @State private var sunProgress: CGFloat = 0
     @State private var sunRotation: Double = 0
     @State private var clouds: [Cloud] = []
-    
+    @State private var cloudSpawnTimer: Timer?
+
     struct Cloud: Identifiable {
         let id = UUID()
         var x: CGFloat
@@ -1160,9 +1188,12 @@ struct AugustSunCloudsAnimation: View {
             .onChange(of: geometry.size) { _, newSize in
                 startAnimation(size: newSize)
             }
+            .onDisappear {
+                cloudSpawnTimer?.invalidate()
+            }
         }
     }
-    
+
     private func calculateSunArcY(progress: CGFloat, height: CGFloat) -> CGFloat {
         // Create a slight arc: starts at 0.15, peaks at middle (0.12), ends at 0.15
         // Using a parabolic curve for the arc
@@ -1199,13 +1230,14 @@ struct AugustSunCloudsAnimation: View {
     }
     
     private func startClouds(size: CGSize) {
+        cloudSpawnTimer?.invalidate()
         // Add more initial clouds (at least 4)
         for _ in 0..<4 {
             addCloud(size: size, randomX: true)
         }
-        
+
         // Add new clouds periodically
-        Timer.scheduledTimer(withTimeInterval: 12, repeats: true) { _ in
+        cloudSpawnTimer = Timer.scheduledTimer(withTimeInterval: 12, repeats: true) { _ in
             addCloud(size: size, randomX: false)
         }
     }
@@ -1282,7 +1314,9 @@ struct SeptemberLeavesAnimation: View {
     @State private var sunRotation: Double = 0
     @State private var clouds: [SeptemberCloud] = []
     @State private var leaves: [Leaf] = []
-    
+    @State private var cloudSpawnTimer: Timer?
+    @State private var leafSpawnTimer: Timer?
+
     struct SeptemberCloud: Identifiable {
         let id = UUID()
         var x: CGFloat
@@ -1340,9 +1374,13 @@ struct SeptemberLeavesAnimation: View {
             .onChange(of: geometry.size) { _, newSize in
                 startAnimation(size: newSize)
             }
+            .onDisappear {
+                cloudSpawnTimer?.invalidate()
+                leafSpawnTimer?.invalidate()
+            }
         }
     }
-    
+
     private func startAnimation(size: CGSize) {
         // Sun animation (4000 seconds - 5% speed)
         // Start random transit between 0.6 and 0.8
@@ -1369,13 +1407,14 @@ struct SeptemberLeavesAnimation: View {
     }
     
     private func startClouds(size: CGSize) {
+        cloudSpawnTimer?.invalidate()
         // Add initial clouds
         for _ in 0..<4 {
             addCloud(size: size, randomX: true)
         }
-        
+
         // Add new clouds periodically
-        Timer.scheduledTimer(withTimeInterval: 12, repeats: true) { _ in
+        cloudSpawnTimer = Timer.scheduledTimer(withTimeInterval: 12, repeats: true) { _ in
             addCloud(size: size, randomX: false)
         }
     }
@@ -1411,11 +1450,12 @@ struct SeptemberLeavesAnimation: View {
     }
     
     private func startLeaves(size: CGSize) {
+        leafSpawnTimer?.invalidate()
         // Add fewer leaves (half the amount)
         for _ in 0..<10 {
             addLeaf(size: size, delay: Double.random(in: 0...3))
         }
-        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in // Slower spawn rate
+        leafSpawnTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in // Slower spawn rate
             addLeaf(size: size)
         }
     }
@@ -1521,7 +1561,8 @@ struct OctoberMoonBatsAnimation: View {
     @State private var timer: Timer?
     @State private var viewSize: CGSize = .zero
     @State private var simulationTime: Double = 0
-    
+    @State private var cloudGeneration: Int = 0
+
     // Boid Configuration
     struct BatBoid: Identifiable {
         let id = UUID()
@@ -1618,21 +1659,27 @@ struct OctoberMoonBatsAnimation: View {
     
     // MARK: - Cloud Logic
     private func startClouds(size: CGSize) {
+        // Bump the generation so any in-flight asyncAfter chain from a
+        // previous call (e.g. before a resize) recognizes it's stale and stops.
+        cloudGeneration += 1
+        let generation = cloudGeneration
         clouds = []
         for _ in 0..<5 {
             let delay = Double.random(in: 0...8)
             DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                guard generation == cloudGeneration else { return }
                 addCloud(size: size)
             }
         }
-        scheduleNextCloud(size: size)
+        scheduleNextCloud(size: size, generation: generation)
     }
-    
-    private func scheduleNextCloud(size: CGSize) {
+
+    private func scheduleNextCloud(size: CGSize, generation: Int) {
         let interval = Double.random(in: 10...25)
         DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
+            guard generation == cloudGeneration else { return }
             addCloud(size: size)
-            scheduleNextCloud(size: size)
+            scheduleNextCloud(size: size, generation: generation)
         }
     }
     
@@ -2083,7 +2130,8 @@ struct DecemberChristmasLightsAnimation: View {
     @State private var lights: [Light] = []
     @State private var windOffset: CGFloat = 0 // Wind displacement
     @State private var windTimer: Timer?
-    
+    @State private var flickerTimer: Timer?
+
     struct Light: Identifiable {
         let id = UUID()
         var x: CGFloat
@@ -2151,10 +2199,11 @@ struct DecemberChristmasLightsAnimation: View {
             }
             .onDisappear {
                 windTimer?.invalidate()
+                flickerTimer?.invalidate()
             }
         }
     }
-    
+
     /// Calculate Y position on the cord curve with wind effect
     /// Uses the same quadratic Bezier curve formula as the cord path
     private func calculateCordY(x: CGFloat, width: CGFloat, startY: CGFloat, midY: CGFloat, endY: CGFloat) -> CGFloat {
@@ -2175,9 +2224,8 @@ struct DecemberChristmasLightsAnimation: View {
     
     private func startWindAnimation() {
         // Occasional subtle wind gusts
-        windTimer = Timer.scheduledTimer(withTimeInterval: Double.random(in: 8...15), repeats: true) { [weak windTimer] _ in
-            guard windTimer != nil else { return }
-            
+        windTimer?.invalidate()
+        windTimer = Timer.scheduledTimer(withTimeInterval: Double.random(in: 8...15), repeats: true) { _ in
             // Random wind strength (subtle)
             let windStrength = CGFloat.random(in: -8...8)
             let duration = Double.random(in: 3...6)
@@ -2225,7 +2273,8 @@ struct DecemberChristmasLightsAnimation: View {
     }
     
     private func animateLights() {
-        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+        flickerTimer?.invalidate()
+        flickerTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
             for i in lights.indices {
                 withAnimation(.easeInOut(duration: Double.random(in: 0.3...1.0))) {
                     lights[i].brightness = Double.random(in: 0.2...1.0)
