@@ -4,7 +4,7 @@ import Foundation
 enum EventDescriptionParser {
     static let allowedEmoji = ["📅", "👨‍⚕️", "🎓", "🍽️", "🎉", "💼", "🏃‍♂️", "🎨", "📖", "✈️"]
 
-    static func parse(_ text: String, selectedDate: Date) async throws -> ParsedEventResponse {
+    static func parse(_ text: String, selectedDate: Date, session: URLSession? = nil) async throws -> ParsedEventResponse {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, text.count <= 2000 else { throw URLError(.badURL) }
         var request = URLRequest(url: URL(string: "https://calendar-play-seven.vercel.app/api/parse-event")!)
@@ -16,9 +16,10 @@ enum EventDescriptionParser {
             "currentDate": ISO8601DateFormatter().string(from: selectedDate),
             "timeZone": TimeZone.current.identifier
         ])
-        let session = URLSession(configuration: .ephemeral)
-        defer { session.invalidateAndCancel() }
-        let (data, response) = try await session.data(for: request)
+        request = try CalendarAPIRequest.prepared(request)
+        let requestSession = session ?? URLSession(configuration: .ephemeral)
+        defer { if session == nil { requestSession.invalidateAndCancel() } }
+        let (data, response) = try await requestSession.data(for: request)
         try Task.checkCancellation()
         guard (response as? HTTPURLResponse)?.statusCode == 200, data.count <= 64_000 else { throw URLError(.badServerResponse) }
         return try validatedResponse(data)

@@ -12,7 +12,7 @@
     "revision": "eec541412ede94a6ea1180906799e8661698f4f5",
     "url": "https://d2ntnk2ucb7yym.cloudfront.net"
   },
-  "verification": "Representative synthetic API, provider, page and access checks passed on AWS and both existing Vercel projects.",
+  "verification": "Partial verification only; ordinary-client AWS POST parity remains unverified.",
   "verifiedAt": "2026-09-28T00:50:27.217342+00:00",
   "nativeRevision": "107ae6dbf5552455e83617228577fd862c989ce0",
   "nativeTreeUnchanged": true,
@@ -222,5 +222,11 @@
     "Rate limits are per server instance, not a distributed quota or client authentication.",
     "Native UI and App Store submission are tracked separately by the parent task."
   ],
-  "providerRetention": "No application event database/content logs; OpenAI store:false with separate provider operational retention. Photo search terms occur in GET URLs and may enter hosting logs. Salted address counters have a one-minute window and expire on later requests or instance termination. AWS application diagnostic retention verified seven days; no invented retention for Vercel or providers."
+  "providerRetention": "No application event database/content logs; OpenAI store:false with separate provider operational retention. Photo search terms occur in GET URLs and may enter hosting logs. Salted address counters have a one-minute window and expire on later requests or instance termination. AWS application diagnostic retention verified seven days; no invented retention for Vercel or providers.",
+  "ordinaryClientAWSPostParity": {
+    "status": "NOT_VERIFIED",
+    "recordedAt": "2026-09-28T01:14:20.449285+00:00",
+    "reason": "AWS provider POST probes explicitly added x-amz-content-sha256. Ordinary shipped native/browser clients do not add this header. Plain OAC requires it for body-bearing requests; those probe results verify provider execution only, not ordinary-client POST parity. AWS functional parity and cutover readiness are NOT verified until the signing mode/client behavior is corrected and retested."
+  },
+  "cutoverReady": false
 }

@@ -6,6 +6,7 @@ trap 'rm -rf "$release_temp"' EXIT
 xcrun swiftc -parse-as-library -swift-version 5 -default-isolation MainActor -target arm64-apple-macos15.0 \
   "$release_root/Simple Calendar/Item.swift" \
   "$release_root/Simple Calendar/LocalCalendarEvents.swift" \
+  "$release_root/Simple Calendar/CalendarAPIRequest.swift" \
   "$release_root/Simple Calendar/EventDescriptionParser.swift" \
   "$release_root/Simple Calendar/EventExporter.swift" \
   "$release_root/Tools/ReleaseChecks/main.swift" -o "$release_temp/checks"

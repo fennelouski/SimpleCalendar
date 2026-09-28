@@ -12,7 +12,7 @@ export default $config({
     const openAI = new sst.Secret('OpenAIAPIKey');
     const unsplash = new sst.Secret('UnsplashAccessKey');
     const site = new sst.aws.Nextjs('Site', {
-      buildCommand: 'npm run build:aws', openNextVersion: '3.9.14', protection: 'oac',
+      buildCommand: 'npm run build:aws', openNextVersion: '3.10.4', protection: 'oac',
       server: { runtime: 'nodejs24.x', memory: '1024 MB', timeout: '60 seconds' },
       transform: { server(args) { args.logging = { retention: '1 week' }; } },
       environment: { OPENAI_API_KEY: openAI.value, UNSPLASH_ACCESS_KEY: unsplash.value, SOURCE_COMMIT: process.env.SOURCE_COMMIT! },

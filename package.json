@@ -28,7 +28,7 @@
     "eslint-config-next": "15.5.26",
     "tsx": "4.20.6",
     "sst": "4.17.1",
-    "@opennextjs/aws": "3.9.14"
+    "@opennextjs/aws": "3.10.4"
   },
   "overrides": {
     "postcss": "8.5.28"

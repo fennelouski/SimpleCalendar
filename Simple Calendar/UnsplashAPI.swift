@@ -116,7 +116,10 @@ nonisolated final class CalendarNetworkRequests: @unchecked Sendable {
     func data(for request: URLRequest, ticket: Ticket, completion: @escaping (Data?) -> Void) {
         guard isValid(ticket) else { DispatchQueue.main.async { completion(nil) }; return }
         let id = UUID()
-        var boundedRequest = request
+        guard var boundedRequest = try? CalendarAPIRequest.prepared(request) else {
+            DispatchQueue.main.async { completion(nil) }
+            return
+        }
         boundedRequest.timeoutInterval = 20
         let task = session.dataTask(with: boundedRequest) { [weak self] data, response, error in
             guard let self else { return }
@@ -133,6 +136,7 @@ nonisolated final class CalendarNetworkRequests: @unchecked Sendable {
 
 class UnsplashAPI {
     static let shared = UnsplashAPI()
+    private let networkRequests: CalendarNetworkRequests
     private var backendBaseURL: String {
         #if DEBUG
         "http://localhost:3001/api/unsplash"
@@ -140,7 +144,7 @@ class UnsplashAPI {
         "https://calendar-play-seven.vercel.app/api/unsplash"
         #endif
     }
-    private init() {}
+    init(networkRequests: CalendarNetworkRequests = .shared) { self.networkRequests = networkRequests }
 
     func searchPhotos(query: String, page: Int = 1, perPage: Int = 10, completion: @escaping ([UnsplashPhoto]?) -> Void) {
         fetchPhotos(items: [URLQueryItem(name: "action", value: "search"), URLQueryItem(name: "query", value: String(query.prefix(200))), URLQueryItem(name: "page", value: String(page)), URLQueryItem(name: "per_page", value: String(perPage))], key: CalendarNetworkConsent.photos, completion: completion)
@@ -153,10 +157,10 @@ class UnsplashAPI {
     }
 
     private func fetchPhotos(items: [URLQueryItem], key: String, completion: @escaping ([UnsplashPhoto]?) -> Void) {
-        guard let ticket = CalendarNetworkRequests.shared.ticket(for: key), var components = URLComponents(string: backendBaseURL) else { completion(nil); return }
+        guard let ticket = networkRequests.ticket(for: key), var components = URLComponents(string: backendBaseURL) else { completion(nil); return }
         components.queryItems = items
         guard let url = components.url else { completion(nil); return }
-        CalendarNetworkRequests.shared.data(for: URLRequest(url: url), ticket: ticket) { data in
+        networkRequests.data(for: URLRequest(url: url), ticket: ticket) { data in
             guard let data else { completion(nil); return }
             completion(try? JSONDecoder().decode([UnsplashPhoto].self, from: data))
         }
@@ -164,19 +168,19 @@ class UnsplashAPI {
 
     func downloadImage(from urlString: String, requiresEventConsent: Bool = false, completion: @escaping (Data?) -> Void) {
         let key = requiresEventConsent ? CalendarNetworkConsent.eventPhotos : CalendarNetworkConsent.photos
-        guard let ticket = CalendarNetworkRequests.shared.ticket(for: key), let url = URL(string: urlString), url.scheme == "https", ["images.unsplash.com", "plus.unsplash.com"].contains(url.host?.lowercased() ?? "") else { completion(nil); return }
+        guard let ticket = networkRequests.ticket(for: key), let url = URL(string: urlString), url.scheme == "https", ["images.unsplash.com", "plus.unsplash.com"].contains(url.host?.lowercased() ?? "") else { completion(nil); return }
         // Use the provider's returned CDN URL directly, retaining its attribution/query parameters.
-        CalendarNetworkRequests.shared.data(for: URLRequest(url: url), ticket: ticket, completion: completion)
+        networkRequests.data(for: URLRequest(url: url), ticket: ticket, completion: completion)
     }
 
     func trackDownload(for photoId: String, requiresEventConsent: Bool = false) {
         let key = requiresEventConsent ? CalendarNetworkConsent.eventPhotos : CalendarNetworkConsent.photos
-        guard let ticket = CalendarNetworkRequests.shared.ticket(for: key), let url = URL(string: backendBaseURL) else { return }
+        guard let ticket = networkRequests.ticket(for: key), let url = URL(string: backendBaseURL) else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: ["action": "track_download", "photoId": photoId])
-        CalendarNetworkRequests.shared.data(for: request, ticket: ticket) { _ in }
+        networkRequests.data(for: request, ticket: ticket) { _ in }
     }
 }
 
