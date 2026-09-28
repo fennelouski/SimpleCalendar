@@ -40,7 +40,6 @@ struct SettingsContentView: View {
     @AppStorage("aiEventSharingConsent_v1") private var aiSharingConsent = false
     @AppStorage("CalendarPlay.allowOnlinePhotos") private var allowOnlinePhotos = false
     @AppStorage("CalendarPlay.allowEventPhotoQueries") private var allowEventPhotoQueries = false
-    @AppStorage("CalendarPlay.allowNetworkLocation") private var allowNetworkLocation = false
     @AppStorage("CalendarPlay.allowOnlineWeather") private var allowOnlineWeather = false
     @State private var preservedFocusedCategory: CalendarHoliday.CalendarHolidayCategory? = nil
     @State private var focusRestoreTrigger: UUID = UUID()
@@ -798,9 +797,7 @@ struct SettingsContentView: View {
                                 .disabled(!allowOnlinePhotos)
                             Text("When both photo options are on, event details can be sent automatically to find matching photos. Leave this off to enter your own search terms.")
                                 .font(.subheadline)
-                            Toggle("Use network location estimate", isOn: $allowNetworkLocation)
-                                .onChange(of: allowNetworkLocation) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }
-                            Text("Allows ipapi.co to receive your IP address and return an approximate location. When off, the app estimates location from the device's time zone and region.")
+                            Text("Sunrise, sunset and daylight times use a local estimate from this device's time zone and region. The estimate can differ from your city. No network location lookup is made.")
                                 .font(.subheadline)
                             #if os(tvOS)
                             Toggle("Allow online maps", isOn: $allowOnlineWeather)

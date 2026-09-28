@@ -32,6 +32,18 @@ func require(_ value: Bool, _ message: String) {
         configuration.protocolClasses = [StubProtocol.self]
         let gate = CalendarNetworkRequests(defaults: defaults, session: URLSession(configuration: configuration))
         require(CalendarNetworkConsent.keys.allSatisfy { gate.ticket(for: $0) == nil }, "fresh settings deny every provider request")
+        let legacyLocationKey = "CalendarPlay.allowNetworkLocation"
+        defaults.set(true, forKey: legacyLocationKey)
+        require(gate.ticket(for: legacyLocationKey) == nil, "legacy location grant cannot create a network ticket")
+        require(defaults.bool(forKey: legacyLocationKey), "retired location choice remains stored without changing other preferences")
+        let estimator = LocationApproximator.shared
+        let london = estimator.approximateLocation(timeZone: TimeZone(identifier: "Europe/London")!, locale: Locale(identifier: "de_DE"))
+        require(london.latitude == 51.5074 && london.longitude == -0.1278, "existing time-zone estimate takes precedence over region")
+        let germany = estimator.approximateLocation(timeZone: TimeZone(secondsFromGMT: 0)!, locale: Locale(identifier: "de_DE"))
+        require(germany.latitude == 51.1657 && germany.longitude == 10.4515, "unmapped time zone preserves local region fallback")
+        let fallback = estimator.approximateLocation(timeZone: TimeZone(secondsFromGMT: 0)!, locale: Locale(identifier: "zz_ZZ"))
+        require(fallback.latitude == 39.8283 && fallback.longitude == -98.5795, "unknown device settings retain existing final fallback")
+        require(StubProtocol.loads == 0, "local estimate checks start no provider requests")
         defaults.set(true, forKey: CalendarNetworkConsent.eventPhotos)
         gate.refreshConsent()
         require(gate.ticket(for: CalendarNetworkConsent.eventPhotos) == nil, "event matching also needs online photo consent")

@@ -13,179 +13,16 @@ import CoreLocation
 class LocationApproximator {
     static let shared = LocationApproximator()
     
-    // Cache for IP-based location
-    private var cachedIPLocation: (coordinate: CLLocationCoordinate2D, timezone: String?, timestamp: Date)?
-    private let ipLocationCacheDuration: TimeInterval = 24 * 60 * 60 // 24 hours
-    private var isFetchingIPLocation = false
-    
     private init() {}
-    
-    /// Approximate location based on timezone and locale, refined with IP geolocation
-    /// Returns a coordinate that represents a reasonable estimate for the user's location
-    func approximateLocation() -> CLLocationCoordinate2D {
-        // Get timezone-based location first
-        let timezoneLocation = locationFromTimezone() ?? locationFromLocale() ?? CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795)
-        
-        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.location) else {
-            cachedIPLocation = nil
-            return timezoneLocation
-        }
-        // Try to refine with IP geolocation if available
-        if let cached = getCachedIPLocation() {
-            // Validate timezone matches (still important for accuracy)
-            if isTimezoneValid(cached.timezone) {
-                let distance = calculateDistance(cached.coordinate, to: timezoneLocation)
-                let maxDistance: Double = 1_000_000 // 1000 km in meters
-                
-                if distance <= maxDistance {
-                    // IP location is close enough, use it directly
-                    return cached.coordinate
-                } else {
-                    // IP location is too far, use midpoint between timezone and IP location
-                    return calculateMidpoint(between: timezoneLocation, and: cached.coordinate)
-                }
-            }
-        }
-        
-        // If IP location is not available or invalid, fetch it asynchronously for next time
-        fetchIPLocationIfNeeded()
-        
-        return timezoneLocation
-    }
-    
-    /// Get cached IP location if available and not expired
-    private func getCachedIPLocation() -> (coordinate: CLLocationCoordinate2D, timezone: String?)? {
-        guard let cached = cachedIPLocation else { return nil }
-        guard Date().timeIntervalSince(cached.timestamp) < ipLocationCacheDuration else {
-            cachedIPLocation = nil
-            return nil
-        }
-        return (cached.coordinate, cached.timezone)
-    }
-    
-    /// Fetch IP location asynchronously if needed
-    private func fetchIPLocationIfNeeded() {
-        guard getCachedIPLocation() == nil, !isFetchingIPLocation,
-              let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.location),
-              let url = URL(string: "https://ipapi.co/json/") else { return }
-        isFetchingIPLocation = true
-        CalendarNetworkRequests.shared.data(for: URLRequest(url: url), ticket: ticket) { [weak self] data in
-            guard let self else { return }
-            self.isFetchingIPLocation = false
-            guard CalendarNetworkRequests.shared.isValid(ticket), let data,
-                  let response = try? JSONDecoder().decode(IPLocationResponse.self, from: data),
-                  let latitude = response.latitude, let longitude = response.longitude,
-                  latitude.isFinite, longitude.isFinite, (-90...90).contains(latitude), (-180...180).contains(longitude) else { return }
-            let fetchedAt = Date()
-            self.cachedIPLocation = (CLLocationCoordinate2D(latitude: latitude, longitude: longitude), response.timezone, fetchedAt)
-            DispatchQueue.main.asyncAfter(deadline: .now() + self.ipLocationCacheDuration) { [weak self] in
-                if self?.cachedIPLocation?.timestamp == fetchedAt { self?.cachedIPLocation = nil }
-            }
-        }
+
+    /// Returns a regional estimate from device settings without making a network request.
+    /// This is not the user's precise location and can differ from their city.
+    func approximateLocation(timeZone: TimeZone = .current, locale: Locale = .current) -> CLLocationCoordinate2D {
+        locationFromTimezone(timeZone) ?? locationFromLocale(locale) ?? CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795)
     }
 
-    /// Validate that IP timezone matches device timezone
-    /// This ensures we don't use an IP location from a completely different timezone
-    private func isTimezoneValid(_ ipTimezone: String?) -> Bool {
-        guard let ipTimezone = ipTimezone else {
-            // If no timezone info, we'll still use it but with midpoint logic
-            return true
-        }
-        
-        let deviceTimezone = TimeZone.current.identifier
-        // Check if timezones match (exact or similar)
-        return timezonesMatch(ipTimezone, deviceTimezone)
-    }
-    
-    /// Calculate the midpoint between two coordinates
-    private func calculateMidpoint(between coord1: CLLocationCoordinate2D, and coord2: CLLocationCoordinate2D) -> CLLocationCoordinate2D {
-        let lat1 = coord1.latitude * .pi / 180.0
-        let lon1 = coord1.longitude * .pi / 180.0
-        let lat2 = coord2.latitude * .pi / 180.0
-        let lon2 = coord2.longitude * .pi / 180.0
-        
-        // Convert to Cartesian coordinates
-        let x1 = cos(lat1) * cos(lon1)
-        let y1 = cos(lat1) * sin(lon1)
-        let z1 = sin(lat1)
-        
-        let x2 = cos(lat2) * cos(lon2)
-        let y2 = cos(lat2) * sin(lon2)
-        let z2 = sin(lat2)
-        
-        // Calculate midpoint in Cartesian space
-        let xMid = (x1 + x2) / 2.0
-        let yMid = (y1 + y2) / 2.0
-        let zMid = (z1 + z2) / 2.0
-        
-        // Convert back to spherical coordinates
-        let lonMid = atan2(yMid, xMid)
-        let hyp = sqrt(xMid * xMid + yMid * yMid)
-        let latMid = atan2(zMid, hyp)
-        
-        return CLLocationCoordinate2D(
-            latitude: latMid * 180.0 / .pi,
-            longitude: lonMid * 180.0 / .pi
-        )
-    }
-    
-    /// Check if two timezone identifiers match (handles variations)
-    private func timezonesMatch(_ tz1: String, _ tz2: String) -> Bool {
-        // Exact match
-        if tz1 == tz2 {
-            return true
-        }
-        
-        // Check if they're in the same region (e.g., both America/New_York variants)
-        let tz1Components = tz1.split(separator: "/")
-        let tz2Components = tz2.split(separator: "/")
-        
-        if tz1Components.count >= 2 && tz2Components.count >= 2 {
-            // Same region (e.g., both "America")
-            if tz1Components[0] == tz2Components[0] {
-                // For US timezones, check if they're in the same timezone group
-                let tz1City = String(tz1Components[1])
-                let tz2City = String(tz2Components[1])
-                
-                // US Eastern Time variants
-                if (tz1City.contains("New_York") || tz1City.contains("Detroit") || tz1City.contains("Indiana") || tz1City.contains("Kentucky")) &&
-                   (tz2City.contains("New_York") || tz2City.contains("Detroit") || tz2City.contains("Indiana") || tz2City.contains("Kentucky")) {
-                    return true
-                }
-                
-                // US Central Time variants
-                if (tz1City.contains("Chicago") || tz1City.contains("Menominee") || tz1City.contains("North_Dakota")) &&
-                   (tz2City.contains("Chicago") || tz2City.contains("Menominee") || tz2City.contains("North_Dakota")) {
-                    return true
-                }
-                
-                // US Mountain Time variants
-                if (tz1City.contains("Denver") || tz1City.contains("Boise") || tz1City.contains("Shiprock")) &&
-                   (tz2City.contains("Denver") || tz2City.contains("Boise") || tz2City.contains("Shiprock")) {
-                    return true
-                }
-                
-                // US Pacific Time variants
-                if (tz1City.contains("Los_Angeles") || tz1City.contains("Juneau") || tz1City.contains("Metlakatla") || tz1City.contains("Nome") || tz1City.contains("Sitka") || tz1City.contains("Yakutat")) &&
-                   (tz2City.contains("Los_Angeles") || tz2City.contains("Juneau") || tz2City.contains("Metlakatla") || tz2City.contains("Nome") || tz2City.contains("Sitka") || tz2City.contains("Yakutat")) {
-                    return true
-                }
-            }
-        }
-        
-        return false
-    }
-    
-    /// Calculate distance between two coordinates in meters (Haversine formula)
-    private func calculateDistance(_ from: CLLocationCoordinate2D, to: CLLocationCoordinate2D) -> Double {
-        let fromLocation = CLLocation(latitude: from.latitude, longitude: from.longitude)
-        let toLocation = CLLocation(latitude: to.latitude, longitude: to.longitude)
-        return fromLocation.distance(from: toLocation)
-    }
-    
     /// Get approximate location from timezone identifier
-    private func locationFromTimezone() -> CLLocationCoordinate2D? {
-        let timezone = TimeZone.current
+    private func locationFromTimezone(_ timezone: TimeZone) -> CLLocationCoordinate2D? {
         let identifier = timezone.identifier
         
         // Map timezone identifiers to regional centers (calculated from major cities in each timezone)
@@ -402,8 +239,7 @@ class LocationApproximator {
     }
     
     /// Get approximate location from locale identifier
-    private func locationFromLocale() -> CLLocationCoordinate2D? {
-        let locale = Locale.current
+    private func locationFromLocale(_ locale: Locale) -> CLLocationCoordinate2D? {
         let identifier = locale.identifier
         
         // Map locale identifiers to approximate coordinates
@@ -441,24 +277,3 @@ class LocationApproximator {
         return nil
     }
 }
-
-// MARK: - IP Geolocation Response Model
-private nonisolated struct IPLocationResponse: Codable {
-    let latitude: Double?
-    let longitude: Double?
-    let city: String?
-    let region: String?
-    let country: String?
-    let timezone: String?
-    
-    enum CodingKeys: String, CodingKey {
-        case latitude
-        case longitude
-        case city
-        case region
-        case country
-        case timezone
-    }
-}
-
-

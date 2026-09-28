@@ -45,6 +45,9 @@ struct AstronomicalInfoSection: View {
                     VStack(alignment: .leading, spacing: 16) {
                         // Sunrise and Sunset (side by side)
                         sunriseSunsetRow(astronomicalData: data)
+                        Text("Estimated from this device's time zone and region; times may differ from your city.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                         
                         // Daylight and Night Duration (side by side)
                         daylightNightRow(astronomicalData: data)
@@ -72,6 +75,9 @@ struct AstronomicalInfoSection: View {
                     VStack(alignment: .leading, spacing: 16) {
                         // Sunrise and Sunset (side by side)
                         sunriseSunsetRow(astronomicalData: data)
+                        Text("Estimated from this device's time zone and region; times may differ from your city.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                         
                         // Daylight and Night Duration (side by side)
                         daylightNightRow(astronomicalData: data)

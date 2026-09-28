@@ -51,10 +51,10 @@ nonisolated struct UnsplashSearchResponse: Codable {
 nonisolated enum CalendarNetworkConsent {
     static let photos = "CalendarPlay.allowOnlinePhotos"
     static let eventPhotos = "CalendarPlay.allowEventPhotoQueries"
-    static let location = "CalendarPlay.allowNetworkLocation"
+    // The legacy allowNetworkLocation preference is left untouched but no longer enables a provider.
     static let weather = "CalendarPlay.allowOnlineWeather"
     static let history = "feature_onThisDayEnabled"
-    static let keys = [photos, eventPhotos, location, weather, history]
+    static let keys = [photos, eventPhotos, weather, history]
 
     static func allows(_ key: String, defaults: UserDefaults = .standard) -> Bool {
         defaults.bool(forKey: key) && (key != eventPhotos || defaults.bool(forKey: photos))
