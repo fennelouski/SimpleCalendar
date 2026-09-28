@@ -9,6 +9,7 @@ import SwiftUI
 
 // MARK: - Small Weather Indicator
 struct SmallWeatherIndicator: View {
+    @AppStorage(CalendarNetworkConsent.weather) private var allowsOnlineWeather = false
     let weatherInfo: WeatherInfo?
     let weatherForecast: WeatherForecast?
     let date: Date
@@ -22,6 +23,7 @@ struct SmallWeatherIndicator: View {
     
     var body: some View {
         Group {
+            if allowsOnlineWeather {
             switch displayState {
             case .icon:
                 if let icon = weatherIcon {
@@ -47,6 +49,8 @@ struct SmallWeatherIndicator: View {
                         .minimumScaleFactor(0.8)
                 }
             }
+            }
+
         }
         .frame(width: 16, height: 12)
     }

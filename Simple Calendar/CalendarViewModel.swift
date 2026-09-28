@@ -117,6 +117,7 @@ class CalendarViewModel: ObservableObject {
     @Published var selectedEventForImage: CalendarEvent?
     @Published var showTVEventManagement: Bool = false
     @Published var currentBackgroundImage: PlatformImage? = nil
+    @Published var currentBackgroundPhoto: UnsplashPhoto? = nil
 
     #if !os(tvOS)
     private let eventStore = EKEventStore()
@@ -536,14 +537,16 @@ class CalendarViewModel: ObservableObject {
         showImageSelection = true
     }
 
-    func assignImageToEvent(_ event: CalendarEvent, imageId: String) {
+    @discardableResult
+    func assignImageToEvent(_ event: CalendarEvent, imageId: String) -> Bool {
         if LocalCalendarEvents.isLocal(event) {
             let updated = LocalCalendarEvents.copy(event)
             updated.imageRepositoryId = imageId
-            _ = addEvent(updated)
+            return addEvent(updated)
         } else {
             event.imageRepositoryId = imageId
             objectWillChange.send()
+            return true
         }
     }
 
@@ -558,7 +561,12 @@ class CalendarViewModel: ObservableObject {
     }
 
     func fetchImageForEvent(_ event: CalendarEvent, completion: @escaping (String?) -> Void) {
-        imageManager.findOrFetchImage(for: event, completion: completion)
+        imageManager.findOrFetchImage(for: event) { [weak self] imageID in
+            guard let self, let imageID else { completion(nil); return }
+            DispatchQueue.main.async {
+                completion(self.assignImageToEvent(event, imageId: imageID) ? imageID : nil)
+            }
+        }
     }
 
     private func setupSyncTimer() {
@@ -646,7 +654,8 @@ class CalendarViewModel: ObservableObject {
     }
 
     @objc func fetchRandomUnsplashImage() {
-        guard FeatureFlags.shared.automaticUnsplashImages else { return }
+        guard FeatureFlags.shared.automaticUnsplashImages,
+              let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.photos) else { return }
         
         // Use a relevant query based on the current month/season
         let monthName = currentDate.formatted(.dateTime.month(.wide))
@@ -659,7 +668,9 @@ class CalendarViewModel: ObservableObject {
                 guard let data = data, let image = PlatformImage(data: data) else { return }
                 
                 DispatchQueue.main.async {
+                    guard FeatureFlags.shared.automaticUnsplashImages, CalendarNetworkRequests.shared.isValid(ticket) else { return }
                     self.currentBackgroundImage = image
+                    self.currentBackgroundPhoto = photo
                     // Track download
                     UnsplashAPI.shared.trackDownload(for: photo.id)
                 }

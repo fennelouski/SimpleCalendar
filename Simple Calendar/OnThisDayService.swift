@@ -20,19 +20,13 @@ class OnThisDayService: ObservableObject {
     private let userDefaults = UserDefaults.standard
     private let cacheKeyPrefix = "onThisDay_"
 
-    private let session: URLSession = {
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 10
-        config.timeoutIntervalForResource = 30
-        return URLSession(configuration: config)
-    }()
-
     private init() {
         loadPersistentCache()
     }
 
     /// Fetch On This Day data for a specific date
     func fetchData(for date: Date) async throws -> OnThisDayData {
+        guard FeatureFlags.shared.onThisDayEnabled else { throw OnThisDayError.networkError }
         let cacheKey = cacheKey(for: date)
 
         // Check memory cache first
@@ -95,12 +89,14 @@ class OnThisDayService: ObservableObject {
         var request = URLRequest(url: url)
         request.setValue("SimpleCalendar/1.0", forHTTPHeaderField: "User-Agent")
 
-        let (data, response) = try await session.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse,
-              (200...299).contains(httpResponse.statusCode) else {
-            throw OnThisDayError.networkError
+        guard let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.history) else { throw OnThisDayError.networkError }
+        let data: Data = try await withCheckedThrowingContinuation { continuation in
+            CalendarNetworkRequests.shared.data(for: request, ticket: ticket) { data in
+                if let data { continuation.resume(returning: data) }
+                else { continuation.resume(throwing: OnThisDayError.networkError) }
+            }
         }
+        guard CalendarNetworkRequests.shared.isValid(ticket), FeatureFlags.shared.onThisDayEnabled else { throw OnThisDayError.networkError }
 
         let decoder = JSONDecoder()
         let apiResponse = try decoder.decode(OnThisDayResponse.self, from: data)

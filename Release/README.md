@@ -14,7 +14,7 @@ Calendar export preserves local all-day dates, declares DATE values, escapes tex
 
 Run `Tools/ReleaseChecks/run.sh`. Seven scenario groups use the production SwiftData model/store, parser and calendar exporter. They cover real SQLite reopen and failed writes, validation, DST and overnight intervals, malformed AI output, calendar export and durable deletion. Synthetic test data is isolated in a temporary directory. These checks are not native UI or live service tests.
 
-Preliminary unsigned tvOS and iOS Release builds passed. Native privacy/network changes and backend parity are in progress. The Mac is locked; actual native UI, remote focus, dark mode, accessibility, live service flows, screenshots, signed archive/export and App Store submission remain unverified.
+Integrated unsigned tvOS and iOS Release builds passed. Run `Tools/ReleaseChecks/run-network.sh` for 22 network and durable image assertions plus three weather decoder checks. Optional photos, event-based photo queries, network location and maps/weather start disabled; revocation cancels app requests and invalidates queued results. Historical information uses its existing feature toggle, off in fresh settings. Selected images and their required provider credits are saved durably; failed writes preserve the previous image. Real local backend checks against configured OpenAI and Unsplash passed; deployed parity must still be verified. The Mac is locked; actual native UI, remote focus, dark mode, accessibility, live service flows, screenshots, signed archive/export and App Store submission remain unverified.
 
 ## Deployment and submission
 

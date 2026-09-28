@@ -31,6 +31,7 @@ struct ContentView: View {
     @State private var refreshTrigger: UUID = UUID()
     @FocusState private var focusedDate: Date?
     @State private var showPermissionPrimer = false
+    @AppStorage(CalendarNetworkConsent.weather) private var allowsOnlineWeather = false
     
     
 #if os(tvOS)
@@ -123,6 +124,11 @@ struct ContentView: View {
         }
         #endif
         .roundedCorners(.small)
+        .safeAreaInset(edge: .bottom) {
+            #if !os(tvOS)
+            if allowsOnlineWeather && featureFlags.weatherIntegration { OpenMeteoAttributionView().padding(.vertical, 3) }
+            #endif
+        }
     }
     
     var body: some View {
@@ -427,6 +433,10 @@ struct ContentView: View {
             
             // Content that respects safe areas
             mainContentView
+            if calendarViewModel.currentBackgroundImage != nil, let photo = calendarViewModel.currentBackgroundPhoto {
+                VStack { Spacer(); HStack { Spacer(); UnsplashAttributionView(author: photo.user.name, authorURL: photo.user.links.html) } }
+                    .padding(8)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .ToggleDaylightVisualization)) { _ in
             FeatureFlags.shared.daylightVisualizationCalendar.toggle()

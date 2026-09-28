@@ -190,6 +190,7 @@ struct AstronomicalInfoSection: View {
     }
     
     private func loadWeather() {
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { return }
         // Check if we've already loaded weather for this date
         let calendar = Calendar.current
         if let lastDate = lastLoadedDate,

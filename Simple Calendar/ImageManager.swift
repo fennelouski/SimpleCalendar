@@ -41,8 +41,7 @@ class ImageManager {
                 completion(repositoryId)
                 return
             } else {
-                // Image ID exists but image is missing - clear it and find a new one
-                event.imageRepositoryId = nil
+                // Keep the previous association until a replacement is durably saved.
             }
         }
 
@@ -59,7 +58,6 @@ class ImageManager {
 
         if let exactMatch = exactMatches.first {
             // Found exact cached match
-            saveImageToEvent(event, imageId: exactMatch.id)
             completion(exactMatch.id)
             return
         }
@@ -78,7 +76,6 @@ class ImageManager {
         // Look for a very good match (high similarity score)
         if let bestMatch = similarImages.first, similarityScore(for: bestMatch, title: title, location: location) >= 1.5 {
             // Use existing image from repository - very good match
-            saveImageToEvent(event, imageId: bestMatch.id)
             completion(bestMatch.id)
             return
         }
@@ -91,7 +88,6 @@ class ImageManager {
 
         if let exactMatch = exactMatches.first {
             // Perfect match - use this image
-            saveImageToEvent(event, imageId: exactMatch.id)
             completion(exactMatch.id)
             return
         }
@@ -99,7 +95,6 @@ class ImageManager {
         // Check for good enough matches (any similarity score > 0.5)
         if let goodMatch = similarImages.first(where: { similarityScore(for: $0, title: title, location: location) > 0.5 }) {
             // Use existing image - good enough match
-            saveImageToEvent(event, imageId: goodMatch.id)
             completion(goodMatch.id)
             return
         }
@@ -109,26 +104,27 @@ class ImageManager {
     }
 
     func fetchNewImage(for event: CalendarEvent, completion: @escaping (String?) -> Void) {
-        let requestId = "fetch_\(event.id)_\(UUID().uuidString)"
+        let needsEventConsent = event.calendarIdentifier != "holidays"
+        let key = needsEventConsent ? CalendarNetworkConsent.eventPhotos : CalendarNetworkConsent.photos
+        guard let ticket = CalendarNetworkRequests.shared.ticket(for: key) else { completion(nil); return }
+        let requestId = "fetch_\(UUID().uuidString)"
 
         requestQueueManager.enqueueRequest(id: requestId) {
+            guard CalendarNetworkRequests.shared.isValid(ticket) else { DispatchQueue.main.async { completion(nil) }; return }
             let query = self.buildSearchQuery(for: event)
 
-            self.unsplashAPI.getRandomPhoto(query: query) { [weak self] photo in
+            self.unsplashAPI.getRandomPhoto(query: query, requiresEventConsent: needsEventConsent) { [weak self] photo in
                 guard let self = self, let photo = photo else {
                     completion(nil)
                     return
                 }
 
                 // Download the image
-                self.unsplashAPI.downloadImage(from: photo.urls.regular) { imageData in
+                self.unsplashAPI.downloadImage(from: photo.urls.regular, requiresEventConsent: needsEventConsent) { imageData in
                     guard let imageData = imageData, let image = PlatformImage(data: imageData) else {
                         completion(nil)
                         return
                     }
-
-                    // Track download as per Unsplash guidelines
-                    self.unsplashAPI.trackDownload(for: photo.id)
 
                     // Create metadata
                     let tags = photo.tags?.map { $0.title } ?? []
@@ -143,15 +139,13 @@ class ImageManager {
                         cachedAt: Date(),
                         tags: tags,
                         locationQuery: event.location,
-                        titleQuery: event.title
+                        titleQuery: event.title,
+                        isUserSelected: false
                     )
 
                     // Save to repository
-                    self.imageRepository.saveImage(image, metadata: metadata)
-
-                    // Associate with event
-                    self.saveImageToEvent(event, imageId: metadata.id)
-
+                    guard CalendarNetworkRequests.shared.isValid(ticket), self.imageRepository.saveImage(image, metadata: metadata) else { completion(nil); return }
+                    self.unsplashAPI.trackDownload(for: photo.id, requiresEventConsent: needsEventConsent)
                     completion(metadata.id)
                 }
             }
@@ -159,51 +153,26 @@ class ImageManager {
     }
 
     func searchImages(query: String, completion: @escaping ([ImageMetadata]) -> Void) {
-        let requestId = "search_\(query.hashValue)_\(UUID().uuidString)"
-
-        requestQueueManager.enqueueRequest(id: requestId) {
+        guard let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.photos) else { completion([]); return }
+        requestQueueManager.enqueueRequest(id: "search_" + UUID().uuidString) {
+            guard CalendarNetworkRequests.shared.isValid(ticket) else { DispatchQueue.main.async { completion([]) }; return }
             self.unsplashAPI.searchPhotos(query: query) { photos in
-                guard let photos = photos else {
-                    completion([])
-                    return
-                }
-
-                var metadataList: [ImageMetadata] = []
-
-                let group = DispatchGroup()
-
-                for photo in photos {
-                    group.enter()
-                    self.unsplashAPI.downloadImage(from: photo.urls.thumb) { imageData in
-                        defer { group.leave() }
-
-                        guard let imageData = imageData, let _ = PlatformImage(data: imageData) else {
-                            return
-                        }
-
-                        let tags = photo.tags?.map { $0.title } ?? []
-                        let metadata = ImageMetadata(
-                            id: UUID().uuidString,
-                            unsplashId: photo.id,
-                            url: photo.urls.regular,
-                            thumbnailUrl: photo.urls.thumb,
-                            author: photo.user.name,
-                            authorUrl: photo.user.links.html,
-                            downloadUrl: photo.links.download_location,
-                            cachedAt: Date(),
-                            tags: tags,
-                            locationQuery: nil,
-                            titleQuery: query
-                        )
-
-                        metadataList.append(metadata)
-                    }
-                }
-
-                group.notify(queue: .main) {
-                    completion(metadataList)
-                }
+                completion((photos ?? []).map { photo in
+                    ImageMetadata(id: UUID().uuidString, unsplashId: photo.id, url: photo.urls.regular, thumbnailUrl: photo.urls.thumb, author: photo.user.name, authorUrl: photo.user.links.html, downloadUrl: photo.links.download_location, cachedAt: Date(), tags: photo.tags?.map { $0.title } ?? [], locationQuery: nil, titleQuery: query)
+                })
             }
+        }
+    }
+
+    func saveSelectedImage(_ metadata: ImageMetadata, completion: @escaping (Bool) -> Void) {
+        guard let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.photos) else { completion(false); return }
+        unsplashAPI.downloadImage(from: metadata.url) { data in
+            guard CalendarNetworkRequests.shared.isValid(ticket), let data, let image = PlatformImage(data: data) else { completion(false); return }
+            var selected = metadata
+            selected.isUserSelected = true
+            guard self.imageRepository.saveImage(image, metadata: selected) else { completion(false); return }
+            if let id = metadata.unsplashId { self.unsplashAPI.trackDownload(for: id) }
+            completion(true)
         }
     }
 
@@ -312,9 +281,4 @@ class ImageManager {
         return queryParts.joined(separator: " ").lowercased()
     }
 
-    private func saveImageToEvent(_ event: CalendarEvent, imageId: String) {
-        event.imageRepositoryId = imageId
-        // Note: In a real app, you'd want to save this to persistent storage
-        // For now, we're just setting the property
-    }
 }

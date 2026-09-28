@@ -30,6 +30,8 @@ struct OnThisDaySection: View {
                     .foregroundColor(themeManager.currentPalette.textSecondary)
             }
             
+            Link("Wikipedia contributors · CC BY-SA 4.0", destination: URL(string: "https://creativecommons.org/licenses/by-sa/4.0/")!)
+                .font(uiConfig.captionFont)
             if isLoading {
                 ProgressView()
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -47,6 +49,7 @@ struct OnThisDaySection: View {
                             title: "Holidays & Observances".localized,
                             icon: "calendar",
                             items: data.holidays.map { $0.text },
+                            sourcePages: data.holidays.map { $0.pages ?? [] },
                             color: .orange
                         )
                     }
@@ -56,6 +59,7 @@ struct OnThisDaySection: View {
                             title: "Historical Events".localized,
                             icon: "clock",
                             items: data.events.map { $0.text },
+                            sourcePages: data.events.map { $0.pages ?? [] },
                             color: .blue
                         )
                     }
@@ -65,6 +69,7 @@ struct OnThisDaySection: View {
                             title: "Notable Births".localized,
                             icon: "person",
                             items: data.births.map { $0.text },
+                            sourcePages: data.births.map { $0.pages ?? [] },
                             color: .green
                         )
                     }
@@ -74,6 +79,7 @@ struct OnThisDaySection: View {
                             title: "Notable Deaths".localized,
                             icon: "person.crop.circle.badge.xmark",
                             items: data.deaths.map { $0.text },
+                            sourcePages: data.deaths.map { $0.pages ?? [] },
                             color: .gray
                         )
                     }

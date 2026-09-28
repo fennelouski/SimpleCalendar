@@ -22,99 +22,41 @@ struct MapLocation: Identifiable {
 class LocationGeocodingCache {
     static let shared = LocationGeocodingCache()
     private var cache: [String: (coordinate: CLLocationCoordinate2D, date: Date)] = [:]
-    private var pendingRequests: [String: [(CLLocationCoordinate2D) -> Void]] = [:]
-    private let cacheDuration: TimeInterval = 24 * 60 * 60 // 24 hours
-    private let geocodingMinInterval: TimeInterval = 1.0 // Minimum 1 second between requests
-    private let maxCacheSize = 200 // Maximum number of cached locations
-    private var lastGeocodingRequestTime: Date?
+    private var pendingRequests: [String: [(CLLocationCoordinate2D?) -> Void]] = [:]
+    private var searches: [String: MKLocalSearch] = [:]
+    private var lastRequest: Date?
+    private var observer: NSObjectProtocol?
 
     private init() {
-        // Clean up expired entries periodically
-        Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { [weak self] _ in
-            self?.cleanupExpiredEntries()
+        observer = NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            guard let self, !CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { return }
+            self.searches.values.forEach { $0.cancel() }
+            self.cache.removeAll()
         }
     }
 
-    private func cleanupExpiredEntries() {
-        let now = Date()
-        let expiredKeys = cache.filter { now.timeIntervalSince($0.value.date) > cacheDuration }.keys
-        expiredKeys.forEach { cache.removeValue(forKey: $0) }
-    }
-
-    private func limitCacheSize() {
-        if cache.count > maxCacheSize {
-            // Remove oldest entries
-            let sortedByAge = cache.sorted { $0.value.date < $1.value.date }
-            let keysToRemove = sortedByAge.prefix(cache.count - maxCacheSize).map { $0.key }
-            keysToRemove.forEach { cache.removeValue(forKey: $0) }
-        }
-    }
-    
-    func getCoordinate(for location: String, completion: @escaping (CLLocationCoordinate2D) -> Void) {
-        // Check cache first
-        if let cached = cache[location],
-           Date().timeIntervalSince(cached.date) < cacheDuration {
-            completion(cached.coordinate)
-            return
-        }
-        
-        // Check if there's already a pending request for this location
-        if var pendingCompletions = pendingRequests[location] {
-            pendingCompletions.append(completion)
-            pendingRequests[location] = pendingCompletions
-            return
-        }
-        
-        // Rate limiting: check if we've made a request too recently
-        let now = Date()
-        if let lastRequestTime = lastGeocodingRequestTime,
-           now.timeIntervalSince(lastRequestTime) < geocodingMinInterval {
-            // Too soon since last request - use cached value if available
-            if let cached = cache[location] {
-                completion(cached.coordinate)
-            } else {
-                // Return default coordinate to avoid throttling
-                completion(CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194))
-            }
-            return
-        }
-        
-        // Mark this location as having a pending request
+    func getCoordinate(for location: String, completion: @escaping (CLLocationCoordinate2D?) -> Void) {
+        guard let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.weather) else { completion(nil); return }
+        cache = cache.filter { Date().timeIntervalSince($0.value.date) < 24 * 60 * 60 }
+        if let cached = cache[location] { completion(cached.coordinate); return }
+        if pendingRequests[location] != nil { pendingRequests[location]?.append(completion); return }
+        guard lastRequest.map({ Date().timeIntervalSince($0) >= 1 }) ?? true else { completion(nil); return }
         pendingRequests[location] = [completion]
-        lastGeocodingRequestTime = now
-        
-        // Use MKLocalSearch for geocoding (replaces deprecated CLGeocoder)
+        lastRequest = Date()
         let request = MKLocalSearch.Request()
         request.naturalLanguageQuery = location
-        
         let search = MKLocalSearch(request: request)
+        searches[location] = search
         search.start { [weak self] response, error in
-            guard let self = self else { return }
-            
-            let coordinate: CLLocationCoordinate2D
-            if let response = response,
-               let mapItem = response.mapItems.first {
-                let location = mapItem.location
-                coordinate = location.coordinate
-            } else {
-                // Fallback to default
-                coordinate = CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194)
+            guard let self else { return }
+            let coordinate = error == nil && CalendarNetworkRequests.shared.isValid(ticket) ? response?.mapItems.first?.location.coordinate : nil
+            if let coordinate {
+                if self.cache.count >= 200, let oldest = self.cache.min(by: { $0.value.date < $1.value.date })?.key { self.cache.removeValue(forKey: oldest) }
+                self.cache[location] = (coordinate, Date())
             }
-            
-            // Cache the result
-            self.cache[location] = (coordinate: coordinate, date: Date())
-
-            // Limit cache size
-            self.limitCacheSize()
-
-            // Call all pending completion handlers for this location
-            if let pendingCompletions = self.pendingRequests[location] {
-                for completionHandler in pendingCompletions {
-                    completionHandler(coordinate)
-                }
-                // Clear the pending requests
-                self.pendingRequests.removeValue(forKey: location)
-            }
+            let callbacks = self.pendingRequests.removeValue(forKey: location) ?? []
+            self.searches.removeValue(forKey: location)
+            callbacks.forEach { $0(coordinate) }
         }
     }
 }
@@ -122,65 +64,52 @@ class LocationGeocodingCache {
 struct EventMapView: View {
     let location: String
     @EnvironmentObject var themeManager: ThemeManager
-    @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194), // Default to San Francisco
-        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-    )
-    @State private var isLoading = true
+    @AppStorage(CalendarNetworkConsent.weather) private var allowsMaps = false
+    @State private var region: MKCoordinateRegion?
+    @State private var isLoading = false
     @State private var showFullMap = false
-    @State private var lastGeocodedLocation: String? // Track which location we've geocoded
+    @State private var lookupGeneration = UUID()
 
     var body: some View {
-        ZStack {
-            Map {
-                Marker(location, coordinate: region.center)
-                    .tint(.red)
-            }
-            .mapStyle(.standard)
+        Group {
+            if !allowsMaps {
+                Text("Enable Online maps in Settings to look up this location with Apple.").font(.caption)
+            } else if let region {
+                Map {
+                    Marker(location, coordinate: region.center).tint(.red)
+                }
+                .mapStyle(.standard)
                 .cornerRadius(8)
-                .onAppear {
-                    if lastGeocodedLocation != location {
-                        geocodeLocation()
-                    }
-                }
-                .onChange(of: location) {
-                    geocodeLocation()
-                }
-                #if os(iOS)
-                .disabled(true) // Disable user interaction to prevent scrolling
-                .contentShape(Rectangle()) // Make the whole area tappable
-                .onTapGesture {
-                    showFullMap = true
-                }
-                #else
-                .onTapGesture {
-                    showFullMap = true
-                }
-                #endif
-
-            if isLoading {
+                .contentShape(Rectangle())
+                .onTapGesture { showFullMap = true }
+            } else if isLoading {
                 ProgressView()
-                    .scaleEffect(1.5)
+            } else {
+                Text("Location unavailable").font(.caption)
             }
         }
-        .frame(height: 100) // Match the specified height
+        .frame(height: 100)
+        .onAppear { geocodeLocation() }
+        .onChange(of: location) { geocodeLocation() }
+        .onChange(of: allowsMaps) {
+            if !allowsMaps { region = nil; showFullMap = false }
+            geocodeLocation()
+        }
         .sheet(isPresented: $showFullMap) {
-            InteractiveMapView(location: location, region: region)
+            if allowsMaps, let region { InteractiveMapView(location: location, region: region) }
         }
     }
 
     private func geocodeLocation() {
-        guard lastGeocodedLocation != location else { return }
-        lastGeocodedLocation = location
-        
-        LocationGeocodingCache.shared.getCoordinate(for: location) { [self] coordinate in
-            DispatchQueue.main.async {
-                self.region = MKCoordinateRegion(
-                    center: coordinate,
-                    span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                )
-                self.isLoading = false
-            }
+        let generation = UUID()
+        lookupGeneration = generation
+        region = nil
+        guard allowsMaps else { isLoading = false; return }
+        isLoading = true
+        LocationGeocodingCache.shared.getCoordinate(for: location) { coordinate in
+            guard lookupGeneration == generation, allowsMaps else { return }
+            region = coordinate.map { MKCoordinateRegion(center: $0, span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)) }
+            isLoading = false
         }
     }
 }

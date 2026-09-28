@@ -14,6 +14,10 @@ struct ImageSelectionView: View {
     @State private var searchResults: [ImageMetadata] = []
     @State private var isSearching = false
     @State private var selectedImageId: String?
+    @State private var isSaving = false
+    @State private var errorMessage: String?
+    @State private var searchGeneration = UUID()
+    @AppStorage(CalendarNetworkConsent.photos) private var allowsOnlinePhotos = false
 
     let event: CalendarEvent
     let onImageSelected: (String) -> Void
@@ -31,18 +35,29 @@ struct ImageSelectionView: View {
                         presentationMode.wrappedValue.dismiss()
                     }
                     Button("Done".localized) {
-                        if let selectedImageId = selectedImageId {
-                            onImageSelected(selectedImageId)
+                        guard let metadata = searchResults.first(where: { $0.id == selectedImageId }) else { return }
+                        isSaving = true
+                        ImageManager.shared.saveSelectedImage(metadata) { saved in
+                            isSaving = false
+                            if saved {
+                                onImageSelected(metadata.id)
+                                presentationMode.wrappedValue.dismiss()
+                            } else { errorMessage = "The image could not be saved. Your selection is still available to retry." }
                         }
-                        presentationMode.wrappedValue.dismiss()
                     }
                     .buttonStyle(.borderedProminent)
-                    .disabled(selectedImageId == nil)
+                    .disabled(selectedImageId == nil || isSaving)
                 }
             }
             .padding()
 
             Divider()
+
+            Text("Searches and photo downloads contact Calendar Play and Unsplash. Search text may include an event title or location; edit it before searching.")
+                .font(.caption).padding(.horizontal)
+            if !allowsOnlinePhotos { Text("Enable Online photos in Settings to search Unsplash.").padding() }
+            if let errorMessage { Text(errorMessage).foregroundStyle(.red).padding() }
+            if isSaving { ProgressView("Saving image…") }
 
             // Search bar
             HStack {
@@ -55,6 +70,9 @@ struct ImageSelectionView: View {
                     }
                 if !searchQuery.isEmpty {
                     Button(action: {
+                        searchGeneration = UUID()
+                        isSearching = false
+                        selectedImageId = nil
                         searchQuery = ""
                         searchResults = []
                     }) {
@@ -80,6 +98,9 @@ struct ImageSelectionView: View {
                     Text("No images found".localized)
                         .foregroundColor(themeManager.currentPalette.textSecondary)
                     Button("Try a different search".localized) {
+                        searchGeneration = UUID()
+                        isSearching = false
+                        selectedImageId = nil
                         searchQuery = ""
                     }
                     .padding(.top)
@@ -123,11 +144,8 @@ struct ImageSelectionView: View {
         }
         .frame(minWidth: 500, minHeight: 400)
         .onAppear {
-            // Auto-search with suggested term if no query
-            if searchQuery.isEmpty {
-                searchQuery = suggestedSearchTerm
-                performSearch()
-            }
+            // Suggestions stay local until the user explicitly submits the search.
+            if searchQuery.isEmpty { searchQuery = suggestedSearchTerm }
         }
     }
 
@@ -152,11 +170,15 @@ struct ImageSelectionView: View {
     }
 
     private func performSearch() {
-        guard !searchQuery.isEmpty else { return }
-
+        guard !searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, allowsOnlinePhotos else { return }
+        let generation = UUID()
+        searchGeneration = generation
+        selectedImageId = nil
+        errorMessage = nil
         isSearching = true
         ImageManager.shared.searchImages(query: searchQuery) { results in
             DispatchQueue.main.async {
+                guard searchGeneration == generation else { return }
                 self.searchResults = results
                 self.isSearching = false
 
@@ -199,23 +221,11 @@ struct ImageThumbnailView: View {
                     .frame(width: 120, height: 120)
             }
 
-            // Attribution overlay (if enabled in settings)
-            if UserDefaults.standard.bool(forKey: "showUnsplashAttribution") {
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        Text("Photo by %@".localized(with: metadata.author))
-                            .font(.caption2)
-                            .foregroundColor(.white)
-                            .padding(4)
-                            .background(Color.black.opacity(0.7))
-                            .cornerRadius(4)
-                            .padding(4)
-                    }
-                }
-                .frame(width: 120, height: 120)
+            VStack {
+                Spacer()
+                UnsplashAttributionView(author: metadata.author, authorURL: metadata.authorUrl)
             }
+            .frame(width: 120, height: 120)
         }
         .onAppear {
             loadThumbnail()
@@ -223,14 +233,9 @@ struct ImageThumbnailView: View {
     }
 
     private func loadThumbnail() {
-        guard let url = URL(string: metadata.thumbnailUrl) else { return }
-
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, let image = PlatformImage(data: data) else { return }
-
-            DispatchQueue.main.async {
-                self.thumbnailImage = image
-            }
-        }.resume()
+        UnsplashAPI.shared.downloadImage(from: metadata.thumbnailUrl) { data in
+            guard let data, let image = PlatformImage(data: data) else { return }
+            thumbnailImage = image
+        }
     }
 }

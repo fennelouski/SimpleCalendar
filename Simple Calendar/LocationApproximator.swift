@@ -26,6 +26,10 @@ class LocationApproximator {
         // Get timezone-based location first
         let timezoneLocation = locationFromTimezone() ?? locationFromLocale() ?? CLLocationCoordinate2D(latitude: 39.8283, longitude: -98.5795)
         
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.location) else {
+            cachedIPLocation = nil
+            return timezoneLocation
+        }
         // Try to refine with IP geolocation if available
         if let cached = getCachedIPLocation() {
             // Validate timezone matches (still important for accuracy)
@@ -51,8 +55,9 @@ class LocationApproximator {
     
     /// Get cached IP location if available and not expired
     private func getCachedIPLocation() -> (coordinate: CLLocationCoordinate2D, timezone: String?)? {
-        guard let cached = cachedIPLocation,
-              Date().timeIntervalSince(cached.timestamp) < ipLocationCacheDuration else {
+        guard let cached = cachedIPLocation else { return nil }
+        guard Date().timeIntervalSince(cached.timestamp) < ipLocationCacheDuration else {
+            cachedIPLocation = nil
             return nil
         }
         return (cached.coordinate, cached.timezone)
@@ -60,49 +65,25 @@ class LocationApproximator {
     
     /// Fetch IP location asynchronously if needed
     private func fetchIPLocationIfNeeded() {
-        // Don't fetch if already cached or currently fetching
-        if cachedIPLocation != nil || isFetchingIPLocation {
-            return
-        }
-        
+        guard getCachedIPLocation() == nil, !isFetchingIPLocation,
+              let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.location),
+              let url = URL(string: "https://ipapi.co/json/") else { return }
         isFetchingIPLocation = true
-        
-        // Use ipapi.co - free, no API key required, good rate limits
-        guard let url = URL(string: "https://ipapi.co/json/") else {
-            isFetchingIPLocation = false
-            return
+        CalendarNetworkRequests.shared.data(for: URLRequest(url: url), ticket: ticket) { [weak self] data in
+            guard let self else { return }
+            self.isFetchingIPLocation = false
+            guard CalendarNetworkRequests.shared.isValid(ticket), let data,
+                  let response = try? JSONDecoder().decode(IPLocationResponse.self, from: data),
+                  let latitude = response.latitude, let longitude = response.longitude,
+                  latitude.isFinite, longitude.isFinite, (-90...90).contains(latitude), (-180...180).contains(longitude) else { return }
+            let fetchedAt = Date()
+            self.cachedIPLocation = (CLLocationCoordinate2D(latitude: latitude, longitude: longitude), response.timezone, fetchedAt)
+            DispatchQueue.main.asyncAfter(deadline: .now() + self.ipLocationCacheDuration) { [weak self] in
+                if self?.cachedIPLocation?.timestamp == fetchedAt { self?.cachedIPLocation = nil }
+            }
         }
-        
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
-            guard let self = self,
-                  let data = data,
-                  error == nil else {
-                self?.isFetchingIPLocation = false
-                return
-            }
-            
-            do {
-                let decoder = JSONDecoder()
-                let ipResponse = try decoder.decode(IPLocationResponse.self, from: data)
-                
-                // Only cache if we got valid coordinates
-                if let latitude = ipResponse.latitude,
-                   let longitude = ipResponse.longitude {
-                    let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-                    DispatchQueue.main.async {
-                        self.cachedIPLocation = (coordinate, ipResponse.timezone, Date())
-                        self.isFetchingIPLocation = false
-                    }
-                } else {
-                    self.isFetchingIPLocation = false
-                }
-            } catch {
-                print("Error decoding IP location response: \(error)")
-                self.isFetchingIPLocation = false
-            }
-        }.resume()
     }
-    
+
     /// Validate that IP timezone matches device timezone
     /// This ensures we don't use an IP location from a completely different timezone
     private func isTimezoneValid(_ ipTimezone: String?) -> Bool {

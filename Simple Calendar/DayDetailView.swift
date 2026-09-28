@@ -270,7 +270,8 @@ struct DayDetailView: View {
         defer { isLoadingOnThisDay = false }
         
         do {
-            onThisDayData = try await onThisDayService.fetchData(for: date)
+            let result = try await onThisDayService.fetchData(for: date)
+            if featureFlags.onThisDayEnabled { onThisDayData = result }
         } catch {
             onThisDayError = error
             print("Failed to load On This Day data: \(error.localizedDescription)")

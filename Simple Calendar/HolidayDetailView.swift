@@ -30,17 +30,8 @@ struct HolidayDetailView: View {
                             .clipped()
                             .cornerRadius(12)
 
-                        // Attribution overlay
-                        if UserDefaults.standard.bool(forKey: "showUnsplashAttribution") {
-                            if let metadata = holidayImageManager.imageManager.getImageMetadata(for: holidayImageManager.getCachedImageIdForHoliday(holiday) ?? "") {
-                                Text("Photo by %@".localized(with: metadata.author))
-                                    .font(.caption2)
-                                    .foregroundColor(themeManager.currentPalette.textPrimary)
-                                    .padding(6)
-                                    .background(themeManager.currentPalette.surface.opacity(0.9))
-                                    .cornerRadius(4)
-                                    .padding(4)
-                            }
+                        if let metadata = holidayImageManager.imageManager.getImageMetadata(for: holidayImageManager.getCachedImageIdForHoliday(holiday) ?? "") {
+                            UnsplashAttributionView(author: metadata.author, authorURL: metadata.authorUrl).padding(4)
                         }
                     }
                 } else if isLoadingImage {

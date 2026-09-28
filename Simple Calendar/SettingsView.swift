@@ -38,6 +38,10 @@ struct SettingsContentView: View {
     @FocusState private var focusedTheme: ColorTheme?
     @State private var showAboutView = false
     @AppStorage("aiEventSharingConsent_v1") private var aiSharingConsent = false
+    @AppStorage("CalendarPlay.allowOnlinePhotos") private var allowOnlinePhotos = false
+    @AppStorage("CalendarPlay.allowEventPhotoQueries") private var allowEventPhotoQueries = false
+    @AppStorage("CalendarPlay.allowNetworkLocation") private var allowNetworkLocation = false
+    @AppStorage("CalendarPlay.allowOnlineWeather") private var allowOnlineWeather = false
     @State private var preservedFocusedCategory: CalendarHoliday.CalendarHolidayCategory? = nil
     @State private var focusRestoreTrigger: UUID = UUID()
     var googleOAuthManager: GoogleOAuthManager?
@@ -785,6 +789,28 @@ struct SettingsContentView: View {
                             Toggle("Allow AI event parsing", isOn: $aiSharingConsent)
                             Text("When you select Parse event with AI, Calendar Play sends the description, selected date and time zone to its server and OpenAI. Turning this off prevents new requests from this device; it does not erase information already sent.")
                                 .font(.subheadline)
+                            Toggle("Allow online photos", isOn: $allowOnlinePhotos)
+                                .onChange(of: allowOnlinePhotos) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }
+                            Text("Photo searches go through Calendar Play's server to Unsplash. Photo servers receive your IP address. Saved images stay on this device when this is off.")
+                                .font(.subheadline)
+                            Toggle("Use event titles and locations to find photos", isOn: $allowEventPhotoQueries)
+                                .onChange(of: allowEventPhotoQueries) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }
+                                .disabled(!allowOnlinePhotos)
+                            Text("When both photo options are on, event details can be sent automatically to find matching photos. Leave this off to enter your own search terms.")
+                                .font(.subheadline)
+                            Toggle("Use network location estimate", isOn: $allowNetworkLocation)
+                                .onChange(of: allowNetworkLocation) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }
+                            Text("Allows ipapi.co to receive your IP address and return an approximate location. When off, the app estimates location from the device's time zone and region.")
+                                .font(.subheadline)
+                            #if os(tvOS)
+                            Toggle("Allow online maps", isOn: $allowOnlineWeather)
+                                .onChange(of: allowOnlineWeather) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }
+                            Text("Sends location text to Apple to find places and show maps. Weather requests are not available on Apple TV.").font(.subheadline)
+                            #else
+                            Toggle("Allow online maps and weather", isOn: $allowOnlineWeather)
+                                .onChange(of: allowOnlineWeather) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }
+                            Text("Sends event locations or estimated coordinates to Apple place search and geocoding, and to weather providers for forecasts.").font(.subheadline)
+                            #endif
                             Link("Privacy policy", destination: URL(string: "https://nathanfennel.com/calendar-play/privacy.html")!)
                             Link("Support", destination: URL(string: "https://nathanfennel.com/calendar-play/support.html")!)
                         }

@@ -9,6 +9,7 @@ import Foundation
 import CoreLocation
 import Combine
 import MapKit
+import SwiftUI
 
 #if os(tvOS) || NO_WEATHERKIT
 // WeatherKit not available on tvOS
@@ -119,7 +120,7 @@ private nonisolated struct CurrentData: Codable {
         case temperature2m = "temperature_2m"
         case relativeHumidity2m = "relative_humidity_2m"
         case windspeed10m = "windspeed_10m"
-        case weathercode
+        case weathercode = "weather_code"
         case time
     }
 }
@@ -136,7 +137,7 @@ private nonisolated struct DailyData: Codable {
         case time
         case temperature2mMax = "temperature_2m_max"
         case temperature2mMin = "temperature_2m_min"
-        case weathercode
+        case weathercode = "weather_code"
         case windspeed10mMax = "windspeed_10m_max"
         case relativeHumidity2mMax = "relative_humidity_2m_max"
     }
@@ -146,6 +147,21 @@ private nonisolated struct DailyData: Codable {
 private nonisolated func decodeOpenMeteoResponse(from data: Data) throws -> OpenMeteoResponse {
     let decoder = JSONDecoder()
     return try decoder.decode(OpenMeteoResponse.self, from: data)
+}
+
+private nonisolated func openMeteoDate(_ value: String) -> Date? {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.calendar = Calendar(identifier: .gregorian)
+    formatter.dateFormat = "yyyy-MM-dd"
+    return formatter.date(from: String(value.prefix(10)))
+}
+
+struct OpenMeteoAttributionView: View {
+    var body: some View {
+        Link("Weather: Open-Meteo · CC BY 4.0", destination: URL(string: "https://open-meteo.com/")!)
+            .font(.caption2)
+    }
 }
 
 #if os(tvOS) || NO_WEATHERKIT
@@ -220,10 +236,18 @@ class WeatherManager: ObservableObject {
 
     private init() {}
     
+    private func requestWeatherData(from url: URL, completion: @escaping (Data?, URLResponse?, Error?) -> Void) {
+        guard let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.weather) else { completion(nil, nil, URLError(.cancelled)); return }
+        CalendarNetworkRequests.shared.data(for: URLRequest(url: url), ticket: ticket) { data in
+            completion(data, nil, data == nil ? URLError(.cancelled) : nil)
+        }
+    }
+
     // MARK: - Geocoding Helpers
     
     /// Geocode an address string to coordinates using MapKit APIs
     private func geocodeAddressString(_ addressString: String, completion: @escaping (CLLocationCoordinate2D?) -> Void) {
+        guard let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.weather) else { completion(nil); return }
         // Note: New MapKit APIs (MKGeocodingRequest) are not yet fully available
         // Using CLGeocoder with deprecation suppression until new APIs are stable
         let geocoder = CLGeocoder()
@@ -231,7 +255,7 @@ class WeatherManager: ObservableObject {
         #warning("CLGeocoder is deprecated in tvOS 26.0. Update to use MKGeocodingRequest when available.")
         #endif
         geocoder.geocodeAddressString(addressString) { placemarks, error in
-            guard let placemark = placemarks?.first,
+            guard CalendarNetworkRequests.shared.isValid(ticket), let placemark = placemarks?.first,
                   let coordinate = placemark.location?.coordinate else {
                 DispatchQueue.main.async {
                     completion(nil)
@@ -239,13 +263,14 @@ class WeatherManager: ObservableObject {
                 return
             }
             DispatchQueue.main.async {
-                completion(coordinate)
+                completion(CalendarNetworkRequests.shared.isValid(ticket) ? coordinate : nil)
             }
         }
     }
     
     /// Reverse geocode coordinates to a location name using MapKit APIs
     private func reverseGeocodeCoordinate(_ coordinate: CLLocationCoordinate2D, completion: @escaping (String) -> Void) {
+        guard let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.weather) else { completion(""); return }
         // Note: New MapKit APIs (MKReverseGeocodingRequest) are not yet fully available
         // Using CLGeocoder with deprecation suppression until new APIs are stable
         let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
@@ -272,7 +297,7 @@ class WeatherManager: ObservableObject {
             }
             
             DispatchQueue.main.async {
-                completion(locationName)
+                completion(CalendarNetworkRequests.shared.isValid(ticket) ? locationName : "")
             }
         }
     }
@@ -282,6 +307,7 @@ class WeatherManager: ObservableObject {
     /// Get weather for a specific date and location
     /// Fetches from cache if available, otherwise fetches from API
     func getWeather(for location: String, date: Date, completion: @escaping (WeatherInfo?) -> Void) {
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { completion(nil); return }
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: date)
         let today = calendar.startOfDay(for: Date())
@@ -568,6 +594,7 @@ class WeatherManager: ObservableObject {
     }
 
     func getWeather(for location: String, completion: @escaping (WeatherInfo?) -> Void) {
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { completion(nil); return }
         // Check cache first
         if let cached = weatherCache[location],
            Date().timeIntervalSince(cached.timestamp) < cacheDuration {
@@ -586,6 +613,7 @@ class WeatherManager: ObservableObject {
 
     #if canImport(WeatherKit)
     private func getWeatherWithWeatherKit(for location: String, completion: @escaping (WeatherInfo?) -> Void) {
+        guard let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.weather) else { completion(nil); return }
         // First geocode the location string to coordinates
         geocodeAddressString(location) { coordinate in
             guard let coordinate = coordinate else {
@@ -598,15 +626,17 @@ class WeatherManager: ObservableObject {
 
             Task { @MainActor in
                 do {
+                    guard CalendarNetworkRequests.shared.isValid(ticket) else { completion(nil); return }
                     let weather = try await self.weatherService.weather(for: CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude))
 
+                    guard CalendarNetworkRequests.shared.isValid(ticket) else { completion(nil); return }
                     // Convert WeatherKit data to our WeatherInfo format
                     let currentWeather = weather.currentWeather
-                    let temperature = currentWeather.temperature.value
+                    let temperature = currentWeather.temperature.converted(to: .fahrenheit).value
                     let condition = self.conditionString(from: currentWeather.condition)
                     let icon = self.iconString(from: currentWeather.condition)
                     let humidity = currentWeather.humidity * 100
-                    let windSpeed = currentWeather.wind.speed.value * 2.237 // Convert m/s to mph
+                    let windSpeed = currentWeather.wind.speed.converted(to: .milesPerHour).value
 
                     let weatherInfo = WeatherInfo(
                         temperature: temperature,
@@ -622,7 +652,7 @@ class WeatherManager: ObservableObject {
                     self.weatherCache[location] = (weatherInfo, Date())
                     completion(weatherInfo)
                 } catch {
-                    print("WeatherKit error: \(error)")
+
                     completion(nil)
                 }
             }
@@ -701,11 +731,11 @@ class WeatherManager: ObservableObject {
                 return
             }
             
-            URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+            self.requestWeatherData(from: url) { [weak self] data, response, error in
                 guard let self = self,
                       let data = data,
                       error == nil else {
-                    print("Open-Meteo API error: \(error?.localizedDescription ?? "Unknown error")")
+
                     DispatchQueue.main.async {
                         completion(nil)
                     }
@@ -732,7 +762,7 @@ class WeatherManager: ObservableObject {
                     
                     let dateFormatter = ISO8601DateFormatter()
                     dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                    let currentDate = dateFormatter.date(from: current.time) ?? Date()
+                    let currentDate = openMeteoDate(current.time) ?? Date()
                     
                     let weatherInfo = WeatherInfo(
                         temperature: current.temperature2m,
@@ -750,12 +780,12 @@ class WeatherManager: ObservableObject {
                     }
                     
                 } catch {
-                    print("Error decoding Open-Meteo response: \(error)")
+
                     DispatchQueue.main.async {
                         completion(nil)
                     }
                 }
-            }.resume()
+            }
         }
     }
     
@@ -777,22 +807,25 @@ class WeatherManager: ObservableObject {
     }
 
     func getWeatherForEvent(_ event: CalendarEvent, completion: @escaping (WeatherInfo?) -> Void) {
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { completion(nil); return }
         guard let location = event.location, !location.isEmpty else {
             completion(nil)
             return
         }
 
-        getWeather(for: location, completion: completion)
+        getWeather(for: location, date: event.startDate, completion: completion)
     }
     
     /// Get weather for current user location using improved location approximation
     func getWeatherForCurrentLocation(date: Date = Date(), completion: @escaping (WeatherInfo?) -> Void) {
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { completion(nil); return }
         let location = LocationApproximator.shared.approximateLocation()
         getWeatherForCoordinates(latitude: location.latitude, longitude: location.longitude, date: date, completion: completion)
     }
     
     /// Get weather using coordinates directly (avoids redundant geocoding)
     func getWeatherForCoordinates(latitude: Double, longitude: Double, date: Date = Date(), completion: @escaping (WeatherInfo?) -> Void) {
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { completion(nil); return }
         let calendar = Calendar.current
         let dayStart = calendar.startOfDay(for: date)
         let today = calendar.startOfDay(for: Date())
@@ -1113,6 +1146,7 @@ class WeatherManager: ObservableObject {
     
     /// Fetches current weather and 10-day forecast for a location
     func getWeatherForecast(for location: String, completion: @escaping (WeatherForecast?) -> Void) {
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { completion(nil); return }
         // Check cache first
         if let cached = forecastCache[location],
            Date().timeIntervalSince(cached.timestamp) < forecastCacheDuration {
@@ -1136,6 +1170,7 @@ class WeatherManager: ObservableObject {
     
     /// Fetches current weather and 10-day forecast using coordinates directly (avoids geocoding)
     func getWeatherForecastForCoordinates(latitude: Double, longitude: Double, completion: @escaping (WeatherForecast?) -> Void) {
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { completion(nil); return }
         fetchForecastForCoordinates(latitude: latitude, longitude: longitude, completion: completion)
     }
     
@@ -1157,11 +1192,11 @@ class WeatherManager: ObservableObject {
             return
         }
         
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        self.requestWeatherData(from: url) { [weak self] data, response, error in
             guard let self = self,
                   let data = data,
                   error == nil else {
-                print("Open-Meteo API error: \(error?.localizedDescription ?? "Unknown error")")
+
                 DispatchQueue.main.async {
                     completion(nil)
                 }
@@ -1181,7 +1216,7 @@ class WeatherManager: ObservableObject {
                 
                 let dateFormatter = ISO8601DateFormatter()
                 dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                let currentDate = dateFormatter.date(from: current.time) ?? Date()
+                let currentDate = openMeteoDate(current.time) ?? Date()
                 
                 let weatherInfo = WeatherInfo(
                     temperature: current.temperature2m,
@@ -1198,12 +1233,12 @@ class WeatherManager: ObservableObject {
                 }
                 
             } catch {
-                print("Error decoding Open-Meteo response: \(error)")
+
                 DispatchQueue.main.async {
                     completion(nil)
                 }
             }
-        }.resume()
+        }
     }
     
     private func fetchOpenMeteoForecast(latitude: Double, longitude: Double, location: String, completion: @escaping (WeatherForecast?) -> Void) {
@@ -1228,11 +1263,11 @@ class WeatherManager: ObservableObject {
             return
         }
         
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        self.requestWeatherData(from: url) { [weak self] data, response, error in
             guard let self = self,
                   let data = data,
                   error == nil else {
-                print("Open-Meteo API error: \(error?.localizedDescription ?? "Unknown error")")
+
                 DispatchQueue.main.async {
                     completion(nil)
                 }
@@ -1244,7 +1279,6 @@ class WeatherManager: ObservableObject {
                 
                 // Parse current weather
                 guard let current = response.current,
-                      let _ = response.currentWeather,
                       let weathercode = current.weathercode else {
                     DispatchQueue.main.async {
                         completion(nil)
@@ -1255,7 +1289,7 @@ class WeatherManager: ObservableObject {
                 let dateFormatter = ISO8601DateFormatter()
                 dateFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
                 
-                let currentDate = dateFormatter.date(from: current.time) ?? Date()
+                let currentDate = openMeteoDate(current.time) ?? Date()
                 let currentInfo = WeatherInfo(
                     temperature: current.temperature2m,
                     condition: self.conditionFromWeatherCode(weathercode),
@@ -1278,7 +1312,7 @@ class WeatherManager: ObservableObject {
                             continue
                         }
                         
-                        guard let forecastDate = dateFormatter.date(from: timeString) else {
+                        guard let forecastDate = openMeteoDate(timeString) else {
                             continue
                         }
                         
@@ -1299,8 +1333,8 @@ class WeatherManager: ObservableObject {
                         let maxTemp = daily.temperature2mMax[index]
                         let minTemp = daily.temperature2mMin[index]
                         let weatherCode = weathercode[index]
-                        let windSpeed = daily.windspeed10mMax?[index]
-                        let humidity = daily.relativeHumidity2mMax?[index]
+                        let windSpeed = daily.windspeed10mMax.flatMap { $0.indices.contains(index) ? $0[index] : nil }
+                        let humidity = daily.relativeHumidity2mMax.flatMap { $0.indices.contains(index) ? $0[index] : nil }
                         
                         let dailyForecast = DailyWeatherForecast(
                             date: forecastDate,
@@ -1330,12 +1364,12 @@ class WeatherManager: ObservableObject {
                 }
                 
             } catch {
-                print("Error decoding Open-Meteo response: \(error)")
+
                 DispatchQueue.main.async {
                     completion(nil)
                 }
             }
-        }.resume()
+        }
     }
     
     private func fetchOpenMeteoHistoricalWeather(latitude: Double, longitude: Double, location: String, date: Date, completion: @escaping (WeatherInfo?) -> Void) {
@@ -1367,11 +1401,11 @@ class WeatherManager: ObservableObject {
             return
         }
         
-        URLSession.shared.dataTask(with: url) { [weak self] data, response, error in
+        self.requestWeatherData(from: url) { [weak self] data, response, error in
             guard let self = self,
                   let data = data,
                   error == nil else {
-                print("Open-Meteo Historical API error: \(error?.localizedDescription ?? "Unknown error")")
+
                 DispatchQueue.main.async {
                     completion(nil)
                 }
@@ -1404,13 +1438,13 @@ class WeatherManager: ObservableObject {
                 let maxTemp = daily.temperature2mMax[0]
                 let _ = daily.temperature2mMin[0]
                 let weatherCode = weathercode[0]
-                let windSpeed = daily.windspeed10mMax?[0]
-                let humidity = daily.relativeHumidity2mMax?[0]
+                let windSpeed = daily.windspeed10mMax?.first
+                let humidity = daily.relativeHumidity2mMax?.first
                 
                 // Parse date
                 let isoFormatter = ISO8601DateFormatter()
                 isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-                let historicalDate = isoFormatter.date(from: daily.time[0]) ?? date
+                let historicalDate = openMeteoDate(daily.time[0]) ?? date
                 
                 // Use max temp as representative temperature
                 let weatherInfo = WeatherInfo(
@@ -1428,12 +1462,12 @@ class WeatherManager: ObservableObject {
                 }
                 
             } catch {
-                print("Error decoding Open-Meteo historical response: \(error)")
+
                 DispatchQueue.main.async {
                     completion(nil)
                 }
             }
-        }.resume()
+        }
     }
     
     // MARK: - Weather Code Conversion
@@ -1479,6 +1513,7 @@ class WeatherManager: ObservableObject {
     /// Uses MapKit APIs (MKReverseGeocodingRequest) on tvOS 26.0+ or CLGeocoder for older versions
     /// Returns coordinate string immediately if rate limited to avoid throttling errors
     func reverseGeocodeLocation(latitude: Double, longitude: Double, completion: @escaping (String) -> Void) {
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { completion(""); return }
         let cacheKey = geocodingCacheKey(latitude, longitude)
         let calendar = Calendar(identifier: .gregorian)
         let today = calendar.startOfDay(for: Date())
