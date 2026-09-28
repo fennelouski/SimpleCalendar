@@ -49,8 +49,10 @@ def check_release():
         raise RuntimeError('Parallel-deployment cutoff reached. Check actual cutover state; do not use this command after cutover.')
     if output(['git', 'diff', 'HEAD', '--name-only'], cwd=REPO):
         raise RuntimeError('Commit integrated source changes before deployment.')
-    if output(['git', 'ls-files', '--others', '--exclude-standard', '--', 'app', 'lib', 'tests', 'scripts', 'docs'], cwd=REPO):
-        raise RuntimeError('Uncommitted backend files must be reviewed before deployment.')
+    untracked = output(['git', 'ls-files', '--others', '--exclude-standard'], cwd=REPO).splitlines()
+    unexpected = [path for path in untracked if Path(path).name != '.DS_Store' and not (path.startswith('Simple Calendar.xcodeproj/') and '/xcuserdata/' in path)]
+    if unexpected:
+        raise RuntimeError('Uncommitted source files must be reviewed before deployment.')
     remote = output(['git', 'remote', 'get-url', 'origin'], cwd=REPO)
     if remote not in ('https://github.com/fennelouski/SimpleCalendar.git', 'git@github.com:fennelouski/SimpleCalendar.git'):
         raise RuntimeError('Unexpected repository.')
