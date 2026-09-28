@@ -1,0 +1,226 @@
+{
+  "revision": "eec541412ede94a6ea1180906799e8661698f4f5",
+  "deployedAt": "2026-09-28T00:46:39.198296+00:00",
+  "mode": "parallel",
+  "vercelDeployments": {
+    "calendar-play": "https://calendar-play-nnf22wfgp-nathan-fennels-projects.vercel.app",
+    "calendar-play-api": "https://calendar-play-oqolww7tg-nathan-fennels-projects.vercel.app"
+  },
+  "aws": {
+    "functionName": "calendar-play-parallel-SiteServerUswest2Function-nwvvbnha",
+    "functionURL": "https://o5wfqo2ypidhj7ec5ug6cj7ama0zxech.lambda-url.us-west-2.on.aws/",
+    "revision": "eec541412ede94a6ea1180906799e8661698f4f5",
+    "url": "https://d2ntnk2ucb7yym.cloudfront.net"
+  },
+  "verification": "Representative synthetic API, provider, page and access checks passed on AWS and both existing Vercel projects.",
+  "verifiedAt": "2026-09-28T00:50:27.217342+00:00",
+  "nativeRevision": "107ae6dbf5552455e83617228577fd862c989ce0",
+  "nativeTreeUnchanged": true,
+  "productionRouting": "Vercel",
+  "actualCutoverAt": null,
+  "buildHost": "Current owned Mac; local Next/OpenNext/Vercel prebuilt builds",
+  "hosts": {
+    "aws": {
+      "url": "https://d2ntnk2ucb7yym.cloudfront.net",
+      "verifiedRevision": "eec541412ede94a6ea1180906799e8661698f4f5",
+      "pages": {
+        "home": {
+          "status": 200,
+          "visibleTextSHA256": "37b0d53782b6aa0a3809f48dac3d91bb2dedac97ae07a038904b5bb75da9f9c0"
+        },
+        "support": {
+          "status": 200,
+          "visibleTextSHA256": "15a59235dfad65e1b3f6efc20702a11b9a82dd458b07848f7a446196f730f507"
+        },
+        "privacy": {
+          "status": 200,
+          "visibleTextSHA256": "8638d2f15a92e84b445d3ba50ac58779a14819a7d4de90fb917851744f9fccd8"
+        }
+      },
+      "invalidBodyStatus": 400,
+      "crossOriginStatus": 403,
+      "wildcardCORS": false,
+      "anonymousStatus": 401,
+      "syntheticProviders": {
+        "event": {
+          "status": 200,
+          "responseSHA256": "aca0f4a90a220cfebddc21d793402f530ee8428de1caf9d708f38d82becc1ac1"
+        },
+        "notEvent": {
+          "status": 422,
+          "responseSHA256": "db412fb736afe7d1703bf4d45cf8a5e5ad16e825dc13027a92a7e6f2893bb9fe"
+        },
+        "photos": {
+          "status": 200,
+          "responseSHA256": "dd06a29fcc3388b7e951ebad96140c32a681aabdc6395fa2f0ac596d53fa5cb0"
+        },
+        "tracking": {
+          "status": 200,
+          "responseSHA256": "c955e57777ec0d73639dca6748560d00aa5eb8e12f13ebb2ed9656add3908f97"
+        }
+      },
+      "observedPerInstanceThrottleStatus": 429
+    },
+    "direct": {
+      "url": "https://o5wfqo2ypidhj7ec5ug6cj7ama0zxech.lambda-url.us-west-2.on.aws/",
+      "verifiedRevision": "eec541412ede94a6ea1180906799e8661698f4f5",
+      "pages": {
+        "home": {
+          "status": 200,
+          "visibleTextSHA256": "37b0d53782b6aa0a3809f48dac3d91bb2dedac97ae07a038904b5bb75da9f9c0"
+        },
+        "support": {
+          "status": 200,
+          "visibleTextSHA256": "15a59235dfad65e1b3f6efc20702a11b9a82dd458b07848f7a446196f730f507"
+        },
+        "privacy": {
+          "status": 200,
+          "visibleTextSHA256": "8638d2f15a92e84b445d3ba50ac58779a14819a7d4de90fb917851744f9fccd8"
+        }
+      },
+      "invalidBodyStatus": 400,
+      "crossOriginStatus": 403,
+      "wildcardCORS": false,
+      "anonymousStatus": 403
+    },
+    "vercel": {
+      "url": "https://calendar-play-seven.vercel.app",
+      "verifiedRevision": "eec541412ede94a6ea1180906799e8661698f4f5",
+      "pages": {
+        "home": {
+          "status": 200,
+          "visibleTextSHA256": "37b0d53782b6aa0a3809f48dac3d91bb2dedac97ae07a038904b5bb75da9f9c0"
+        },
+        "support": {
+          "status": 200,
+          "visibleTextSHA256": "15a59235dfad65e1b3f6efc20702a11b9a82dd458b07848f7a446196f730f507"
+        },
+        "privacy": {
+          "status": 200,
+          "visibleTextSHA256": "8638d2f15a92e84b445d3ba50ac58779a14819a7d4de90fb917851744f9fccd8"
+        }
+      },
+      "invalidBodyStatus": 400,
+      "crossOriginStatus": 403,
+      "wildcardCORS": false,
+      "syntheticProviders": {
+        "event": {
+          "status": 200,
+          "responseSHA256": "b7de89c7dc7d8b4f7b421a7706b2b7e89d459d24742177cda2aace7bd7013609"
+        },
+        "notEvent": {
+          "status": 422,
+          "responseSHA256": "db412fb736afe7d1703bf4d45cf8a5e5ad16e825dc13027a92a7e6f2893bb9fe"
+        },
+        "photos": {
+          "status": 200,
+          "responseSHA256": "0330e9eebc26b7ca4074d4ef51c445156ac6f185d4d5a79b3b9f809833fe9e75"
+        },
+        "tracking": {
+          "status": 200,
+          "responseSHA256": "c955e57777ec0d73639dca6748560d00aa5eb8e12f13ebb2ed9656add3908f97"
+        }
+      },
+      "observedPerInstanceThrottleStatus": 429
+    },
+    "vercel-api": {
+      "url": "https://calendar-play-api.vercel.app",
+      "verifiedRevision": "eec541412ede94a6ea1180906799e8661698f4f5",
+      "pages": {
+        "home": {
+          "status": 200,
+          "visibleTextSHA256": "37b0d53782b6aa0a3809f48dac3d91bb2dedac97ae07a038904b5bb75da9f9c0"
+        },
+        "support": {
+          "status": 200,
+          "visibleTextSHA256": "15a59235dfad65e1b3f6efc20702a11b9a82dd458b07848f7a446196f730f507"
+        },
+        "privacy": {
+          "status": 200,
+          "visibleTextSHA256": "8638d2f15a92e84b445d3ba50ac58779a14819a7d4de90fb917851744f9fccd8"
+        }
+      },
+      "invalidBodyStatus": 400,
+      "crossOriginStatus": 403,
+      "wildcardCORS": false,
+      "syntheticProviders": {
+        "event": {
+          "status": 200,
+          "responseSHA256": "b7de89c7dc7d8b4f7b421a7706b2b7e89d459d24742177cda2aace7bd7013609"
+        },
+        "notEvent": {
+          "status": 422,
+          "responseSHA256": "db412fb736afe7d1703bf4d45cf8a5e5ad16e825dc13027a92a7e6f2893bb9fe"
+        },
+        "photos": {
+          "status": 200,
+          "responseSHA256": "0330e9eebc26b7ca4074d4ef51c445156ac6f185d4d5a79b3b9f809833fe9e75"
+        },
+        "tracking": {
+          "status": 200,
+          "responseSHA256": "c955e57777ec0d73639dca6748560d00aa5eb8e12f13ebb2ed9656add3908f97"
+        }
+      },
+      "observedPerInstanceThrottleStatus": 429
+    }
+  },
+  "awsConfiguration": {
+    "revision": "eec541412ede94a6ea1180906799e8661698f4f5",
+    "function": "calendar-play-parallel-SiteServerUswest2Function-nwvvbnha",
+    "authType": "AWS_IAM",
+    "timeout": 60,
+    "runtime": "nodejs24.x",
+    "architectures": [
+      "x86_64"
+    ],
+    "memoryMB": 1024,
+    "runtimeRevision": "eec541412ede94a6ea1180906799e8661698f4f5",
+    "logGroup": "/aws/lambda/calendar-play-parallel-SiteServerUswest2Function-txwtamwd",
+    "logRetentionDays": [
+      7
+    ]
+  },
+  "vercelVerification": {
+    "calendar-play": {
+      "id": "dpl_6qAcLqzrvedVnQs15oLsFErrAXeR",
+      "readyState": "READY",
+      "sourceCommit": "eec541412ede94a6ea1180906799e8661698f4f5",
+      "alias": [
+        "calendar-play-seven.vercel.app",
+        "calendar-play-nathan-fennels-projects.vercel.app"
+      ],
+      "url": "calendar-play-nnf22wfgp-nathan-fennels-projects.vercel.app"
+    },
+    "calendar-play-api": {
+      "id": "dpl_DCT5zUrpcQDDs84Dphu6brdm4sZg",
+      "readyState": "READY",
+      "sourceCommit": "eec541412ede94a6ea1180906799e8661698f4f5",
+      "alias": [
+        "calendar-play-api.vercel.app",
+        "calendar-play-api-nathan-fennels-projects.vercel.app"
+      ],
+      "url": "calendar-play-oqolww7tg-nathan-fennels-projects.vercel.app"
+    }
+  },
+  "checks": {
+    "syntheticRouteTests": 11,
+    "typecheck": true,
+    "localProductionBuild": true,
+    "localOpenNextPackage": true,
+    "npmProductionAuditKnownAdvisories": 0
+  },
+  "commands": [
+    "PATH=/Users/nathan/.local/node/bin:$PATH npm test",
+    "PATH=/Users/nathan/.local/node/bin:$PATH npm run typecheck",
+    "PATH=/Users/nathan/.local/node/bin:$PATH npm run build:aws",
+    "PATH=/Users/nathan/.local/node/bin:$PATH npm run deploy:parallel",
+    "python3 app-store-audit/2026-09-27-release/calendar-play/live-probe.py --phase read/providers/throttle"
+  ],
+  "singleOwnerEffects": "No business jobs, notifications, payments, webhooks or application database added. AWS preview is operator-protected. Existing native clients continue using Vercel.",
+  "limitations": [
+    "First verified AWS deployment; sustained parallel operation, repeat deployment and production rollback still need migration review.",
+    "Rate limits are per server instance, not a distributed quota or client authentication.",
+    "Native UI and App Store submission are tracked separately by the parent task."
+  ],
+  "providerRetention": "No application event database/content logs; OpenAI store:false with separate provider operational retention. Photo search terms occur in GET URLs and may enter hosting logs. Salted address counters have a one-minute window and expire on later requests or instance termination. AWS application diagnostic retention verified seven days; no invented retention for Vercel or providers."
+}
