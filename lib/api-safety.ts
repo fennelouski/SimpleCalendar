@@ -57,6 +57,7 @@ export function validText(value: unknown, maximum: number, required = false): va
 export function validDate(value: unknown): value is string {
   if (typeof value !== 'string' || !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,3})?(?:Z|[+-]\d\d:\d\d)$/.test(value)) return false;
   const [year, month, day, hour, minute, second] = value.slice(0, 19).split(/[-T:]/).map(Number);
-  const days = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  return year >= 1900 && month >= 1 && month <= 12 && day >= 1 && day <= days && hour <= 23 && minute <= 59 && second <= 59 && Number.isFinite(Date.parse(value));
+  const leapYear = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leapYear ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+  return year >= 1 && month >= 1 && month <= 12 && day >= 1 && day <= days && hour <= 23 && minute <= 59 && second <= 59 && Number.isFinite(Date.parse(value));
 }

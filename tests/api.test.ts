@@ -57,6 +57,8 @@ test('Calendar API boundaries and provider behavior with synthetic input', async
       completion({ event });
       assert.equal((await parse(request('/api/parse-event', { ...input, text: '👨‍⚕️'.repeat(2000) }))).status, 200);
       assert.equal(validDate('2024-02-29T00:00:00Z'), true);
+      assert.equal(validDate('1800-01-01T00:00:00Z'), true);
+      assert.equal(validDate('0004-02-29T00:00:00Z'), true);
       for (const date of ['2025-02-29T00:00:00Z', '2026-13-01T00:00:00Z', '2026-01-01T24:00:00Z']) assert.equal(validDate(date), false);
     });
     await t.test('invalid provider fields never become a saved event and raw data is not reflected', async () => {
