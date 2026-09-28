@@ -1,180 +1,78 @@
 {
-  "revision": "eec541412ede94a6ea1180906799e8661698f4f5",
-  "deployedAt": "2026-09-28T00:46:39.198296+00:00",
+  "revision": "914846ce8c8563e0e2df721ee8fb1b2ae91ef41f",
+  "deployedAt": "2026-09-28T07:37:03.053521+00:00",
   "mode": "parallel",
   "vercelDeployments": {
-    "calendar-play": "https://calendar-play-nnf22wfgp-nathan-fennels-projects.vercel.app",
-    "calendar-play-api": "https://calendar-play-oqolww7tg-nathan-fennels-projects.vercel.app"
+    "calendar-play": "https://calendar-play-c56oawlz2-nathan-fennels-projects.vercel.app",
+    "calendar-play-api": "https://calendar-play-6oq2rcmm9-nathan-fennels-projects.vercel.app"
   },
   "aws": {
     "functionName": "calendar-play-parallel-SiteServerUswest2Function-nwvvbnha",
     "functionURL": "https://o5wfqo2ypidhj7ec5ug6cj7ama0zxech.lambda-url.us-west-2.on.aws/",
-    "revision": "eec541412ede94a6ea1180906799e8661698f4f5",
+    "revision": "914846ce8c8563e0e2df721ee8fb1b2ae91ef41f",
     "url": "https://d2ntnk2ucb7yym.cloudfront.net"
   },
-  "verification": "Partial verification only; ordinary-client AWS POST parity remains unverified.",
-  "verifiedAt": "2026-09-28T00:50:27.217342+00:00",
-  "nativeRevision": "107ae6dbf5552455e83617228577fd862c989ce0",
-  "nativeTreeUnchanged": true,
+  "verification": "Updated native-client POST parity verified against AWS protected preview and both Vercel production projects at the same committed revision.",
+  "verifiedAt": "2026-09-28T07:41:24.847632+00:00",
+  "nativeRevision": "914846ce8c8563e0e2df721ee8fb1b2ae91ef41f",
   "productionRouting": "Vercel",
   "actualCutoverAt": null,
-  "buildHost": "Current owned Mac; local Next/OpenNext/Vercel prebuilt builds",
-  "hosts": {
-    "aws": {
-      "url": "https://d2ntnk2ucb7yym.cloudfront.net",
-      "verifiedRevision": "eec541412ede94a6ea1180906799e8661698f4f5",
-      "pages": {
-        "home": {
-          "status": 200,
-          "visibleTextSHA256": "37b0d53782b6aa0a3809f48dac3d91bb2dedac97ae07a038904b5bb75da9f9c0"
-        },
-        "support": {
-          "status": 200,
-          "visibleTextSHA256": "15a59235dfad65e1b3f6efc20702a11b9a82dd458b07848f7a446196f730f507"
-        },
-        "privacy": {
-          "status": 200,
-          "visibleTextSHA256": "8638d2f15a92e84b445d3ba50ac58779a14819a7d4de90fb917851744f9fccd8"
-        }
+  "cutoverReady": false,
+  "ordinaryClientAWSPostParity": {
+    "status": "VERIFIED_UPDATED_NATIVE_CLIENT",
+    "verifiedAt": "2026-09-28T07:38:59Z",
+    "revision": "914846ce8c8563e0e2df721ee8fb1b2ae91ef41f",
+    "nativeProductionCallers": [
+      "EventDescriptionParser.parse",
+      "UnsplashAPI.searchPhotos",
+      "UnsplashAPI.trackDownload via CalendarNetworkRequests"
+    ],
+    "successfulRequests": 9,
+    "successfulBodyBearingRequests": 6,
+    "proof": "Actual production URLSession requests are intercepted after native code has set the digest, verified against their exact body, then forwarded unchanged except host and existing operator-only AWS preview Authorization. No test-supplied payload hash.",
+    "bodyLimitBytes": 65536,
+    "maximumBodyLiveChecks": [
+      {
+        "applicationValidationReached": true,
+        "bytes": 65536,
+        "nativeDigest": "ee9ef6f84ae9189a8996ec93fcc679a5e4049396b5d954e46ca73b05bbfbd9ae",
+        "origin": "https://d2ntnk2ucb7yym.cloudfront.net",
+        "status": 400
       },
-      "invalidBodyStatus": 400,
-      "crossOriginStatus": 403,
-      "wildcardCORS": false,
-      "anonymousStatus": 401,
-      "syntheticProviders": {
-        "event": {
-          "status": 200,
-          "responseSHA256": "aca0f4a90a220cfebddc21d793402f530ee8428de1caf9d708f38d82becc1ac1"
-        },
-        "notEvent": {
-          "status": 422,
-          "responseSHA256": "db412fb736afe7d1703bf4d45cf8a5e5ad16e825dc13027a92a7e6f2893bb9fe"
-        },
-        "photos": {
-          "status": 200,
-          "responseSHA256": "dd06a29fcc3388b7e951ebad96140c32a681aabdc6395fa2f0ac596d53fa5cb0"
-        },
-        "tracking": {
-          "status": 200,
-          "responseSHA256": "c955e57777ec0d73639dca6748560d00aa5eb8e12f13ebb2ed9656add3908f97"
-        }
+      {
+        "applicationValidationReached": true,
+        "bytes": 65536,
+        "nativeDigest": "ee9ef6f84ae9189a8996ec93fcc679a5e4049396b5d954e46ca73b05bbfbd9ae",
+        "origin": "https://calendar-play-seven.vercel.app",
+        "status": 400
       },
-      "observedPerInstanceThrottleStatus": 429
-    },
-    "direct": {
-      "url": "https://o5wfqo2ypidhj7ec5ug6cj7ama0zxech.lambda-url.us-west-2.on.aws/",
-      "verifiedRevision": "eec541412ede94a6ea1180906799e8661698f4f5",
-      "pages": {
-        "home": {
-          "status": 200,
-          "visibleTextSHA256": "37b0d53782b6aa0a3809f48dac3d91bb2dedac97ae07a038904b5bb75da9f9c0"
-        },
-        "support": {
-          "status": 200,
-          "visibleTextSHA256": "15a59235dfad65e1b3f6efc20702a11b9a82dd458b07848f7a446196f730f507"
-        },
-        "privacy": {
-          "status": 200,
-          "visibleTextSHA256": "8638d2f15a92e84b445d3ba50ac58779a14819a7d4de90fb917851744f9fccd8"
-        }
-      },
-      "invalidBodyStatus": 400,
-      "crossOriginStatus": 403,
-      "wildcardCORS": false,
-      "anonymousStatus": 403
-    },
-    "vercel": {
-      "url": "https://calendar-play-seven.vercel.app",
-      "verifiedRevision": "eec541412ede94a6ea1180906799e8661698f4f5",
-      "pages": {
-        "home": {
-          "status": 200,
-          "visibleTextSHA256": "37b0d53782b6aa0a3809f48dac3d91bb2dedac97ae07a038904b5bb75da9f9c0"
-        },
-        "support": {
-          "status": 200,
-          "visibleTextSHA256": "15a59235dfad65e1b3f6efc20702a11b9a82dd458b07848f7a446196f730f507"
-        },
-        "privacy": {
-          "status": 200,
-          "visibleTextSHA256": "8638d2f15a92e84b445d3ba50ac58779a14819a7d4de90fb917851744f9fccd8"
-        }
-      },
-      "invalidBodyStatus": 400,
-      "crossOriginStatus": 403,
-      "wildcardCORS": false,
-      "syntheticProviders": {
-        "event": {
-          "status": 200,
-          "responseSHA256": "b7de89c7dc7d8b4f7b421a7706b2b7e89d459d24742177cda2aace7bd7013609"
-        },
-        "notEvent": {
-          "status": 422,
-          "responseSHA256": "db412fb736afe7d1703bf4d45cf8a5e5ad16e825dc13027a92a7e6f2893bb9fe"
-        },
-        "photos": {
-          "status": 200,
-          "responseSHA256": "0330e9eebc26b7ca4074d4ef51c445156ac6f185d4d5a79b3b9f809833fe9e75"
-        },
-        "tracking": {
-          "status": 200,
-          "responseSHA256": "c955e57777ec0d73639dca6748560d00aa5eb8e12f13ebb2ed9656add3908f97"
-        }
-      },
-      "observedPerInstanceThrottleStatus": 429
-    },
-    "vercel-api": {
-      "url": "https://calendar-play-api.vercel.app",
-      "verifiedRevision": "eec541412ede94a6ea1180906799e8661698f4f5",
-      "pages": {
-        "home": {
-          "status": 200,
-          "visibleTextSHA256": "37b0d53782b6aa0a3809f48dac3d91bb2dedac97ae07a038904b5bb75da9f9c0"
-        },
-        "support": {
-          "status": 200,
-          "visibleTextSHA256": "15a59235dfad65e1b3f6efc20702a11b9a82dd458b07848f7a446196f730f507"
-        },
-        "privacy": {
-          "status": 200,
-          "visibleTextSHA256": "8638d2f15a92e84b445d3ba50ac58779a14819a7d4de90fb917851744f9fccd8"
-        }
-      },
-      "invalidBodyStatus": 400,
-      "crossOriginStatus": 403,
-      "wildcardCORS": false,
-      "syntheticProviders": {
-        "event": {
-          "status": 200,
-          "responseSHA256": "b7de89c7dc7d8b4f7b421a7706b2b7e89d459d24742177cda2aace7bd7013609"
-        },
-        "notEvent": {
-          "status": 422,
-          "responseSHA256": "db412fb736afe7d1703bf4d45cf8a5e5ad16e825dc13027a92a7e6f2893bb9fe"
-        },
-        "photos": {
-          "status": 200,
-          "responseSHA256": "0330e9eebc26b7ca4074d4ef51c445156ac6f185d4d5a79b3b9f809833fe9e75"
-        },
-        "tracking": {
-          "status": 200,
-          "responseSHA256": "c955e57777ec0d73639dca6748560d00aa5eb8e12f13ebb2ed9656add3908f97"
-        }
-      },
-      "observedPerInstanceThrottleStatus": 429
-    }
+      {
+        "applicationValidationReached": true,
+        "bytes": 65536,
+        "nativeDigest": "ee9ef6f84ae9189a8996ec93fcc679a5e4049396b5d954e46ca73b05bbfbd9ae",
+        "origin": "https://calendar-play-api.vercel.app",
+        "status": 400
+      }
+    ],
+    "oversizeBehavior": "65537 bytes and encoded multi-byte parser overflow fail in native preparation before URLSession transport. Streams/missing owned POST bodies rejected.",
+    "withoutNativeDigestAWSStatus": 403,
+    "existingInstalledVersions": "Website deployment does not update older native clients. Production client URLs remain on Vercel; AWS stays operator protected."
   },
   "awsConfiguration": {
-    "revision": "eec541412ede94a6ea1180906799e8661698f4f5",
+    "checkedAt": "2026-09-28T07:37:57.197430+00:00",
     "function": "calendar-play-parallel-SiteServerUswest2Function-nwvvbnha",
-    "authType": "AWS_IAM",
-    "timeout": 60,
+    "runtimeRevision": "914846ce8c8563e0e2df721ee8fb1b2ae91ef41f",
+    "codeSHA256": "hEhjfUJ+2ndCxg4HVw4G614KssgitqOTQ9oJLEAB+GY=",
     "runtime": "nodejs24.x",
     "architectures": [
       "x86_64"
     ],
     "memoryMB": 1024,
-    "runtimeRevision": "eec541412ede94a6ea1180906799e8661698f4f5",
+    "timeout": 60,
+    "lastUpdateStatus": "Successful",
+    "state": "Active",
+    "authType": "AWS_IAM",
+    "functionURL": "https://o5wfqo2ypidhj7ec5ug6cj7ama0zxech.lambda-url.us-west-2.on.aws/",
     "logGroup": "/aws/lambda/calendar-play-parallel-SiteServerUswest2Function-txwtamwd",
     "logRetentionDays": [
       7
@@ -182,51 +80,98 @@
   },
   "vercelVerification": {
     "calendar-play": {
-      "id": "dpl_6qAcLqzrvedVnQs15oLsFErrAXeR",
+      "id": "dpl_Eq9R9LJz8JVA6GX6YUj9JUctnk1m",
       "readyState": "READY",
-      "sourceCommit": "eec541412ede94a6ea1180906799e8661698f4f5",
+      "sourceCommit": "914846ce8c8563e0e2df721ee8fb1b2ae91ef41f",
+      "url": "calendar-play-c56oawlz2-nathan-fennels-projects.vercel.app",
       "alias": [
         "calendar-play-seven.vercel.app",
         "calendar-play-nathan-fennels-projects.vercel.app"
-      ],
-      "url": "calendar-play-nnf22wfgp-nathan-fennels-projects.vercel.app"
+      ]
     },
     "calendar-play-api": {
-      "id": "dpl_DCT5zUrpcQDDs84Dphu6brdm4sZg",
+      "id": "dpl_H9ucrvPZ8AaWTGvrx4xQPwov9coK",
       "readyState": "READY",
-      "sourceCommit": "eec541412ede94a6ea1180906799e8661698f4f5",
+      "sourceCommit": "914846ce8c8563e0e2df721ee8fb1b2ae91ef41f",
+      "url": "calendar-play-6oq2rcmm9-nathan-fennels-projects.vercel.app",
       "alias": [
         "calendar-play-api.vercel.app",
         "calendar-play-api-nathan-fennels-projects.vercel.app"
-      ],
-      "url": "calendar-play-oqolww7tg-nathan-fennels-projects.vercel.app"
+      ]
     }
   },
-  "checks": {
-    "syntheticRouteTests": 11,
-    "typecheck": true,
-    "localProductionBuild": true,
-    "localOpenNextPackage": true,
-    "npmProductionAuditKnownAdvisories": 0
-  },
+  "liveReadEvidence": "post-parity-live-pages-access.json",
+  "nativeLiveEvidence": "native-post-after-deployment.json",
+  "nativeArchives": [
+    {
+      "platform": "iOS",
+      "archive": "/Users/nathan/Documents/GitHub/app-store-audit/2026-09-27-release/calendar-play/Calendar-Play-iOS-1.4-2-post-parity.xcarchive",
+      "bundle": "com.nathanfennel.Simple-Calendar",
+      "version": "1.4",
+      "build": "2",
+      "minimumOS": "26.1",
+      "signature": "unsigned compile/archive only",
+      "binarySHA256": "4cb8cb95ab08b3747f0bd81c1ae7fe063fcc3404eeab63586eaa0b1a1cd21872",
+      "nativeUI": "not run",
+      "uploaded": false
+    },
+    {
+      "platform": "tvOS",
+      "archive": "/Users/nathan/Documents/GitHub/app-store-audit/2026-09-27-release/calendar-play/Calendar-Play-tvOS-1.4-2-post-parity.xcarchive",
+      "bundle": "com.nathanfennel.Simple-Calendar",
+      "version": "1.4",
+      "build": "2",
+      "minimumOS": "26.2",
+      "signature": "strict verification PASS",
+      "binarySHA256": "ef16ee054e4f3b4cc53fab4300a4dd947d201ef45269dc386ca3f5805a354d64",
+      "nativeUI": "not run",
+      "uploaded": false
+    }
+  ],
+  "buildHost": "Current owned Mac; Next/OpenNext/Vercel prebuilt output built locally. Existing provider deployment finalization only.",
   "commands": [
-    "PATH=/Users/nathan/.local/node/bin:$PATH npm test",
-    "PATH=/Users/nathan/.local/node/bin:$PATH npm run typecheck",
-    "PATH=/Users/nathan/.local/node/bin:$PATH npm run build:aws",
-    "PATH=/Users/nathan/.local/node/bin:$PATH npm run deploy:parallel",
-    "python3 app-store-audit/2026-09-27-release/calendar-play/live-probe.py --phase read/providers/throttle"
+    "bash Tools/ReleaseChecks/run.sh",
+    "bash Tools/ReleaseChecks/run-network.sh",
+    "bash Tools/ReleaseChecks/run-api-request-checks.sh",
+    "npm test",
+    "npm run typecheck",
+    "npm audit --json",
+    "npm run deploy:parallel",
+    "bash Tools/ReleaseChecks/run-api-request-checks.sh --live"
   ],
-  "singleOwnerEffects": "No business jobs, notifications, payments, webhooks or application database added. AWS preview is operator-protected. Existing native clients continue using Vercel.",
-  "limitations": [
-    "First verified AWS deployment; sustained parallel operation, repeat deployment and production rollback still need migration review.",
-    "Rate limits are per server instance, not a distributed quota or client authentication.",
-    "Native UI and App Store submission are tracked separately by the parent task."
-  ],
-  "providerRetention": "No application event database/content logs; OpenAI store:false with separate provider operational retention. Photo search terms occur in GET URLs and may enter hosting logs. Salted address counters have a one-minute window and expire on later requests or instance termination. AWS application diagnostic retention verified seven days; no invented retention for Vercel or providers.",
-  "ordinaryClientAWSPostParity": {
-    "status": "NOT_VERIFIED",
-    "recordedAt": "2026-09-28T01:14:20.449285+00:00",
-    "reason": "AWS provider POST probes explicitly added x-amz-content-sha256. Ordinary shipped native/browser clients do not add this header. Plain OAC requires it for body-bearing requests; those probe results verify provider execution only, not ordinary-client POST parity. AWS functional parity and cutover readiness are NOT verified until the signing mode/client behavior is corrected and retested."
+  "checks": {
+    "core": "PASS 7 scenario groups",
+    "networkImageWeather": "PASS existing suite",
+    "nativeRequest": "PASS actual URLSession requests and bounded-body cases",
+    "backend": "PASS 11 tests",
+    "typecheck": "PASS",
+    "fullNpmAudit": "0 advisories"
   },
-  "cutoverReady": false
+  "dependencies": {
+    "OpenNext": "3.10.4",
+    "fullNpmAuditKnownAdvisories": 0,
+    "scope": "Production and development dependencies; compatible transitive fixes, not omit-dev audit."
+  },
+  "singleOwnerEffects": "No jobs, webhooks, payments, notification jobs, databases or new hosted services added. AWS operator-only preview; production routing remains Vercel.",
+  "secretStagingRemoved": true,
+  "providerRetention": "No application event database/content logs; OpenAI store:false with separate provider operational retention. Photo search terms occur in GET URLs and may enter hosting logs. Salted address counters have a one-minute window and expire on later requests or instance termination. AWS application diagnostic retention verified seven days; no invented retention for Vercel or providers.",
+  "limitations": [
+    "Actual native UI/device workflows and App Store submission are not established by headless URLSession tests or archives.",
+    "tvOS development-signed archive verified; iOS archive is unsigned. Distribution upload remains separate.",
+    "AWS remains a protected preview. Sustained parallel operation, rollback and cutover readiness need the scheduled migration review.",
+    "Existing per-instance throttles are not distributed quotas or client authentication.",
+    "Older installed native versions are not changed by deployment."
+  ],
+  "priorParityCorrection": {
+    "revision": "eec541412ede94a6ea1180906799e8661698f4f5",
+    "recordedAt": "2026-09-28T01:14:20.449285+00:00",
+    "reason": "AWS provider POST probes explicitly added x-amz-content-sha256. Ordinary shipped native/browser clients do not add this header. Plain OAC requires it for body-bearing requests; those probe results verify provider execution only, not ordinary-client POST parity. AWS functional parity and cutover readiness are NOT verified until the signing mode/client behavior is corrected and retested.",
+    "evidence": "pre-post-parity-deployment-record.json"
+  },
+  "syntheticProviderCallsThisCorrection": {
+    "OpenAI": 6,
+    "UnsplashSearch": 6,
+    "UnsplashDownloadRegistration": 6,
+    "explanation": "One native end-to-end check on each of three hosts before deployment and again after; boundary/invalid-body checks do not call providers."
+  }
 }
