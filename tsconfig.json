@@ -35,9 +35,11 @@
   ],
   "exclude": [
     "node_modules",
-    "build"
+    "build",
+    ".sst",
+    "sst.config.ts",
+    "open-next.config.ts",
+    ".deploy",
+    ".open-next"
   ]
 }
-
-
-

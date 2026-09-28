@@ -1,287 +1,33 @@
 export const metadata = {
-  title: "Calendar Play – Apple TV Privacy Policy",
-  description:
-    "Apple TV privacy policy for Calendar Play by 100 Apps Studio, explaining what data is accessed and how it is used."
+  title: 'Calendar Play privacy policy',
+  description: 'How Calendar Play handles saved events and optional online features.',
 };
 
 export default function PrivacyPage() {
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "2rem"
-      }}
-    >
-      <article
-        style={{
-          width: "100%",
-          maxWidth: "780px",
-          backgroundColor: "rgba(15, 23, 42, 0.9)",
-          borderRadius: "1.5rem",
-          border: "1px solid rgba(148, 163, 184, 0.35)",
-          boxShadow:
-            "0 24px 60px rgba(15, 23, 42, 0.85), 0 0 0 1px rgba(15, 23, 42, 0.9)",
-          padding: "2.5rem 2.25rem",
-          color: "#e5e7eb"
-        }}
-      >
-        <header style={{ marginBottom: "1.75rem" }}>
-          <p
-            style={{
-              textTransform: "uppercase",
-              letterSpacing: "0.18em",
-              fontSize: "0.72rem",
-              fontWeight: 600,
-              color: "#38bdf8",
-              marginBottom: "0.75rem"
-            }}
-          >
-            100 Apps Studio
-          </p>
-          <h1
-            style={{
-              fontSize: "1.9rem",
-              lineHeight: 1.1,
-              fontWeight: 700,
-              color: "#e5e7eb",
-              margin: 0
-            }}
-          >
-            Calendar Play – Apple TV Privacy Policy
-          </h1>
-        </header>
-
-        <section
-          style={{
-            fontSize: "0.96rem",
-            lineHeight: 1.7,
-            color: "#d1d5db",
-            display: "flex",
-            flexDirection: "column",
-            gap: "1.25rem"
-          }}
-        >
-          <p style={{ margin: 0 }}>
-            Effective Date: <strong>November 28, 2024</strong>
-          </p>
-          <p style={{ margin: 0 }}>
-            This Privacy Policy explains how Calendar Play (&quot;the App&quot;) handles
-            your information on Apple TV.
-          </p>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              1. Data We Access
-            </h2>
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: "1.25rem",
-                listStyleType: "disc"
-              }}
-            >
-              <li>
-                <strong>Calendar data</strong>: If you grant permission, the App
-                can read your calendar events and associated metadata (such as
-                titles, dates, times, locations, and notes) solely to display
-                them within the App.
-              </li>
-              <li>
-                <strong>Location data</strong>: If enabled, the App may use your
-                approximate location to display local sunrise/sunset times and
-                weather information.
-              </li>
-              <li>
-                <strong>Settings and preferences</strong>: Themes, filters, and
-                display options are stored locally on your device.
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              2. How Your Data Is Used
-            </h2>
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: "1.25rem",
-                listStyleType: "disc"
-              }}
-            >
-              <li>
-                <strong>Display and features</strong>: Calendar and location data
-                are used only to present events, holidays, historical
-                information, day details, and weather within the App.
-              </li>
-              <li>
-                <strong>No advertising</strong>: The App does not display ads and
-                does not use your data for advertising or marketing purposes.
-              </li>
-              <li>
-                <strong>No tracking</strong>: The App does not track users in any
-                way. It does not use analytics, tracking identifiers, or data
-                collection to follow users across apps, devices, or websites.
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              3. Data Storage and Sharing
-            </h2>
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: "1.25rem",
-                listStyleType: "disc"
-              }}
-            >
-              <li>
-                <strong>On-device processing</strong>: Calendar data and app
-                settings are processed and stored locally on your device where
-                possible.
-              </li>
-              <li>
-                <strong>Third-party services</strong>: If the App uses external
-                services (such as weather, image, or holiday APIs), only the
-                minimum information required for that feature (for example, a
-                coarse location or date range) is shared. These services operate
-                under their own privacy policies.
-              </li>
-              <li>
-                <strong>No sale of data</strong>: The App does not sell, rent, or
-                share your personal data.
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              4. Children and Families
-            </h2>
-            <p style={{ margin: 0 }}>
-              The App is designed to be suitable for families and children. It
-              relies primarily on user-provided calendar content and does not
-              knowingly collect personal information from children.
-            </p>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              5. Your Choices
-            </h2>
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: "1.25rem",
-                listStyleType: "disc"
-              }}
-            >
-              <li>
-                You can manage calendar and location permissions at any time in
-                your device&apos;s system settings.
-              </li>
-              <li>
-                You can remove the App to delete all locally stored settings.
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              6. Changes to This Policy
-            </h2>
-            <p style={{ margin: 0 }}>
-              We may update this Privacy Policy from time to time. The most
-              current version will be available with the App submission and
-              within the App where applicable.
-            </p>
-          </div>
-
-          <div>
-            <h2
-              style={{
-                fontSize: "1.05rem",
-                margin: 0,
-                marginBottom: "0.4rem",
-                color: "#e5e7eb"
-              }}
-            >
-              7. Contact
-            </h2>
-            <p style={{ margin: 0 }}>
-              If you have questions about this Privacy Policy, please contact us
-              at{" "}
-              <a
-                href="mailto:support@100apps.studio"
-                style={{ color: "#38bdf8", textDecoration: "none" }}
-              >
-                support@100apps.studio
-              </a>
-              .
-            </p>
-          </div>
-
-          <p
-            style={{
-              margin: 0,
-              marginTop: "0.5rem",
-              fontSize: "0.85rem",
-              color: "#9ca3af"
-            }}
-          >
-            Last updated: 2024
-          </p>
-        </section>
-      </article>
+    <main style={{ maxWidth: '780px', margin: '3rem auto', padding: '0 1.5rem', lineHeight: 1.7 }}>
+      <h1>Calendar Play privacy policy</h1>
+      <p>Updated September 28, 2026. Developer: Nathan Fennel.</p>
+      <h2>Saved events and preferences</h2>
+      <p>Calendar Play stores app-created events, preferences, selected images and cached content on your device. Deleting an app-created event removes it from the local event store after the save succeeds. Image caches are separate. The Apple TV release does not connect to system calendars or Google Calendar and does not promise iCloud synchronization.</p>
+      <p>On platforms where calendar connections are available, Apple EventKit uses the calendar access you grant, and an optional Google connection requests read access to Google calendars. Those calendars remain with their providers. Disconnecting a calendar does not erase the provider&apos;s events. Some source builds contain iCloud preference support, but synchronization depends on the released platform and its configured Apple capabilities.</p>
+      <h2>Optional event suggestions</h2>
+      <p>AI event suggestions are off by default on each device. After you enable them and request a suggestion, the description you enter, selected date and time zone go to the Calendar Play backend and OpenAI. Descriptions may contain names, contact details, locations or other information you include. The backend returns one proposed event for you to review before saving. Recurrence information is descriptive and does not automatically create repeated events.</p>
+      <p>The backend does not save event descriptions or generated event content in an application database or write them to application logs. It sends OpenAI requests with response storage disabled. This does not eliminate the providers&apos; operational or abuse-monitoring records. OpenAI explains its API data handling in its <a href="https://developers.openai.com/api/docs/guides/your-data">data controls documentation</a>.</p>
+      <h2>Optional online photos</h2>
+      <p>Online photos are off by default. When enabled, photo searches send search terms through the Calendar Play backend to Unsplash. A separate choice permits event titles and locations to be used for automatic photo matching. Selected photo identifiers are reported to Unsplash through the backend for download tracking. Loading an image contacts Unsplash image servers, which receive connection information such as your IP address. Photographer credit and Unsplash links accompany online photos.</p>
+      <p>Turning online photos off stops new app requests and invalidates pending results. Images already selected or cached on your device can remain there. Followed photographer or Unsplash links are handled by your browser under those sites&apos; policies.</p>
+      <h2>Location, maps and weather</h2>
+      <p>Where available, network location and online maps/weather have separate choices that are off by default. Network location contacts ipapi.co, which uses your connection&apos;s IP address to estimate a location. The app caches a returned estimate in memory for up to 24 hours. Time-zone and locale estimates can be calculated locally.</p>
+      <p>Online weather can send coordinates and dates to Open-Meteo or Apple WeatherKit. Apple map search and geocoding can process location text. These providers receive the request and connection information under their own policies. The current Apple TV weather implementation does not provide online forecasts. Platform capabilities and device permissions also determine which features are available.</p>
+      <h2>Historical information</h2>
+      <p>The optional historical-information feature requests the selected month and day from Wikimedia. Wikimedia receives the date in the URL and connection information such as your IP address. Results can be cached on your device. Calendar descriptions are not needed for these requests.</p>
+      <h2>Service records and retention</h2>
+      <p>The backend keeps salted hashes of client connection addresses and request counters in server memory for a one-minute rate-limit window. These counters are bounded per server instance, are not stored in a database, and reset when that instance ends. The service does not use them for advertising or cross-app tracking.</p>
+      <p>Vercel and AWS host the service and can retain operational connection and diagnostic records under their account settings. AWS application diagnostic logs are configured for seven-day retention. This does not set a retention period for Vercel, OpenAI, Unsplash, Wikimedia, weather providers or other provider records. The app has no advertising SDK and does not sell personal information.</p>
+      <h2>Your choices</h2>
+      <p>You can disable optional online features in the app. Revoking a choice cancels pending app work where possible, but cannot recall a request already received by a provider or erase its logs. Local deletion does not erase exports, backups, separate image caches or copies retained by external calendar and online services. Manage device permissions and provider account access in their settings.</p>
+      <p>For support or a privacy request, <a href="https://nathanfennel.com/contact">contact Nathan Fennel</a>. Information you choose to send for support is used to respond. Do not include private event content unless it is needed for your request.</p>
     </main>
   );
 }
-
-
