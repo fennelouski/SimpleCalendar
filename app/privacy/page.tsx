@@ -8,6 +8,7 @@ export default function PrivacyPage() {
     <main style={{ maxWidth: '780px', margin: '3rem auto', padding: '0 1.5rem', lineHeight: 1.7 }}>
       <h1>Calendar Play privacy policy</h1>
       <p>Updated September 28, 2026. Developer: Nathan Fennel.</p>
+      <p>The new per-device privacy choices described below are part of version 1.4. Older installed versions may make online requests through their existing feature settings without these new consent controls.</p>
       <h2>Saved events and preferences</h2>
       <p>Calendar Play stores app-created events, preferences, selected images and cached content on your device. Deleting an app-created event removes it from the local event store after the save succeeds. Image caches are separate. The Apple TV release does not connect to system calendars or Google Calendar and does not promise iCloud synchronization.</p>
       <p>On platforms where calendar connections are available, Apple EventKit uses the calendar access you grant, and an optional Google connection requests read access to Google calendars. Those calendars remain with their providers. Disconnecting a calendar does not erase the provider&apos;s events. The current Apple TV release keeps app preferences locally.</p>
