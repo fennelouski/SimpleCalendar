@@ -23,6 +23,11 @@ final class CalendarEvent {
     var color: String? // Hex color code like "#FF6B6B"
     var emoji: String? // Single emoji character
 
+    func occurs(on date: Date, calendar: Calendar = .current) -> Bool {
+        guard let day = calendar.dateInterval(of: .day, for: date) else { return false }
+        return startDate < day.end && endDate > day.start
+    }
+
     init(id: String, title: String, startDate: Date, endDate: Date, location: String? = nil, notes: String? = nil, calendarIdentifier: String, isAllDay: Bool = false, imageUrl: String? = nil, imageRepositoryId: String? = nil, color: String? = nil, emoji: String? = nil) {
         self.id = id
         self.title = title

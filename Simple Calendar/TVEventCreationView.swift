@@ -10,19 +10,20 @@ import SwiftUI
 struct TVEventCreationView: View {
     let selectedDate: Date
     let editingEvent: CalendarEvent?
-    let onEventCreated: (CalendarEvent) -> Void
+    let onEventCreated: (CalendarEvent) -> Bool
 
     @State private var pendingEventColor: String?
     @State private var pendingEventEmoji: String?
     @State private var eventUUID: String
 
-    init(selectedDate: Date, editingEvent: CalendarEvent? = nil, onEventCreated: @escaping (CalendarEvent) -> Void) {
+    init(selectedDate: Date, editingEvent: CalendarEvent? = nil, onEventCreated: @escaping (CalendarEvent) -> Bool) {
         self.selectedDate = selectedDate
         self.editingEvent = editingEvent
         self.onEventCreated = onEventCreated
         self._eventUUID = State(initialValue: UUID().uuidString)
     }
 
+    @EnvironmentObject var calendarViewModel: CalendarViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.presentationMode) var presentationMode
 
@@ -37,7 +38,11 @@ struct TVEventCreationView: View {
     // Text input state
     @State private var naturalLanguageInput = ""
     @State private var isProcessingText = false
-    @State private var parseTimer: Timer?
+    @State private var parseTask: Task<Void, Never>?
+    @State private var parseRequestID = UUID()
+    @State private var parseMessage: String?
+    @State private var hasInitialized = false
+    @AppStorage("aiEventSharingConsent_v1") private var aiSharingConsent = false
 
     // Focused field for manual editing
     @State private var focusedField: Field? = nil
@@ -68,6 +73,7 @@ struct TVEventCreationView: View {
     var body: some View {
         NavigationView {
             ScrollView {
+                if let error = calendarViewModel.storageError { Text(error).foregroundStyle(.red).padding() }
                 VStack(alignment: .leading, spacing: 32) {
                     // Header
                     VStack(alignment: .leading, spacing: 8) {
@@ -105,38 +111,25 @@ struct TVEventCreationView: View {
                                     .padding(12)
                                     .foregroundColor(naturalLanguageInput.isEmpty ? themeManager.currentPalette.textSecondary.opacity(0.6) : themeManager.currentPalette.textPrimary)
                                     .onChange(of: naturalLanguageInput) { oldValue, newValue in
-                                        handleTextInputChange(newValue)
+                                        cancelParsing()
                                     }
                             }
                         }
 
-                        // Status indicator for automatic parsing
-                        if !naturalLanguageInput.isEmpty {
-                            HStack(spacing: 8) {
-                                if isProcessingText {
-                                    ProgressView()
-                                        .scaleEffect(0.8)
-                                    Text("Parsing event...".localized)
-                                        .font(.system(size: 16))
-                                        .foregroundColor(themeManager.currentPalette.textSecondary)
-                                } else if shouldParseText(naturalLanguageInput) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.green)
-                                        .font(.system(size: 18))
-                                    Text("Event parsed automatically".localized)
-                                        .font(.system(size: 16))
-                                        .foregroundColor(themeManager.currentPalette.textSecondary)
-                                } else {
-                                    Image(systemName: "text.bubble")
-                                        .foregroundColor(themeManager.currentPalette.textSecondary)
-                                        .font(.system(size: 18))
-                                    Text("Type at least 20 characters with 5 words to auto-parse".localized)
-                                        .font(.system(size: 16))
-                                        .foregroundColor(themeManager.currentPalette.textSecondary.opacity(0.7))
-                                }
+                        Text("Optional AI parsing sends this description, the selected date, and your time zone to Calendar Play's server and OpenAI. Review the returned details before saving. Repeating details are saved as notes; this creates one event.")
+                            .font(.system(size: 16))
+                        Toggle("Allow sharing this device's event descriptions with OpenAI", isOn: $aiSharingConsent)
+                            .onChange(of: aiSharingConsent) { _, allowed in
+                                if !allowed { cancelParsing() }
                             }
-                            .padding(.vertical, 8)
+                        Link("Privacy policy", destination: URL(string: "https://nathanfennel.com/calendar-play/privacy.html")!)
+                        Button(isProcessingText ? "Cancel parsing" : "Parse event with AI") {
+                            if isProcessingText { cancelParsing() } else { parseNaturalLanguageInput() }
                         }
+                        .disabled(!aiSharingConsent || naturalLanguageInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || naturalLanguageInput.count > 2000)
+                        if naturalLanguageInput.count > 2000 { Text("Use no more than 2,000 characters.").foregroundStyle(.red) }
+                        if isProcessingText { ProgressView("Parsing event...") }
+                        if let parseMessage { Text(parseMessage).font(.system(size: 16)) }
                     }
 
                     // Form fields
@@ -169,6 +162,15 @@ struct TVEventCreationView: View {
 
                             Toggle("All Day".localized, isOn: $isAllDay)
                                 .font(.system(size: 18))
+                                .onChange(of: isAllDay) { _, allDay in
+                                    if allDay {
+                                        startDate = Calendar.current.startOfDay(for: startDate)
+                                        endDate = Calendar.current.startOfDay(for: endDate)
+                                        if endDate <= startDate {
+                                            endDate = Calendar.current.date(byAdding: .day, value: 1, to: startDate) ?? startDate
+                                        }
+                                    }
+                                }
 
                             if !isAllDay {
                                 HStack(spacing: 20) {
@@ -176,9 +178,10 @@ struct TVEventCreationView: View {
                                     TVDatePicker(label: "End".localized, date: $endDate)
                                 }
                             } else {
-                                Text("Event will last all day".localized)
-                                    .font(.system(size: 16))
-                                    .foregroundColor(themeManager.currentPalette.textSecondary.opacity(0.7))
+                                HStack(spacing: 20) {
+                                    TVDatePicker(label: "First day", date: $startDate, includesTime: false)
+                                    TVDatePicker(label: "End date, not included", date: $endDate, includesTime: false)
+                                }
                             }
                         }
 
@@ -214,11 +217,15 @@ struct TVEventCreationView: View {
                             .focused($notesFocused)
                         }
                     }
+                    .disabled(isProcessingText)
                 }
                 .padding(40)
             }
             .background(themeManager.currentPalette.calendarSurface)
+            .onDisappear { cancelParsing() }
             .onAppear {
+                guard !hasInitialized else { return }
+                hasInitialized = true
                 if let editingEvent = editingEvent {
                     loadEventForEditing(editingEvent)
                 } else {
@@ -239,7 +246,7 @@ struct TVEventCreationView: View {
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundColor(title.isEmpty ? themeManager.currentPalette.textSecondary.opacity(0.5) : themeManager.currentPalette.primary)
                 }
-                .disabled(title.isEmpty)
+                .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isProcessingText)
             )
             #endif
         }
@@ -248,54 +255,47 @@ struct TVEventCreationView: View {
         #endif
     }
 
-    private func parseNaturalLanguageInput(_ input: String) {
-        isProcessingText = true
-
-        // Call the Vercel API to parse the natural language input
-        Task {
-            do {
-                let parsedEvent = try await parseEventDescription(input, selectedDate: selectedDate)
-                DispatchQueue.main.async {
-                    applyParsedEvent(parsedEvent)
-                    isProcessingText = false
-                }
-            } catch {
-                print("Failed to parse event: \(error)")
-                DispatchQueue.main.async {
-                    isProcessingText = false
-                }
-            }
-        }
+    private func cancelParsing() {
+        parseTask?.cancel()
+        parseTask = nil
+        parseRequestID = UUID()
+        isProcessingText = false
+        parseMessage = nil
     }
 
-    private func parseEventDescription(_ description: String, selectedDate: Date) async throws -> ParsedEventResponse {
-        // Deployed Vercel API URL
-        let url = URL(string: "https://calendar-play-jzwil01cs-nathan-fennels-projects.vercel.app/api/parse-event")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let body: [String: Any] = [
-            "description": description,
-            "selectedDate": ISO8601DateFormatter().string(from: selectedDate)
-        ]
-
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let (data, _) = try await URLSession.shared.data(for: request)
-        let response = try JSONDecoder().decode(ParsedEventResponse.self, from: data)
-        return response
+    private func parseNaturalLanguageInput() {
+        guard aiSharingConsent, !isProcessingText else { return }
+        let input = naturalLanguageInput
+        let requestID = UUID()
+        parseRequestID = requestID
+        isProcessingText = true
+        parseMessage = nil
+        parseTask = Task { @MainActor in
+            do {
+                let parsed = try await EventDescriptionParser.parse(input, selectedDate: selectedDate)
+                guard !Task.isCancelled, aiSharingConsent, parseRequestID == requestID,
+                      naturalLanguageInput == input else { return }
+                applyParsedEvent(parsed)
+                parseMessage = "Event details filled in. Review them before saving."
+            } catch {
+                guard !Task.isCancelled, parseRequestID == requestID else { return }
+                parseMessage = "The event could not be parsed. Try again or enter the details below."
+            }
+            guard parseRequestID == requestID else { return }
+            isProcessingText = false
+            parseTask = nil
+        }
     }
 
     internal func applyParsedEvent(_ parsed: ParsedEventResponse) {
         title = parsed.title ?? title
 
         if let startDateStr = parsed.startDate {
-            startDate = ISO8601DateFormatter().date(from: startDateStr) ?? startDate
+            startDate = EventDescriptionParser.date(startDateStr) ?? startDate
         }
 
         if let endDateStr = parsed.endDate {
-            endDate = ISO8601DateFormatter().date(from: endDateStr) ?? endDate
+            endDate = EventDescriptionParser.date(endDateStr) ?? endDate
         }
 
         isAllDay = parsed.isAllDay ?? isAllDay
@@ -327,7 +327,7 @@ struct TVEventCreationView: View {
                 recurrenceText += " until %@".localized(with: endDate)
             }
 
-            notes += recurrenceText
+            notes += recurrenceText + "\nRepeating details only. This is a single event."
         }
 
         // Store color and emoji for later use in event creation
@@ -359,104 +359,25 @@ struct TVEventCreationView: View {
     internal func saveEvent() {
         guard !title.isEmpty else { return }
 
-        let eventId = editingEvent?.id ?? "tv_\(UUID().uuidString)"
+        let eventId = editingEvent?.id ?? "tv_\(eventUUID)"
         let calendarEvent = CalendarEvent(
             id: eventId,
             title: title,
-            startDate: startDate,
-            endDate: endDate,
+            startDate: isAllDay ? Calendar.current.startOfDay(for: startDate) : startDate,
+            endDate: isAllDay ? Calendar.current.startOfDay(for: endDate) : endDate,
             location: location.isEmpty ? nil : location,
             notes: notes.isEmpty ? nil : notes,
             calendarIdentifier: "tv_local",
             isAllDay: isAllDay,
+            imageUrl: editingEvent?.imageUrl,
+            imageRepositoryId: editingEvent?.imageRepositoryId,
             color: pendingEventColor,
             emoji: pendingEventEmoji
         )
 
-        onEventCreated(calendarEvent)
-        presentationMode.wrappedValue.dismiss()
+        if onEventCreated(calendarEvent) { presentationMode.wrappedValue.dismiss() }
     }
 
-    // MARK: - Automatic Parsing Logic
-
-    private func handleTextInputChange(_ newText: String) {
-        // Cancel any existing timer
-        parseTimer?.invalidate()
-
-        // Start new timer if text meets criteria
-        if shouldParseText(newText) {
-            parseTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false) { [self] _ in
-                Task {
-                    await parseNaturalLanguageInput(newText)
-                }
-            }
-        }
-    }
-
-    private func shouldParseText(_ text: String) -> Bool {
-        let characterCount = text.count >= 20
-        let wordCount = text.split(separator: " ").count >= 5
-        return characterCount && wordCount
-    }
-
-    private func parseNaturalLanguageInput(_ input: String) async {
-        guard !isProcessingText else { return }
-
-        isProcessingText = true
-        defer { isProcessingText = false }
-
-        do {
-            // Call the Vercel API
-            let apiURL = URL(string: "http://localhost:3002/api/parse-event")!
-            var request = URLRequest(url: apiURL)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-            let requestBody: [String: Any] = [
-                "text": input,
-                "currentDate": ISO8601DateFormatter().string(from: selectedDate)
-            ]
-            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-
-            guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
-                print("API call failed with status: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
-                return
-            }
-
-            let parsedEvent = try JSONDecoder().decode(ParsedEventResponse.self, from: data)
-
-            // Update form fields on main thread
-            await MainActor.run {
-                if let parsedTitle = parsedEvent.title {
-                    title = parsedTitle
-                }
-                if let parsedStartDate = parsedEvent.startDate,
-                   let startDateObj = ISO8601DateFormatter().date(from: parsedStartDate) {
-                    startDate = startDateObj
-                }
-                if let parsedEndDate = parsedEvent.endDate,
-                   let endDateObj = ISO8601DateFormatter().date(from: parsedEndDate) {
-                    endDate = endDateObj
-                }
-                if let parsedLocation = parsedEvent.location {
-                    location = parsedLocation
-                }
-                if let parsedNotes = parsedEvent.notes {
-                    notes = parsedNotes
-                }
-                if let parsedIsAllDay = parsedEvent.isAllDay {
-                    isAllDay = parsedIsAllDay
-                }
-                pendingEventColor = parsedEvent.color
-                pendingEventEmoji = parsedEvent.emoji
-            }
-        } catch {
-            print("Failed to parse event: \(error.localizedDescription)")
-            // Silently fail for better UX - user can still manually fill fields
-        }
-    }
 }
 
 // Supporting views and structs
@@ -469,8 +390,7 @@ struct FocusableTextField: View {
     @EnvironmentObject var themeManager: ThemeManager
 
     var body: some View {
-        Button(action: onFocus) {
-            TextField(placeholder, text: $text)
+        TextField(placeholder, text: $text)
                 .font(.system(size: 18))
                 .padding(16)
                 .background(
@@ -482,67 +402,41 @@ struct FocusableTextField: View {
                         )
                 )
                 .foregroundColor(themeManager.currentPalette.textPrimary)
-        }
-        .buttonStyle(.plain)
+                .onTapGesture(perform: onFocus)
     }
 }
 
 struct TVDatePicker: View {
     let label: String
     @Binding var date: Date
-
-    @EnvironmentObject var themeManager: ThemeManager
-
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        formatter.timeStyle = .short
-        return formatter
-    }
+    var includesTime = true
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(label)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(themeManager.currentPalette.textSecondary)
-
-            Button(action: {
-                // In a real implementation, you'd show a date picker
-                // For now, just show the current value
-            }) {
-                Text(dateFormatter.string(from: date))
-                    .font(.system(size: 18))
-                    .foregroundColor(themeManager.currentPalette.textPrimary)
-                    .padding(12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(themeManager.currentPalette.calendarBackground.opacity(0.8))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(themeManager.currentPalette.primary.opacity(0.3), lineWidth: 1)
-                            )
-                    )
+        VStack(alignment: .leading, spacing: 12) {
+            Text(label).font(.headline)
+            Text(date.formatted(date: .abbreviated, time: includesTime ? .shortened : .omitted))
+                .accessibilityLabel("\(label): \(date.formatted(date: .complete, time: .shortened))")
+            adjustment("Year", component: .year)
+            adjustment("Month", component: .month)
+            adjustment("Day", component: .day)
+            if includesTime {
+                adjustment("Hour", component: .hour)
+                adjustment("Minute", component: .minute)
             }
-            .buttonStyle(.plain)
         }
     }
-}
 
-struct ParsedEventResponse: Codable {
-    let title: String?
-    let startDate: String?
-    let endDate: String?
-    let isAllDay: Bool?
-    let location: String?
-    let notes: String?
-    let color: String?
-    let emoji: String?
-    let recurrence: RecurrenceInfo?
+    private func adjustment(_ name: String, component: Calendar.Component) -> some View {
+        HStack {
+            Button { shift(component, by: -1) } label: { Image(systemName: "minus") }
+                .accessibilityLabel("\(label): previous \(name.lowercased())")
+            Text(name).frame(maxWidth: .infinity)
+            Button { shift(component, by: 1) } label: { Image(systemName: "plus") }
+                .accessibilityLabel("\(label): next \(name.lowercased())")
+        }
+    }
 
-    struct RecurrenceInfo: Codable {
-        let frequency: String
-        let interval: Int
-        let endDate: String?
-        let daysOfWeek: [Int]?
+    private func shift(_ component: Calendar.Component, by value: Int) {
+        if let updated = Calendar.current.date(byAdding: component, value: value, to: date) { date = updated }
     }
 }

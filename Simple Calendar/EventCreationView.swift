@@ -18,6 +18,7 @@ struct EventCreationView: View {
     @Environment(\.presentationMode) var presentationMode
 
     @State private var title = ""
+    @State private var eventID = UUID().uuidString
     @State private var startDate = Date()
     @State private var endDate = Date().addingTimeInterval(3600) // 1 hour later
     @State private var location = ""
@@ -45,6 +46,7 @@ struct EventCreationView: View {
     var body: some View {
         NavigationView {
             Form {
+                if let error = calendarViewModel.storageError { Text(error).foregroundStyle(.red) }
                 Section(header: Text("Event Details".localized)) {
                     TextField("Title".localized, text: $title)
                         .font(.headline)
@@ -228,20 +230,19 @@ struct EventCreationView: View {
         #if os(tvOS)
         // On tvOS, create a CalendarEvent and add it directly to the viewModel
         let calendarEvent = CalendarEvent(
-            id: "local_\(UUID().uuidString)",
+            id: "local_\(eventID)",
             title: title,
             startDate: startDate,
             endDate: isAllDay ? Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: startDate) ?? endDate : endDate,
             location: location.isEmpty ? nil : location,
             notes: notes.isEmpty ? nil : notes,
             calendarIdentifier: "local",
-            isAllDay: isAllDay
+            isAllDay: isAllDay,
+            imageRepositoryId: selectedImageId
         )
 
         // Add to viewModel events
-        calendarViewModel.events.append(calendarEvent)
-        calendarViewModel.events.sort { $0.startDate < $1.startDate }
-        presentationMode.wrappedValue.dismiss()
+        if calendarViewModel.addEvent(calendarEvent) { presentationMode.wrappedValue.dismiss() }
         #else
         eventStore.requestAccess(to: .event) { granted, error in
             guard granted else { return }

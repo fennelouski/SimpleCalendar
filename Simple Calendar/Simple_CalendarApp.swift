@@ -17,30 +17,48 @@ struct Simple_CalendarApp: App {
     @StateObject private var monthlyThemeManager = MonthlyThemeManager.shared
     private let holidayManager = HolidayManager.shared
 
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            CalendarEvent.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+    @State private var sharedModelContainer: ModelContainer?
+    @State private var startupError: String?
 
+    private func openStore() {
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
+            let schema = Schema([CalendarEvent.self])
+            // App-owned events use the existing local store. System and Google
+            // calendar synchronization are handled by their own services.
+            let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false, cloudKitDatabase: .none)
+            sharedModelContainer = try ModelContainer(for: schema, configurations: [config])
+            startupError = nil
+        } catch { startupError = error.localizedDescription }
+    }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if let sharedModelContainer {
+                    ContentView()
+                .modelContainer(sharedModelContainer)
+                .onAppear { calendarViewModel.attachLocalStore(sharedModelContainer) }
                 .environmentObject(calendarViewModel)
                 .environmentObject(themeManager)
                 .environmentObject(uiConfig)
                 .environmentObject(featureFlags)
                 .environmentObject(monthlyThemeManager)
                 .environmentObject(holidayManager)
+                } else if let startupError {
+                    ContentUnavailableView {
+                        Label("Saved events could not be opened", systemImage: "externaldrive.badge.exclamationmark")
+                    } description: {
+                        Text(startupError)
+                        Text("Your existing event files have been preserved.")
+                    } actions: {
+                        Button("Retry") { openStore() }
+                    }
+                } else {
+                    ProgressView("Opening saved events")
+                }
+            }
+            .task { if sharedModelContainer == nil { openStore() } }
         }
-        .modelContainer(sharedModelContainer)
         #if !os(tvOS)
         .commands {
             #if os(macOS)

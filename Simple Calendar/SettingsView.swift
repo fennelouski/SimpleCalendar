@@ -37,6 +37,7 @@ struct SettingsContentView: View {
     @Binding var showSettings: Bool
     @FocusState private var focusedTheme: ColorTheme?
     @State private var showAboutView = false
+    @AppStorage("aiEventSharingConsent_v1") private var aiSharingConsent = false
     @State private var preservedFocusedCategory: CalendarHoliday.CalendarHolidayCategory? = nil
     @State private var focusRestoreTrigger: UUID = UUID()
     var googleOAuthManager: GoogleOAuthManager?
@@ -779,6 +780,16 @@ struct SettingsContentView: View {
                         }
 #endif
                         
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Privacy").font(.headline)
+                            Toggle("Allow AI event parsing", isOn: $aiSharingConsent)
+                            Text("When you select Parse event with AI, Calendar Play sends the description, selected date and time zone to its server and OpenAI. Turning this off prevents new requests from this device; it does not erase information already sent.")
+                                .font(.subheadline)
+                            Link("Privacy policy", destination: URL(string: "https://nathanfennel.com/calendar-play/privacy.html")!)
+                            Link("Support", destination: URL(string: "https://nathanfennel.com/calendar-play/support.html")!)
+                        }
+                        .padding()
+
                         // About Section (moved to bottom)
                         VStack(alignment: .leading, spacing: 12) {
                             Text("About".localized)
@@ -796,7 +807,7 @@ struct SettingsContentView: View {
                                             .fontWeight(.medium)
                                             .foregroundColor(themeManager.currentPalette.textPrimary)
                                         
-                                        Text("Calendar Play 1.0.0")
+                                        Text("Calendar Play \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
                                             .font(.subheadline)
                                             .foregroundColor(themeManager.currentPalette.textSecondary)
                                     }

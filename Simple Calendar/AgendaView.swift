@@ -157,19 +157,14 @@ struct AgendaView: View {
 
         // Get events in the date range
         let eventsInRange = calendarViewModel.events.filter { event in
-            event.startDate >= startDate && event.startDate < endDate
-        }
-
-        // Group events by date
-        let groupedEvents = Dictionary(grouping: eventsInRange) { event in
-            calendar.startOfDay(for: event.startDate)
+            event.startDate < endDate && event.endDate > startDate
         }
 
         // Create date range for the next 60 days
         for dayOffset in 0..<60 {
             guard let currentDate = calendar.date(byAdding: .day, value: dayOffset, to: startDate) else { continue }
 
-            let dayEvents = groupedEvents[calendar.startOfDay(for: currentDate)] ?? []
+            let dayEvents = eventsInRange.filter { $0.occurs(on: currentDate, calendar: calendar) }
 
             if dayEvents.isEmpty && !calendar.isDate(currentDate, inSameDayAs: Date()) {
                 // Only show empty days for today

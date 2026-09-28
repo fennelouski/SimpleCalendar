@@ -74,6 +74,16 @@ struct ContentView: View {
                     .overlay(keyCommandsOverlay, alignment: .center)
             }
         }
+        .safeAreaInset(edge: .top) {
+            if let error = calendarViewModel.storageError {
+                HStack {
+                    Text("Saved events: \(error)")
+                    Button("Retry") { calendarViewModel.reloadLocalEvents() }
+                }
+                .padding()
+                .background(.regularMaterial)
+            }
+        }
         .overlay(SettingsView())
         #if !os(tvOS)
         .sheet(isPresented: $calendarViewModel.showEventCreation) {
@@ -84,7 +94,11 @@ struct ContentView: View {
             EventTemplateSelector(selectedDate: calendarViewModel.selectedDate ?? Date())
         }
         .sheet(isPresented: $showQuickAdd) {
+            #if os(tvOS)
+            TVEventCreationView(selectedDate: calendarViewModel.selectedDate ?? Date()) { calendarViewModel.addEvent($0) }
+            #else
             QuickAddView(isPresented: $showQuickAdd)
+            #endif
         }
         .sheet(isPresented: $calendarViewModel.showViewModeSelector) {
             ViewModeSelectorView()
@@ -1284,8 +1298,7 @@ struct ContentView: View {
         let dayStart = calendar.startOfDay(for: date)
         
         let events = calendarViewModel.events.filter { event in
-            let eventStart = calendar.startOfDay(for: event.startDate)
-            return eventStart == dayStart
+            event.occurs(on: dayStart, calendar: calendar)
         }
         
         // Use normalized date (dayStart) for id and date to ensure focus matching works correctly
