@@ -107,9 +107,11 @@ struct ContentView: View {
         .sheet(isPresented: $calendarViewModel.showSettings) {
             SettingsContentView(showSettings: $calendarViewModel.showSettings, googleOAuthManager: calendarViewModel.googleOAuthManager ?? GoogleOAuthManager())
         }
-//        .sheet(isPresented: $calendarViewModel.showTVEventManagement) {
-//            TVEventManagementView(selectedDate: calendarViewModel.selectedDate ?? Date())
-//        }
+        #if os(tvOS)
+        .sheet(isPresented: $calendarViewModel.showTVEventManagement) {
+            TVEventManagementView(selectedDate: calendarViewModel.selectedDate ?? Date())
+        }
+        #endif
         #if !os(macOS)
         .fullScreenCover(isPresented: $showPermissionPrimer) {
             PermissionPrimerView(
@@ -124,11 +126,11 @@ struct ContentView: View {
         }
         #endif
         .roundedCorners(.small)
+        #if !os(tvOS)
         .safeAreaInset(edge: .bottom) {
-            #if !os(tvOS)
             if allowsOnlineWeather && featureFlags.weatherIntegration { OpenMeteoAttributionView().padding(.vertical, 3) }
-            #endif
         }
+        #endif
     }
     
     var body: some View {
@@ -835,7 +837,9 @@ struct ContentView: View {
 #endif
             let rowsCount = calculateRowsCount(for: days.count, columns: daysPerRow)
 #if os(tvOS)
-            let cellHeight = availableHeight / CGFloat(rowsCount) // Let rows expand to fill available space on tvOS
+            // The first tvOS layout pass can propose zero height; never pass a
+            // negative or non-finite dimension to the day-cell frames.
+            let cellHeight = max(60, availableHeight / CGFloat(max(1, rowsCount)))
 #else
             let cellHeight = max(availableHeight / CGFloat(rowsCount), 60) // Minimum height of 60
 #endif
@@ -1448,4 +1452,3 @@ private func dayName(for columnIndex: Int, availableWidth: CGFloat? = nil) -> St
     ContentView()
         .environmentObject(CalendarViewModel())
 }
-
