@@ -1,40 +1,43 @@
 {
-  "revision": "40e60bf5b58537f3e14307eee98f9439d3f1d9dd",
-  "deployedAt": "2026-09-28T10:13:47.489678+00:00",
+  "revision": "70c7ef0ac651a35f2c6d114c8a3133feca6a227b",
+  "deployedAt": "2026-09-30T20:14:14.797676+00:00",
   "mode": "parallel",
   "vercelDeployments": {
-    "calendar-play": "https://calendar-play-nb4orvjx6-nathan-fennels-projects.vercel.app",
-    "calendar-play-api": "https://calendar-play-n7ry36r52-nathan-fennels-projects.vercel.app"
+    "calendar-play": "https://calendar-play-dc8q7ar59-nathan-fennels-projects.vercel.app",
+    "calendar-play-api": "https://calendar-play-18w83v8fd-nathan-fennels-projects.vercel.app"
   },
   "aws": {
     "functionName": "calendar-play-parallel-SiteServerUswest2Function-nwvvbnha",
     "functionURL": "https://o5wfqo2ypidhj7ec5ug6cj7ama0zxech.lambda-url.us-west-2.on.aws/",
-    "revision": "40e60bf5b58537f3e14307eee98f9439d3f1d9dd",
+    "revision": "70c7ef0ac651a35f2c6d114c8a3133feca6a227b",
     "url": "https://d2ntnk2ucb7yym.cloudfront.net"
   },
-  "verification": "PASS same-revision AWS and both Vercel hosts: health/privacy content; actual native parser, photo search and tracking POSTs; preview access protections.",
-  "verifiedAt": "2026-09-28T10:17:03.315921+00:00",
+  "verification": "PASS same-revision AWS and both Vercel hosts: health, privacy content, malformed parse rejection, preview access protection. Hosted source is unchanged since the earlier native live-provider checks.",
+  "verifiedAt": "2026-09-30T20:16:03.895560+00:00",
   "readChecks": [
     {
       "origin": "https://d2ntnk2ucb7yym.cloudfront.net",
       "healthStatus": 200,
-      "revision": "40e60bf5b58537f3e14307eee98f9439d3f1d9dd",
+      "revision": "70c7ef0ac651a35f2c6d114c8a3133feca6a227b",
       "privacyStatus": 200,
-      "privacyVisibleSHA256": "b9c36475de8dfc12de33d81ca8179bb842e34937cb8c00dd4a62b4e8a3f11209"
+      "privacyVisibleSHA256": "b9c36475de8dfc12de33d81ca8179bb842e34937cb8c00dd4a62b4e8a3f11209",
+      "invalidParseEventStatus": 400
     },
     {
       "origin": "https://calendar-play-seven.vercel.app",
       "healthStatus": 200,
-      "revision": "40e60bf5b58537f3e14307eee98f9439d3f1d9dd",
+      "revision": "70c7ef0ac651a35f2c6d114c8a3133feca6a227b",
       "privacyStatus": 200,
-      "privacyVisibleSHA256": "b9c36475de8dfc12de33d81ca8179bb842e34937cb8c00dd4a62b4e8a3f11209"
+      "privacyVisibleSHA256": "b9c36475de8dfc12de33d81ca8179bb842e34937cb8c00dd4a62b4e8a3f11209",
+      "invalidParseEventStatus": 400
     },
     {
       "origin": "https://calendar-play-api.vercel.app",
       "healthStatus": 200,
-      "revision": "40e60bf5b58537f3e14307eee98f9439d3f1d9dd",
+      "revision": "70c7ef0ac651a35f2c6d114c8a3133feca6a227b",
       "privacyStatus": 200,
-      "privacyVisibleSHA256": "b9c36475de8dfc12de33d81ca8179bb842e34937cb8c00dd4a62b4e8a3f11209"
+      "privacyVisibleSHA256": "b9c36475de8dfc12de33d81ca8179bb842e34937cb8c00dd4a62b4e8a3f11209",
+      "invalidParseEventStatus": 400
     }
   ],
   "awsAnonymousPrivacyStatus": 401,
@@ -46,16 +49,19 @@
     "successfulRequests": 9,
     "syntheticAIRequests": 3,
     "nativeBodyDigest": "Produced and verified by actual native request code; no operator-added hash",
-    "note": "Bridge changes origin and adds only existing operator AWS preview authorization."
+    "note": "Bridge changes origin and adds only existing operator AWS preview authorization.",
+    "evidenceRevision": "40e60bf5b58537f3e14307eee98f9439d3f1d9dd",
+    "hostedSourceUnchangedSinceEvidence": true
   },
   "awsRuntime": {
-    "revision": "40e60bf5b58537f3e14307eee98f9439d3f1d9dd",
+    "revision": "70c7ef0ac651a35f2c6d114c8a3133feca6a227b",
     "state": "Active",
     "update": "Successful",
-    "codeSHA256": "AhAZRz0p8ccb6VBeg53FRwhKo/X0tlAR1vN4HjJpNhQ=",
+    "codeSHA256": "/RpnhTKsbxTztfNi1iRRiMon1fYDgl2kQ3nWp1bcKPE=",
     "runtime": "nodejs24.x",
     "logGroup": "/aws/lambda/calendar-play-parallel-SiteServerUswest2Function-txwtamwd",
     "retentionDays": 7
   },
-  "secretStagingRemoved": true
+  "secretStagingRemoved": true,
+  "verificationEvidence": "/Users/nathan/Documents/GitHub-sync-backup-20260930/deployments/calendar-70c7ef0-live-checks.json"
 }
