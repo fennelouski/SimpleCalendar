@@ -34,7 +34,7 @@ struct OnThisDayCategoryView: View {
                 Text("• \(item)")
                     .font(uiConfig.eventDetailFont)
                     .foregroundColor(themeManager.currentPalette.textPrimary)
-                    .lineLimit(3)
+                    .lineLimit(nil)
                     .fixedSize(horizontal: false, vertical: true)
                 if sourcePages.indices.contains(index) {
                     ForEach(Array(sourcePages[index].enumerated()), id: \.offset) { _, page in

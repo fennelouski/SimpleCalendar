@@ -490,7 +490,7 @@ struct TwilightTransitionRow: View {
             Text(label)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(themeManager.currentPalette.textPrimary)
-                .lineLimit(1)
+                .fixedSize(horizontal: false, vertical: true)
             
             Spacer()
         }

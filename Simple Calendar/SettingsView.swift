@@ -954,8 +954,7 @@ struct AboutView: View {
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(themeManager.currentPalette.textPrimary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
+                            .fixedSize(horizontal: false, vertical: true)
                         
                         Spacer()
                     }
