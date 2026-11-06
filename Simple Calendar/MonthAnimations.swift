@@ -4,2366 +4,1754 @@
 //
 //  Created by Nathan Fennel on 11/23/25.
 //
+//  Month background scenes. Each scene is rendered by `AnimatedScene` (a
+//  TimelineView-driven Canvas) using the painters in BackgroundRendering.swift,
+//  so everything is lit and shaded: gradients, glows, depth-of-field blur, and
+//  fake-3D motion (tumbling leaves, flapping wings) instead of flat shapes.
+//
 
 import SwiftUI
-import Combine
 
-// Helper for deterministic random numbers
-struct LinearCongruentialGenerator: RandomNumberGenerator {
-    var state: UInt64
-    init(seed: Int) { self.state = UInt64(seed) }
-    mutating func next() -> UInt64 {
-        state = 6364136223846793005 &* state &+ 1442695040888963407
-        return state
-    }
-}
+// MARK: - January: Snowfall
 
-// MARK: - January: Snow Fall Animation
 struct JanuarySnowAnimation: View {
     let alpha: Double
-    @State private var snowflakes: [Snowflake] = []
-    @State private var spawnTimer: Timer?
-
-    struct Snowflake: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var size: CGFloat
-        var opacity: Double
-    }
 
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(snowflakes) { flake in
-                    Circle()
-                        .fill(Color.white.opacity(flake.opacity * alpha))
-                        .frame(width: flake.size, height: flake.size)
-                        .position(x: flake.x, y: flake.y)
-                }
-            }
-            .onAppear {
-                startSnowfall(size: geometry.size)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                startSnowfall(size: newSize)
-            }
-            .onDisappear {
-                spawnTimer?.invalidate()
-            }
+        AnimatedScene { ctx, size, time in
+            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.78, 0.88, 1), intensity: 0.22, depth: 0.45)
+            SnowRenderer.draw(in: &ctx, size: size, time: time, density: 1, wind: CGFloat(sin(time * 0.05)) * 0.6)
+            SnowRenderer.drawSnowbank(in: &ctx, size: size, time: time, height: size.height * 0.045)
         }
-    }
-
-    private func startSnowfall(size: CGSize) {
-        spawnTimer?.invalidate()
-        snowflakes = []
-
-        // Initial snowflakes scattered
-        for _ in 0..<50 {
-            addSnowflake(size: size, startRandomY: true)
-        }
-
-        // Continuous snowfall
-        spawnTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            if snowflakes.count < 150 {
-                addSnowflake(size: size)
-            }
-        }
-    }
-    
-    private func addSnowflake(size: CGSize, startRandomY: Bool = false) {
-        let startX = CGFloat.random(in: -50...size.width + 50)
-        let startY = startRandomY ? CGFloat.random(in: -50...size.height) : -30
-        let endY = size.height + 50
-        
-        let size = CGFloat.random(in: 2...6)
-        // Depth effect: Larger flakes fall faster
-        let speedFactor = size / 4.0 // 0.5 to 1.5
-        let baseDuration = Double.random(in: 12...24)
-        let duration = baseDuration / speedFactor
-        
-        let flake = Snowflake(
-            x: startX,
-            y: startY,
-            size: size,
-            opacity: Double.random(in: 0.3...0.8)
-        )
-        
-        let id = flake.id
-        snowflakes.append(flake)
-        
-        // Animate falling
-        withAnimation(.linear(duration: duration)) {
-            if let index = snowflakes.firstIndex(where: { $0.id == id }) {
-                snowflakes[index].y = endY
-                // Add some drift? Simplified to linear for now, or could use KeyframeAnimation in iOS 17, 
-                // but standard Animation is safer for now. 
-                // To add drift, we'd need more complex state, but simple falling is robust.
-                snowflakes[index].x += CGFloat.random(in: -50...50)
-            }
-        }
-        
-        // Cleanup
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-            snowflakes.removeAll { $0.id == id }
-        }
+        .opacity(alpha)
     }
 }
 
-// MARK: - February: Heart Clouds Animation
+// MARK: - February: Heart clouds and floating hearts
+
 struct FebruaryHeartCloudsAnimation: View {
     let alpha: Double
-    @State private var clouds: [HeartCloud] = []
-    @State private var sineWaveTime: Double = 0
-    @State private var sineTimer: Timer?
-    @State private var cloudSpawnTimer: Timer?
-    
-    struct HeartCloud: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var baseY: CGFloat // Base Y position
-        var size: CGFloat
-        var sinePhase: Double // Phase offset for sine wave
-        var sineAmplitude: CGFloat // Amplitude of sine wave movement
-        var seed: Int = 0
-        var isHeart: Bool = true
-    }
-    
+
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Add snow to February
-                JanuarySnowAnimation(alpha: alpha)
-                
-                ForEach(clouds) { cloud in
-                    FebruaryCloudView(cloud: cloud, alpha: alpha, sineWaveTime: sineWaveTime)
-                }
-            }
-            .onAppear {
-                startClouds(size: geometry.size)
-                startSineWave()
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                startClouds(size: newSize)
-                startSineWave()
-            }
-            .onDisappear {
-                sineTimer?.invalidate()
-                cloudSpawnTimer?.invalidate()
-            }
+        AnimatedScene { ctx, size, time in
+            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(1, 0.78, 0.88), intensity: 0.2, depth: 0.5)
+            SnowRenderer.draw(in: &ctx, size: size, time: time, density: 0.4)
+            FebruaryScene.drawClouds(in: &ctx, size: size, time: time)
+            FebruaryScene.drawHearts(in: &ctx, size: size, time: time)
         }
+        .opacity(alpha)
     }
+}
 
-    private func startSineWave() {
-        // Slow sine wave animation (one complete cycle every 12-15 seconds)
-        sineTimer?.invalidate()
-        sineTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
-            sineWaveTime += 0.01 // Slow increment for smooth sine wave
-            if sineWaveTime > 2 * .pi {
-                sineWaveTime = 0 // Reset to prevent overflow
-            }
-        }
-    }
-
-    private func startClouds(size: CGSize) {
-        cloudSpawnTimer?.invalidate()
-        clouds = []
-        // More clouds (3-4 instead of 1-2)
-        let cloudCount = Int.random(in: 3...4)
-        for _ in 0..<cloudCount {
-            let cloud = HeartCloud(
-                x: CGFloat.random(in: -200...size.width + 200),
-                baseY: CGFloat.random(in: size.height * 0.1...size.height * 0.8), // More vertical spread
-                size: CGFloat.random(in: 140...180),
-                sinePhase: Double.random(in: 0...2 * .pi),
-                sineAmplitude: CGFloat.random(in: 25...40),
-                seed: Int.random(in: 0...100),
-                isHeart: Bool.random() // Mix hearts and normal clouds
+private enum FebruaryScene {
+    static func drawClouds(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        for k in 0..<5 {
+            let width = BG.hash(k, 21, 170, 250)
+            let duration = BG.hash(k, 22, 100, 160)
+            let span = size.width + width * 2
+            var u = BG.fract(BG.hash(k, 23) + t / duration)
+            if k % 2 == 1 { u = 1 - u }
+            let x = u * span - width
+            let y = size.height * BG.hash(k, 24, 0.12, 0.6) + sin(t * 0.25 + CGFloat(k) * 1.3) * 24
+            let isHeart = k % 2 == 0
+            let puffs = isHeart
+                ? CloudPainter.heartPuffs(seed: k, width: width)
+                : CloudPainter.cumulusPuffs(seed: k + 50, width: width * 1.25)
+            CloudPainter.draw(
+                in: &ctx,
+                puffs: puffs,
+                center: CGPoint(x: x, y: y),
+                width: width,
+                palette: .blush,
+                opacity: 0.85
             )
-            clouds.append(cloud)
-            
-            // Animate horizontal movement
-            let index = clouds.count - 1
-            let startX = clouds[index].x
-            let targetX = startX > size.width / 2 ? -200 : size.width + 200
-            let duration = Double.random(in: 60...120) // Much slower (was 50-70)
-            
-            withAnimation(.linear(duration: duration).repeatForever(autoreverses: false)) {
-                clouds[index].x = targetX
-            }
         }
-        
-        // Add new clouds periodically
-        cloudSpawnTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { _ in
-            if clouds.count < 6 { // Allow more clouds
-                let cloud = HeartCloud(
-                    x: -200,
-                    baseY: CGFloat.random(in: size.height * 0.1...size.height * 0.8),
-                    size: CGFloat.random(in: 140...180),
-                    sinePhase: Double.random(in: 0...2 * .pi),
-                    sineAmplitude: CGFloat.random(in: 25...40),
-                    seed: Int.random(in: 0...100),
-                    isHeart: Bool.random()
-                )
-                clouds.append(cloud)
-                
-                let index = clouds.count - 1
-                let duration = Double.random(in: 60...120) // Much slower
-                
-                withAnimation(.linear(duration: duration).repeatForever(autoreverses: false)) {
-                    clouds[index].x = size.width + 200
-                }
-            }
+    }
+
+    static func drawHearts(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        for i in 0..<16 {
+            let heartSize = BG.hash(i, 31, 16, 46)
+            let depth = (heartSize - 16) / 30 // 0 far ... 1 near
+            let speed = BG.lerp(14, 34, depth)
+            let span = size.height + 140
+            let progress = BG.fract(BG.hash(i, 33) + t * speed / span)
+            let y = size.height + 70 - progress * span
+            let x = BG.hash(i, 34) * size.width + sin(t * 0.6 + CGFloat(i)) * 34
+            let flip = cos(t * BG.hash(i, 35, 0.5, 1.2) + BG.hash(i, 36) * 6.28)
+            let tilt = sin(t * 0.8 + CGFloat(i)) * 0.25
+            let fade = BG.smoothstep(0, 0.1, progress) * (1 - BG.smoothstep(0.82, 1, progress))
+            let opacity = Double(fade * BG.lerp(0.55, 0.95, depth))
+            drawHeart(in: &ctx, at: CGPoint(x: x, y: y), size: heartSize, rotation: Double(tilt), flip: flip, opacity: opacity)
+        }
+    }
+
+    static func drawHeart(in ctx: inout GraphicsContext, at p: CGPoint, size: CGFloat, rotation: Double, flip: CGFloat, opacity: Double) {
+        guard opacity > 0.01 else { return }
+        ctx.glow(at: p, radius: size * 1.2, color: BG.rgb(1, 0.4, 0.6), intensity: 0.25 * opacity)
+
+        var heart = ctx
+        heart.opacity = opacity
+        heart.translateBy(x: p.x, y: p.y)
+        heart.rotate(by: .radians(rotation))
+        heart.scaleBy(x: size * max(abs(flip), 0.08), y: size)
+
+        let front = flip >= 0
+        let colors = front
+            ? [BG.rgb(1, 0.5, 0.64), BG.rgb(0.92, 0.16, 0.32), BG.rgb(0.62, 0.02, 0.18)]
+            : [BG.rgb(0.75, 0.14, 0.3), BG.rgb(0.5, 0.03, 0.16)]
+        heart.fill(
+            HeartGeometry.unitPath,
+            with: .linearGradient(Gradient(colors: colors), startPoint: CGPoint(x: -0.4, y: -0.45), endPoint: CGPoint(x: 0.35, y: 0.5))
+        )
+        heart.stroke(HeartGeometry.unitPath, with: .color(.white.opacity(0.18)), lineWidth: 0.03)
+        if front {
+            let gloss = BG.ellipse(.zero, 0.12, 0.065)
+                .applying(CGAffineTransform(rotationAngle: -0.6).concatenating(CGAffineTransform(translationX: -0.2, y: -0.22)))
+            heart.fill(gloss, with: .color(.white.opacity(0.6)))
+            heart.fill(BG.circle(CGPoint(x: -0.06, y: -0.3), 0.025), with: .color(.white.opacity(0.7)))
         }
     }
 }
 
-private struct FebruaryCloudView: View {
-    let cloud: FebruaryHeartCloudsAnimation.HeartCloud
-    let alpha: Double
-    let sineWaveTime: Double
-    
-    var body: some View {
-        Group {
-            if cloud.isHeart {
-                HeartCloudShape(seed: cloud.seed)
-                    .fill(Color.white.opacity(0.6 * alpha))
-            } else {
-                CloudShape(seed: cloud.seed)
-                    .fill(Color.white.opacity(0.6 * alpha))
-            }
-        }
-        .blur(radius: 10) // Fuzzier edges
-        .frame(width: cloud.size, height: cloud.size * (cloud.isHeart ? 1.0 : 0.6))
-        .position(
-            x: cloud.x,
-            y: cloud.baseY + sin(sineWaveTime + cloud.sinePhase) * cloud.sineAmplitude
-        )
-    }
-}
+// MARK: - March: Shamrocks on rolling hills
 
-struct HeartCloudShape: Shape {
-    var seed: Int = 0
-    
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        let width = rect.width
-        let height = rect.height
-        
-        // Create a proper heart shape base
-        // Heart formula:
-        // x = 16sin^3(t)
-        // y = 13cos(t) - 5cos(2t) - 2cos(3t) - cos(4t)
-        // But we'll use a simpler bezier path for the main shape
-        
-        path.move(to: CGPoint(x: center.x, y: center.y + height * 0.45)) // Bottom tip
-        
-        // Left curve
-        path.addCurve(
-            to: CGPoint(x: center.x - width * 0.5, y: center.y - height * 0.1),
-            control1: CGPoint(x: center.x - width * 0.2, y: center.y + height * 0.3),
-            control2: CGPoint(x: center.x - width * 0.55, y: center.y + height * 0.1)
-        )
-        
-        // Top left lobe
-        path.addCurve(
-            to: CGPoint(x: center.x, y: center.y - height * 0.2),
-            control1: CGPoint(x: center.x - width * 0.45, y: center.y - height * 0.45),
-            control2: CGPoint(x: center.x - width * 0.1, y: center.y - height * 0.45)
-        )
-        
-        // Top right lobe
-        path.addCurve(
-            to: CGPoint(x: center.x + width * 0.5, y: center.y - height * 0.1),
-            control1: CGPoint(x: center.x + width * 0.1, y: center.y - height * 0.45),
-            control2: CGPoint(x: center.x + width * 0.45, y: center.y - height * 0.45)
-        )
-        
-        // Right curve
-        path.addCurve(
-            to: CGPoint(x: center.x, y: center.y + height * 0.45),
-            control1: CGPoint(x: center.x + width * 0.55, y: center.y + height * 0.1),
-            control2: CGPoint(x: center.x + width * 0.2, y: center.y + height * 0.3)
-        )
-        
-        path.closeSubpath()
-        
-        // Add "fluff" circles along the perimeter to make it look like a cloud
-        // We'll add random circles based on the seed
-        // Use deterministic RNG based on seed
-        var rng = LinearCongruentialGenerator(seed: seed)
-        // Simple pseudo-random based on seed
-        let randomOffset = { (range: ClosedRange<CGFloat>, generator: inout LinearCongruentialGenerator) -> CGFloat in
-            return CGFloat.random(in: range, using: &generator)
-        }
-        
-        // Add some random circles inside to fill it out
-        for _ in 0..<8 {
-            let rx = randomOffset(-0.3...0.3, &rng) * width
-            let ry = randomOffset(-0.3...0.3, &rng) * height
-            let rSize = randomOffset(0.15...0.3, &rng) * width
-            path.addEllipse(in: CGRect(x: center.x + rx - rSize/2, y: center.y + ry - rSize/2, width: rSize, height: rSize))
-        }
-        
-        return path
-    }
-}
-
-// MARK: - March: Shamrocks Growing Animation
 struct MarchShamrocksAnimation: View {
     let alpha: Double
-    @State private var shamrocks: [Shamrock] = []
-    @State private var spawnTimer: Timer?
 
-    struct Shamrock: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var size: CGFloat
-        var stemHeight: CGFloat = 0
-        var petalProgress: CGFloat = 0
-        var isFalling: Bool = false
-        var rotation: Double = 0
-        var leafCount: Int = 3
-    }
-    
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(shamrocks) { shamrock in
-                    ZStack(alignment: .bottom) {
-                        // Stem - at the bottom
-                        Rectangle()
-                            .fill(Color.green.opacity(0.8 * alpha))
-                            // Make stem taller to fix detached look (overlap with petals)
-                            .frame(width: 2, height: shamrock.stemHeight * 1.5)
-                        
-                        // Petals - at the top of the stem
-                        if shamrock.stemHeight > 5 {
-                            ShamrockPetalsShape(leafCount: shamrock.leafCount)
-                                .fill(Color.green.opacity(0.7 * alpha))
-                                .frame(width: shamrock.size, height: shamrock.size)
-                                .scaleEffect(shamrock.petalProgress)
-                                .offset(y: -shamrock.stemHeight) // Move up to top of stem
-                        }
-                    }
-                    .rotationEffect(.degrees(shamrock.rotation))
-                    .position(
-                        x: shamrock.x,
-                        y: shamrock.isFalling ? shamrock.y : geometry.size.height
-                    )
-                    .opacity(shamrock.isFalling ? 0 : 1)
-                }
-            }
-            .onAppear {
-                startShamrocks(size: geometry.size)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                startShamrocks(size: newSize)
-            }
-            .onDisappear {
-                spawnTimer?.invalidate()
-            }
+        AnimatedScene { ctx, size, time in
+            AtmospherePainter.bottomHaze(in: &ctx, size: size, color: BG.rgb(0.75, 0.95, 0.7), intensity: 0.18, depth: 0.35)
+            MarchScene.drawSparkles(in: &ctx, size: size, time: time)
+            MarchScene.drawHill(in: &ctx, size: size, layer: 0)
+            MarchScene.drawHill(in: &ctx, size: size, layer: 1)
+            MarchScene.drawShamrocks(in: &ctx, size: size, time: time, layer: 1)
+            MarchScene.drawHill(in: &ctx, size: size, layer: 2)
+            MarchScene.drawShamrocks(in: &ctx, size: size, time: time, layer: 2)
         }
-    }
-
-    private func startShamrocks(size: CGSize) {
-        spawnTimer?.invalidate()
-        // Start with a few shamrocks
-        for _ in 0..<3 {
-            addShamrock(size: size)
-        }
-
-        // Schedule new shamrocks more frequently
-        spawnTimer = Timer.scheduledTimer(withTimeInterval: 8, repeats: true) { _ in
-            addShamrock(size: size)
-        }
-    }
-    
-    @State private var shamrockCounter = 0
-    
-    private func addShamrock(size: CGSize) {
-        shamrockCounter += 1
-        let isFourLeaf = (shamrockCounter % 4 == 0)
-        
-        let shamrock = Shamrock(
-            x: CGFloat.random(in: size.width * 0.15...size.width * 0.85),
-            y: size.height,
-            size: CGFloat.random(in: 25...45),
-            leafCount: isFourLeaf ? 4 : 3
-        )
-        let shamrockId = shamrock.id
-        shamrocks.append(shamrock)
-        
-        let stemTargetHeight = CGFloat.random(in: 30...50)
-        
-        // First: grow stem (6 seconds)
-        DispatchQueue.main.async {
-            if let index = self.shamrocks.firstIndex(where: { $0.id == shamrockId }) {
-                withAnimation(.easeOut(duration: 6)) {
-                    self.shamrocks[index].stemHeight = stemTargetHeight
-                }
-            }
-        }
-        
-        // Then: sprout petals (4 seconds)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 6) {
-            if let index = self.shamrocks.firstIndex(where: { $0.id == shamrockId }) {
-                withAnimation(.easeOut(duration: 4)) {
-                    self.shamrocks[index].petalProgress = 1.0
-                }
-            }
-        }
-        
-        // After 15 seconds total, fall over and disappear
-        DispatchQueue.main.asyncAfter(deadline: .now() + 15) {
-            if let index = self.shamrocks.firstIndex(where: { $0.id == shamrockId }) {
-                withAnimation(.easeIn(duration: 2)) {
-                    self.shamrocks[index].isFalling = true
-                    self.shamrocks[index].rotation = 90
-                    self.shamrocks[index].y = size.height + 50
-                }
-                
-                // Remove after animation
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    self.shamrocks.removeAll { $0.id == shamrockId }
-                }
-            }
-        }
+        .opacity(alpha)
     }
 }
 
-struct ShamrockPetalsShape: Shape {
-    var leafCount: Int = 3
-    
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        let radius = min(rect.width, rect.height) / 2.5 // Slightly larger base radius
-        
-        // Create a shamrock shape
-        for i in 0..<leafCount {
-            let angle = Double(i) * 2 * .pi / Double(leafCount) - .pi / 2
-            let leafCenter = CGPoint(
-                x: center.x + CGFloat(cos(angle)) * radius * 0.3,
-                y: center.y + CGFloat(sin(angle)) * radius * 0.3
+private enum MarchScene {
+    static func hillY(layer: Int, x: CGFloat, size: CGSize) -> CGFloat {
+        let heights: [CGFloat] = [0.1, 0.072, 0.042]
+        let u = x / max(size.width, 1)
+        let l = CGFloat(layer)
+        let broad: CGFloat = 0.55 * sin(u * 3.1 + l * 1.7)
+        let rolling: CGFloat = 0.3 * sin(u * 7.3 + l * 0.6)
+        let bumps: CGFloat = 0.15 * sin(u * 15 + l * 2.9)
+        let wave = broad + rolling + bumps
+        return size.height - size.height * heights[layer] * (0.78 + 0.3 * wave)
+    }
+
+    static func drawHill(in ctx: inout GraphicsContext, size: CGSize, layer: Int) {
+        let tops: [Color] = [BG.rgb(0.62, 0.82, 0.6), BG.rgb(0.42, 0.76, 0.4), BG.rgb(0.32, 0.7, 0.3)]
+        let bottoms: [Color] = [BG.rgb(0.38, 0.62, 0.42), BG.rgb(0.18, 0.48, 0.22), BG.rgb(0.08, 0.36, 0.12)]
+        let opacities: [Double] = [0.45, 0.6, 0.78]
+
+        var ridge = Path()
+        var fill = Path()
+        fill.move(to: CGPoint(x: 0, y: size.height))
+        var x: CGFloat = 0
+        var highest = size.height
+        while x <= size.width + 16 {
+            let y = hillY(layer: layer, x: x, size: size)
+            highest = min(highest, y)
+            if x == 0 { ridge.move(to: CGPoint(x: x, y: y)) } else { ridge.addLine(to: CGPoint(x: x, y: y)) }
+            fill.addLine(to: CGPoint(x: x, y: y))
+            x += 16
+        }
+        fill.addLine(to: CGPoint(x: size.width + 16, y: size.height))
+        fill.closeSubpath()
+
+        var hill = ctx
+        hill.opacity = opacities[layer]
+        hill.fill(
+            fill,
+            with: .linearGradient(
+                Gradient(colors: [tops[layer], bottoms[layer]]),
+                startPoint: CGPoint(x: 0, y: highest),
+                endPoint: CGPoint(x: 0, y: size.height)
             )
-            // Heart-shaped leaf - larger
-            path.addEllipse(in: CGRect(
-                x: leafCenter.x - radius * 0.45,
-                y: leafCenter.y - radius * 0.45,
-                width: radius * 0.9,
-                height: radius * 0.9
-            ))
+        )
+        hill.stroke(ridge, with: .color(BG.rgb(0.85, 1, 0.75, 0.55)), lineWidth: 2)
+    }
+
+    static func drawShamrocks(in ctx: inout GraphicsContext, size: CGSize, time: Double, layer: Int) {
+        let t = CGFloat(time)
+        let slots = 10
+        let period: CGFloat = 24
+        let scale: CGFloat = layer == 2 ? 1 : 0.72
+        for s in 0..<slots where (s % 2 == 0) == (layer == 2) {
+            let cyclePosition = t / period + BG.hash(s, 41)
+            let cycle = Int(floor(cyclePosition))
+            let life = BG.fract(cyclePosition)
+            let seed = s * 977 + cycle
+            let x = (CGFloat(s) + 0.15 + 0.7 * BG.hash(seed, 42)) / CGFloat(slots) * size.width
+            let groundY = hillY(layer: layer, x: x, size: size) + 6
+
+            let grow = BG.easeInOut(BG.smoothstep(0, 0.22, life))
+            let unfurl = BG.easeInOut(BG.smoothstep(0.15, 0.38, life))
+            let wilt = BG.smoothstep(0.82, 1, life)
+            let opacity = Double(1 - wilt)
+            guard grow > 0.01, opacity > 0.01 else { continue }
+
+            let lean: CGFloat = BG.hash(seed, 46) > 0.5 ? 1 : -1
+            let stemHeight = BG.hash(seed, 44, 55, 95) * scale * grow * (1 - wilt * 0.3)
+            let sway = sin(t * 0.9 + CGFloat(s)) * 6 * grow + wilt * 22 * lean
+            let top = CGPoint(x: x + sway, y: groundY - stemHeight)
+
+            var plant = ctx
+            plant.opacity = opacity
+
+            var stem = Path()
+            stem.move(to: CGPoint(x: x, y: groundY))
+            stem.addQuadCurve(to: top, control: CGPoint(x: x + sway * 0.2 + 8 * lean, y: groundY - stemHeight * 0.5))
+            plant.stroke(
+                stem,
+                with: .linearGradient(
+                    Gradient(colors: [BG.rgb(0.45, 0.8, 0.4), BG.rgb(0.12, 0.42, 0.16)]),
+                    startPoint: top,
+                    endPoint: CGPoint(x: x, y: groundY)
+                ),
+                style: StrokeStyle(lineWidth: 3.2 * scale, lineCap: .round)
+            )
+
+            let leafSize = BG.hash(seed, 45, 22, 32) * scale * unfurl
+            guard leafSize > 0.5 else { continue }
+            let fourLeaf = BG.hash(seed, 43) < 0.22
+            if fourLeaf {
+                plant.glow(at: top, radius: leafSize * 2.6, color: BG.rgb(1, 0.85, 0.3), intensity: 0.4, additive: true)
+                let orbit = t * 1.4 + CGFloat(s)
+                let sparklePoint = CGPoint(x: top.x + cos(orbit) * leafSize * 1.3, y: top.y + sin(orbit) * leafSize * 1.1)
+                plant.sparkle(at: sparklePoint, size: 7, color: BG.rgb(1, 0.92, 0.55), intensity: 0.9)
+            }
+            let count = fourLeaf ? 4 : 3
+            for j in 0..<count {
+                let angle = -CGFloat.pi / 2 + CGFloat(j) * 2 * .pi / CGFloat(count) + sin(t * 0.7 + CGFloat(s)) * 0.08
+                let spread = leafSize * 0.48
+                let center = CGPoint(x: top.x + cos(angle) * spread, y: top.y + sin(angle) * spread)
+                drawLeaflet(in: &plant, at: center, size: leafSize, rotation: Double(angle + .pi / 2), unfurl: unfurl)
+            }
         }
-        
-        return path
+    }
+
+    static func drawLeaflet(in ctx: inout GraphicsContext, at p: CGPoint, size: CGFloat, rotation: Double, unfurl: CGFloat) {
+        var leaf = ctx
+        leaf.translateBy(x: p.x, y: p.y)
+        leaf.rotate(by: .radians(rotation))
+        leaf.scaleBy(x: size * (0.4 + 0.6 * unfurl), y: size)
+        leaf.fill(
+            HeartGeometry.unitPath,
+            with: .linearGradient(
+                Gradient(colors: [BG.rgb(0.58, 0.92, 0.45), BG.rgb(0.22, 0.66, 0.26), BG.rgb(0.07, 0.4, 0.15)]),
+                startPoint: CGPoint(x: -0.3, y: -0.45),
+                endPoint: CGPoint(x: 0.2, y: 0.5)
+            )
+        )
+        var midrib = Path()
+        midrib.move(to: CGPoint(x: 0, y: 0.45))
+        midrib.addLine(to: CGPoint(x: 0, y: -0.28))
+        leaf.stroke(midrib, with: .color(BG.rgb(0.8, 1, 0.7, 0.55)), lineWidth: 0.03)
+        // Pale chevron that clover leaflets carry.
+        var chevron = Path()
+        chevron.move(to: CGPoint(x: -0.24, y: -0.1))
+        chevron.addLine(to: CGPoint(x: 0, y: 0.1))
+        chevron.addLine(to: CGPoint(x: 0.24, y: -0.1))
+        leaf.stroke(chevron, with: .color(.white.opacity(0.28)), style: StrokeStyle(lineWidth: 0.05, lineCap: .round, lineJoin: .round))
+        leaf.fill(BG.ellipse(CGPoint(x: -0.18, y: -0.22), 0.08, 0.04), with: .color(.white.opacity(0.35)))
+    }
+
+    static func drawSparkles(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        for i in 0..<26 {
+            let speed = BG.hash(i, 51, 10, 24)
+            let span = size.height * 0.9
+            let progress = BG.fract(BG.hash(i, 52) + t * speed / span)
+            let y = size.height - progress * span
+            let x = BG.hash(i, 53) * size.width + sin(t * 0.5 + CGFloat(i)) * 22
+            let twinkle = pow(max(0, sin(t * BG.hash(i, 54, 1, 2.5) + BG.hash(i, 55) * 6.28)), 3)
+            let fade = BG.smoothstep(0, 0.15, progress) * (1 - BG.smoothstep(0.75, 1, progress))
+            let intensity = Double(twinkle * fade)
+            ctx.glow(at: CGPoint(x: x, y: y), radius: 14, color: BG.rgb(1, 0.85, 0.35), intensity: intensity * 0.5)
+            ctx.sparkle(at: CGPoint(x: x, y: y), size: BG.hash(i, 56, 4, 8), color: BG.rgb(1, 0.92, 0.6), intensity: intensity)
+        }
     }
 }
 
-// MARK: - April: Rain with Wind Animation
+// MARK: - April: Storm clouds, wind-driven rain, splashes and lightning
+
 struct AprilRainAnimation: View {
     let alpha: Double
-    @State private var raindrops: [Raindrop] = []
-    @State private var spawnTimer: Timer?
 
-    struct Raindrop: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var length: CGFloat
-        var opacity: Double
-    }
-    
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(raindrops) { drop in
-                    Capsule()
-                        .fill(Color.blue.opacity(drop.opacity * alpha))
-                        .frame(width: 2, height: drop.length)
-                        .position(x: drop.x, y: drop.y)
-                }
+        AnimatedScene { ctx, size, time in
+            let flash = AprilScene.lightning(time: time)
+            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.3, 0.35, 0.46), intensity: 0.26, depth: 0.5)
+            AtmospherePainter.bottomHaze(in: &ctx, size: size, color: BG.rgb(0.6, 0.7, 0.82), intensity: 0.16, depth: 0.2)
+            if flash.intensity > 0.01 {
+                AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.9, 0.93, 1), intensity: 0.35 * Double(flash.intensity), depth: 0.7)
+                AprilScene.drawBolt(in: &ctx, size: size, seed: flash.cycle, intensity: flash.intensity)
             }
-            .onAppear {
-                startRain(size: geometry.size)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                startRain(size: newSize)
-            }
-            .onDisappear {
-                spawnTimer?.invalidate()
+            AprilScene.drawClouds(in: &ctx, size: size, time: time, flash: flash.intensity)
+            AprilScene.drawRain(in: &ctx, size: size, time: time)
+            AprilScene.drawSplashes(in: &ctx, size: size, time: time)
+        }
+        .opacity(alpha)
+    }
+}
+
+private enum AprilScene {
+    static func wind(_ t: CGFloat) -> CGFloat {
+        0.2 + 0.1 * sin(t * 0.11) + 0.05 * sin(t * 0.37 + 1)
+    }
+
+    /// Occasional distant lightning: a bright strike followed by a weaker re-strike.
+    static func lightning(time: Double) -> (intensity: CGFloat, cycle: Int) {
+        let period: CGFloat = 17
+        let position = CGFloat(time) / period + 0.35
+        let cycle = Int(floor(position))
+        guard BG.hash(cycle, 66) < 0.7 else { return (0, cycle) }
+        let local = BG.fract(position) * period
+        var intensity: CGFloat = 0
+        if local < 0.16 {
+            intensity = 1 - local / 0.16
+        } else if local > 0.26 && local < 0.62 {
+            intensity = 0.7 * (1 - (local - 0.26) / 0.36)
+        }
+        return (intensity, cycle)
+    }
+
+    static func drawBolt(in ctx: inout GraphicsContext, size: CGSize, seed: Int, intensity: CGFloat) {
+        var bolt = Path()
+        var p = CGPoint(x: size.width * BG.hash(seed, 67, 0.15, 0.85), y: size.height * 0.02)
+        bolt.move(to: p)
+        let segments = 9
+        for i in 0..<segments {
+            p.x += BG.hash(seed * 31 + i, 68, -38, 38)
+            p.y += size.height * 0.32 / CGFloat(segments)
+            bolt.addLine(to: p)
+        }
+        ctx.blurredLayer(radius: 10) { glow in
+            glow.stroke(bolt, with: .color(BG.rgb(0.75, 0.82, 1, Double(intensity))), lineWidth: 10)
+        }
+        ctx.stroke(bolt, with: .color(.white.opacity(Double(intensity))), style: StrokeStyle(lineWidth: 2.4, lineJoin: .round))
+    }
+
+    static func drawClouds(in ctx: inout GraphicsContext, size: CGSize, time: Double, flash: CGFloat) {
+        let t = CGFloat(time)
+        for k in 0..<7 {
+            let width = BG.lerp(340, 540, CGFloat(k) / 6) * BG.hash(k, 61, 0.9, 1.1)
+            let speed = BG.hash(k, 62, 6, 14)
+            let x = BG.wrap(BG.hash(k, 63) * size.width + t * speed, length: size.width, margin: width * 0.7)
+            let y = size.height * BG.hash(k, 64, -0.02, 0.07)
+            let center = CGPoint(x: x, y: y)
+            CloudPainter.draw(
+                in: &ctx,
+                puffs: CloudPainter.cumulusPuffs(seed: k + 300, width: width),
+                center: center,
+                width: width,
+                palette: .storm,
+                opacity: 0.8,
+                lightDirection: CGVector(dx: 0.2, dy: -1)
+            )
+            if flash > 0.01 {
+                ctx.glow(at: center, radius: width * 0.7, color: BG.rgb(0.85, 0.9, 1), intensity: Double(flash) * 0.45, additive: true)
             }
         }
     }
 
-    private func startRain(size: CGSize) {
-        spawnTimer?.invalidate()
-        raindrops = []
+    static func drawRain(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        let slant = wind(t)
+        let norm = sqrt(1 + slant * slant)
+        let direction = CGVector(dx: slant / norm, dy: 1 / norm)
 
-        // Initial raindrops
-        for _ in 0..<100 {
-            addRaindrop(size: size, startRandomY: true)
+        struct Layer {
+            let count: Int, length: ClosedRange<CGFloat>, speed: ClosedRange<CGFloat>, width: CGFloat, opacity: Double, salt: Int
+        }
+        let layers = [
+            Layer(count: 150, length: 10...16, speed: 700...900, width: 1, opacity: 0.32, salt: 0),
+            Layer(count: 90, length: 20...30, speed: 950...1200, width: 1.5, opacity: 0.48, salt: 1000),
+            Layer(count: 22, length: 46...70, speed: 1500...1800, width: 2.6, opacity: 0.4, salt: 2000)
+        ]
+
+        func drawLayer(_ layer: Layer, in target: inout GraphicsContext) {
+            for i in 0..<layer.count {
+                let seed = i + layer.salt
+                let length = BG.hash(seed, 1, layer.length.lowerBound, layer.length.upperBound)
+                let speed = BG.hash(seed, 2, layer.speed.lowerBound, layer.speed.upperBound)
+                let span = size.height + length + 60
+                let progress = BG.fract(BG.hash(seed, 3) + t * speed / span)
+                let headY = progress * span - length - 20
+                let headX = BG.wrap(BG.hash(seed, 4) * size.width + headY * slant, length: size.width, margin: 60)
+                let head = CGPoint(x: headX, y: headY)
+                let tail = CGPoint(x: headX - direction.dx * length, y: headY - direction.dy * length)
+                var streak = Path()
+                streak.move(to: tail)
+                streak.addLine(to: head)
+                target.stroke(
+                    streak,
+                    with: .linearGradient(
+                        Gradient(colors: [BG.rgb(0.75, 0.85, 1, 0), BG.rgb(0.85, 0.92, 1, layer.opacity)]),
+                        startPoint: tail,
+                        endPoint: head
+                    ),
+                    style: StrokeStyle(lineWidth: layer.width, lineCap: .round)
+                )
+            }
         }
 
-        // Continuous rain
-        spawnTimer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { _ in
-            if raindrops.count < 300 {
-                addRaindrop(size: size)
-            }
+        drawLayer(layers[0], in: &ctx)
+        drawLayer(layers[1], in: &ctx)
+        ctx.blurredLayer(radius: 2.5) { near in
+            drawLayer(layers[2], in: &near)
         }
     }
-    
-    private func addRaindrop(size: CGSize, startRandomY: Bool = false) {
-        let startX = CGFloat.random(in: -50...size.width + 50)
-        let startY = startRandomY ? CGFloat.random(in: -50...size.height) : -50
-        let endY = size.height + 50
-        
-        // Rain speed and depth
-        // Slower rain (half speed) with randomness for depth
-        let speed = Double.random(in: 400...600) 
-        let distance = endY - startY
-        let duration = Double(distance) / speed
-        
-        // Wind slant
-        let slant = CGFloat.random(in: 20...50)
-        
-        let drop = Raindrop(
-            x: startX,
-            y: startY,
-            length: CGFloat.random(in: 15...25),
-            opacity: Double.random(in: 0.4...0.8)
-        )
-        
-        let id = drop.id
-        raindrops.append(drop)
-        
-        withAnimation(.linear(duration: duration)) {
-            if let index = raindrops.firstIndex(where: { $0.id == id }) {
-                raindrops[index].y = endY
-                raindrops[index].x += slant
+
+    static func drawSplashes(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        for i in 0..<34 {
+            let period = BG.hash(i, 71, 0.7, 1.4)
+            let position = t / period + BG.hash(i, 72)
+            let cycle = Int(floor(position))
+            let life = BG.fract(position)
+            let seed = i * 131 + cycle
+            let depth = BG.hash(seed, 75)
+            let x = BG.hash(seed, 73) * size.width
+            let y = size.height - 4 - depth * size.height * 0.07
+            let scale = BG.lerp(1, 0.55, depth)
+            let fade = Double(1 - life)
+
+            let radius = (3 + life * 16) * scale
+            ctx.stroke(BG.ellipse(CGPoint(x: x, y: y), radius, radius * 0.28), with: .color(BG.rgb(0.88, 0.94, 1, 0.55 * fade)), lineWidth: 1.2)
+            for d in 0..<3 {
+                let spread = (CGFloat(d) - 1) * life * 12 * scale
+                let hop = sin(life * .pi) * (8 + CGFloat(d % 2) * 6) * scale
+                ctx.fill(BG.circle(CGPoint(x: x + spread, y: y - hop), 1.4 * scale), with: .color(.white.opacity(0.6 * fade)))
             }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-            raindrops.removeAll { $0.id == id }
         }
     }
 }
 
-// MARK: - May: Flowers Growing Animation
+// MARK: - May: Meadow of blooming flowers
+
 struct MayFlowersAnimation: View {
     let alpha: Double
-    @State private var flowers: [Flower] = []
-    @State private var spawnTimer: Timer?
 
-    struct Flower: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var size: CGFloat
-        var stemHeight: CGFloat = 0
-        var petalProgress: CGFloat = 0
-        var color: Color
-    }
-    
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(flowers) { flower in
-                    ZStack(alignment: .bottom) {
-                        // Stem
-                        Rectangle()
-                            .fill(Color.green.opacity(0.8 * alpha))
-                            .frame(width: 2, height: flower.stemHeight * 1.5) // Taller stems overlap with petals
-                        
-                        // Petals (only show when stem has grown)
-                        if flower.stemHeight > 5 {
-                            FlowerShape()
-                                .fill(flower.color.opacity(0.8 * alpha))
-                                .frame(width: flower.size * 2, height: flower.size * 2) // 2x larger petals
-                                .scaleEffect(flower.petalProgress)
-                                .offset(y: -flower.stemHeight) // Move up to top of stem
-                        }
-                    }
-                    .position(
-                        x: flower.x,
-                        y: geometry.size.height
-                    )
-                }
-            }
-            .onAppear {
-                startFlowers(size: geometry.size)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                startFlowers(size: newSize)
-            }
-            .onDisappear {
-                spawnTimer?.invalidate()
-            }
+        AnimatedScene { ctx, size, time in
+            ctx.glow(at: CGPoint(x: size.width * 0.92, y: -size.height * 0.05), radius: size.width * 0.5, color: BG.rgb(1, 0.95, 0.78), intensity: 0.22)
+            MayScene.drawPollen(in: &ctx, size: size, time: time)
+            MayScene.drawGrass(in: &ctx, size: size, time: time, row: 0)
+            MayScene.drawFlowers(in: &ctx, size: size, time: time)
+            MayScene.drawGrass(in: &ctx, size: size, time: time, row: 1)
+            MayScene.drawDriftingPetals(in: &ctx, size: size, time: time)
         }
-    }
-
-    private func startFlowers(size: CGSize) {
-        spawnTimer?.invalidate()
-        // Add flowers periodically
-        addFlower(size: size)
-        // Make new ones bloom in 3 seconds after one fades away?
-        // Actually, just consistent blooming every 3 seconds keeps the cycle going.
-        spawnTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: true) { _ in
-            addFlower(size: size)
-        }
-    }
-    
-    private func addFlower(size: CGSize) {
-        let colors: [Color] = [.pink, .purple, .yellow, .red, .orange]
-        let flower = Flower(
-            x: CGFloat.random(in: size.width * 0.1...size.width * 0.9),
-            y: size.height,
-            size: CGFloat.random(in: 20...35),
-            color: colors.randomElement() ?? .pink
-        )
-        let flowerId = flower.id
-        flowers.append(flower)
-        
-        let stemTargetHeight = CGFloat.random(in: 35...55)
-        
-        // First: grow stem (3 seconds)
-        withAnimation(.easeOut(duration: 3)) {
-            if let index = self.flowers.firstIndex(where: { $0.id == flowerId }) {
-                self.flowers[index].stemHeight = stemTargetHeight
-            }
-        }
-        
-        // Then: sprout petals (2 seconds)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            withAnimation(.easeOut(duration: 2)) {
-                if let index = self.flowers.firstIndex(where: { $0.id == flowerId }) {
-                    self.flowers[index].petalProgress = 1.0
-                }
-            }
-        }
-        
-        // Fade away after 25 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
-             withAnimation(.easeOut(duration: 2)) {
-                 if let index = self.flowers.firstIndex(where: { $0.id == flowerId }) {
-                    // We don't have an opacity property on Flower struct, but we control it in view?
-                    // Let's add opacity to the struct logic or just remove it with animation.
-                    // Since struct doesn't have opacity, let's shrink it down.
-                    self.flowers[index].petalProgress = 0
-                    self.flowers[index].stemHeight = 0
-                 }
-             }
-        }
-        
-        // Remove after fade
-        DispatchQueue.main.asyncAfter(deadline: .now() + 27) {
-            self.flowers.removeAll { $0.id == flowerId }
-        }
+        .opacity(alpha)
     }
 }
 
-struct FlowerShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        let radius = min(rect.width, rect.height) / 3
-        
-        // Create a simple flower shape (5 petals)
-        for i in 0..<5 {
-            let angle = Double(i) * 2 * .pi / 5
-            let petalCenter = CGPoint(
-                x: center.x + CGFloat(cos(angle)) * radius * 0.45,
-                y: center.y + CGFloat(sin(angle)) * radius * 0.45
+private enum MayScene {
+    struct FlowerKind {
+        let petals: Int
+        let petalWidth: CGFloat
+        let petalLength: CGFloat
+        let inner: Color
+        let outer: Color
+        let center: Color
+        let centerRim: Color
+        let tulip: Bool
+    }
+
+    static let kinds: [FlowerKind] = [
+        // Daisy
+        FlowerKind(petals: 14, petalWidth: 0.15, petalLength: 0.5, inner: BG.rgb(0.9, 0.9, 0.98), outer: .white,
+                   center: BG.rgb(1, 0.85, 0.2), centerRim: BG.rgb(0.85, 0.5, 0.05), tulip: false),
+        // Cosmos
+        FlowerKind(petals: 8, petalWidth: 0.26, petalLength: 0.5, inner: BG.rgb(0.75, 0.1, 0.45), outer: BG.rgb(1, 0.7, 0.85),
+                   center: BG.rgb(1, 0.85, 0.25), centerRim: BG.rgb(0.8, 0.5, 0.1), tulip: false),
+        // Poppy
+        FlowerKind(petals: 5, petalWidth: 0.4, petalLength: 0.48, inner: BG.rgb(0.7, 0.03, 0.05), outer: BG.rgb(1, 0.35, 0.18),
+                   center: BG.rgb(0.15, 0.1, 0.12), centerRim: BG.rgb(0.05, 0.02, 0.05), tulip: false),
+        // Tulip (pink)
+        FlowerKind(petals: 3, petalWidth: 0.3, petalLength: 0.62, inner: BG.rgb(0.78, 0.1, 0.35), outer: BG.rgb(1, 0.6, 0.72),
+                   center: .clear, centerRim: .clear, tulip: true),
+        // Tulip (golden)
+        FlowerKind(petals: 3, petalWidth: 0.3, petalLength: 0.62, inner: BG.rgb(0.92, 0.5, 0.05), outer: BG.rgb(1, 0.92, 0.4),
+                   center: .clear, centerRim: .clear, tulip: true),
+        // Violet
+        FlowerKind(petals: 6, petalWidth: 0.3, petalLength: 0.45, inner: BG.rgb(0.35, 0.12, 0.6), outer: BG.rgb(0.75, 0.6, 1),
+                   center: BG.rgb(1, 0.95, 0.6), centerRim: BG.rgb(0.9, 0.7, 0.2), tulip: false)
+    ]
+
+    static func drawGrass(in ctx: inout GraphicsContext, size: CGSize, time: Double, row: Int) {
+        let t = CGFloat(time)
+        let count = row == 0 ? 170 : 130
+        let baseHeight = size.height * (row == 0 ? 0.08 : 0.055)
+        var blades = Path()
+        for i in 0..<count {
+            let seed = i + row * 500
+            let x = (CGFloat(i) + BG.hash(seed, 71)) / CGFloat(count) * (size.width + 20) - 10
+            let h = baseHeight * BG.hash(seed, 72, 0.55, 1.25)
+            let w = BG.hash(seed, 73, 3, 6.5)
+            let gust = sin(t * 1.1 + x * 0.012 + CGFloat(row)) * 0.6 + sin(t * 2.3 + x * 0.03) * 0.2
+            let bend = (gust + 0.25) * h * 0.35
+            let tip = CGPoint(x: x + bend, y: size.height - h)
+            blades.move(to: CGPoint(x: x - w / 2, y: size.height))
+            blades.addQuadCurve(to: tip, control: CGPoint(x: x - w * 0.2 + bend * 0.3, y: size.height - h * 0.55))
+            blades.addQuadCurve(to: CGPoint(x: x + w / 2, y: size.height), control: CGPoint(x: x + w * 0.3 + bend * 0.35, y: size.height - h * 0.5))
+            blades.closeSubpath()
+        }
+        var grass = ctx
+        grass.opacity = row == 0 ? 0.6 : 0.9
+        let tipColor = row == 0 ? BG.rgb(0.6, 0.82, 0.45) : BG.rgb(0.55, 0.88, 0.35)
+        let baseColor = row == 0 ? BG.rgb(0.2, 0.42, 0.22) : BG.rgb(0.1, 0.38, 0.12)
+        grass.fill(
+            blades,
+            with: .linearGradient(
+                Gradient(colors: [tipColor, baseColor]),
+                startPoint: CGPoint(x: 0, y: size.height - baseHeight * 1.25),
+                endPoint: CGPoint(x: 0, y: size.height)
             )
-            path.addEllipse(in: CGRect(
-                x: petalCenter.x - radius * 0.35,
-                y: petalCenter.y - radius * 0.35,
-                width: radius * 0.7,
-                height: radius * 0.7
-            ))
+        )
+    }
+
+    static func drawFlowers(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        let slots = 9
+        let period: CGFloat = 28
+        for s in 0..<slots {
+            let position = t / period + BG.hash(s, 81)
+            let cycle = Int(floor(position))
+            let life = BG.fract(position)
+            let seed = s * 613 + cycle
+            let kind = kinds[Int(BG.hash(seed, 82) * CGFloat(kinds.count)) % kinds.count]
+            let x = (CGFloat(s) + 0.15 + 0.7 * BG.hash(seed, 83)) / CGFloat(slots) * size.width
+            let groundY = size.height + 4
+
+            let grow = BG.easeInOut(BG.smoothstep(0, 0.2, life))
+            let bloom = BG.easeInOut(BG.smoothstep(0.16, 0.36, life))
+            let fade = BG.smoothstep(0.85, 1, life)
+            let opacity = Double(1 - fade)
+            guard grow > 0.01, opacity > 0.01 else { continue }
+
+            let stemHeight = BG.hash(seed, 84, 80, 150) * grow
+            let sway = sin(t * 0.8 + CGFloat(s) * 1.7) * 7 * grow
+            let head = CGPoint(x: x + sway, y: groundY - stemHeight)
+            var plant = ctx
+            plant.opacity = opacity
+
+            var stem = Path()
+            stem.move(to: CGPoint(x: x, y: groundY))
+            stem.addQuadCurve(to: head, control: CGPoint(x: x - sway * 0.3, y: groundY - stemHeight * 0.5))
+            plant.stroke(
+                stem,
+                with: .linearGradient(
+                    Gradient(colors: [BG.rgb(0.5, 0.82, 0.38), BG.rgb(0.15, 0.45, 0.15)]),
+                    startPoint: head,
+                    endPoint: CGPoint(x: x, y: groundY)
+                ),
+                style: StrokeStyle(lineWidth: 3, lineCap: .round)
+            )
+            // Leaf on the stem.
+            let leafPoint = CGPoint(x: x - sway * 0.05, y: groundY - stemHeight * 0.35)
+            drawStemLeaf(in: &plant, at: leafPoint, size: 34 * grow, rotation: BG.hash(seed, 85) > 0.5 ? 0.9 : -0.9)
+
+            let radius = BG.hash(seed, 86, 26, 40) * (0.35 + 0.65 * bloom)
+            plant.glow(at: head, radius: radius * 1.9, color: kind.outer, intensity: 0.22 * Double(bloom))
+            if kind.tulip {
+                drawTulip(in: &plant, at: head, radius: radius, kind: kind, bloom: bloom)
+            } else {
+                drawRadialFlower(in: &plant, at: head, radius: radius, kind: kind, bloom: bloom, spin: Double(sin(t * 0.3 + CGFloat(s)) * 0.06))
+            }
         }
-        
-        // Center circle
-        path.addEllipse(in: CGRect(
-            x: center.x - radius * 0.2,
-            y: center.y - radius * 0.2,
-            width: radius * 0.4,
-            height: radius * 0.4
-        ))
-        
-        return path
+    }
+
+    static func drawStemLeaf(in ctx: inout GraphicsContext, at p: CGPoint, size: CGFloat, rotation: Double) {
+        guard size > 1 else { return }
+        var leaf = ctx
+        leaf.translateBy(x: p.x, y: p.y)
+        leaf.rotate(by: .radians(rotation))
+        leaf.translateBy(x: 0, y: -size * 0.45)
+        leaf.scaleBy(x: size * 0.6, y: size)
+        leaf.fill(
+            LeafPainter.oval,
+            with: .linearGradient(
+                Gradient(colors: [BG.rgb(0.55, 0.88, 0.4), BG.rgb(0.12, 0.45, 0.15)]),
+                startPoint: CGPoint(x: -0.3, y: -0.5),
+                endPoint: CGPoint(x: 0.3, y: 0.4)
+            )
+        )
+        leaf.stroke(LeafPainter.ovalVeins, with: .color(BG.rgb(0.8, 1, 0.7, 0.45)), lineWidth: 0.03)
+    }
+
+    static func drawRadialFlower(in ctx: inout GraphicsContext, at p: CGPoint, radius r: CGFloat, kind: FlowerKind, bloom: CGFloat, spin: Double) {
+        var head = ctx
+        head.translateBy(x: p.x, y: p.y)
+        head.scaleBy(x: 1, y: 0.82) // Seen slightly from the front.
+        head.rotate(by: .radians(spin))
+
+        let openness = 0.35 + 0.65 * bloom
+        for i in 0..<kind.petals {
+            let angle = CGFloat(i) / CGFloat(kind.petals) * 2 * .pi
+            var petal = head
+            petal.rotate(by: .radians(Double(angle)))
+            petal.scaleBy(x: r, y: r * openness)
+            let shape = BG.ellipse(CGPoint(x: 0, y: -kind.petalLength * 0.55), kind.petalWidth, kind.petalLength * 0.55)
+            petal.fill(
+                shape,
+                with: .linearGradient(
+                    Gradient(colors: [kind.inner, kind.outer]),
+                    startPoint: CGPoint(x: 0, y: 0),
+                    endPoint: CGPoint(x: 0, y: -kind.petalLength * 1.05)
+                )
+            )
+            petal.stroke(shape, with: .color(kind.inner.opacity(0.35)), lineWidth: 0.012)
+            // Central crease on each petal.
+            var crease = Path()
+            crease.move(to: CGPoint(x: 0, y: -0.05))
+            crease.addLine(to: CGPoint(x: 0, y: -kind.petalLength * 0.9))
+            petal.stroke(crease, with: .color(.white.opacity(0.25)), lineWidth: 0.012)
+        }
+
+        let centerRadius = r * 0.22
+        head.fill(
+            BG.circle(.zero, centerRadius),
+            with: .radialGradient(
+                Gradient(colors: [kind.center, kind.centerRim]),
+                center: CGPoint(x: -centerRadius * 0.3, y: -centerRadius * 0.3),
+                startRadius: 0,
+                endRadius: centerRadius * 1.3
+            )
+        )
+        for i in 0..<10 {
+            let a = CGFloat(i) / 10 * 2 * .pi
+            let dot = CGPoint(x: cos(a) * centerRadius * 0.65, y: sin(a) * centerRadius * 0.65)
+            head.fill(BG.circle(dot, centerRadius * 0.12), with: .color(kind.centerRim.opacity(0.8)))
+        }
+        head.fill(BG.circle(CGPoint(x: -centerRadius * 0.3, y: -centerRadius * 0.35), centerRadius * 0.25), with: .color(.white.opacity(0.35)))
+    }
+
+    static func drawTulip(in ctx: inout GraphicsContext, at p: CGPoint, radius r: CGFloat, kind: FlowerKind, bloom: CGFloat) {
+        var head = ctx
+        head.translateBy(x: p.x, y: p.y)
+        head.scaleBy(x: r, y: r)
+        let spread = 0.12 + 0.3 * bloom
+        let angles: [CGFloat] = [-spread, spread, 0]
+        for (index, angle) in angles.enumerated() {
+            var petal = head
+            petal.rotate(by: .radians(Double(angle)))
+            let shape = BG.ellipse(CGPoint(x: 0, y: -0.42), kind.petalWidth, kind.petalLength * 0.62)
+            let front = index == 2
+            petal.fill(
+                shape,
+                with: .linearGradient(
+                    Gradient(colors: front ? [kind.outer, kind.inner] : [kind.outer.opacity(0.9), kind.inner.opacity(0.9)]),
+                    startPoint: CGPoint(x: 0, y: -0.95),
+                    endPoint: CGPoint(x: 0, y: 0.1)
+                )
+            )
+            petal.stroke(shape, with: .color(kind.inner.opacity(0.4)), lineWidth: 0.02)
+            if front {
+                petal.fill(BG.ellipse(CGPoint(x: -0.1, y: -0.55), 0.05, 0.18), with: .color(.white.opacity(0.35)))
+            }
+        }
+    }
+
+    static func drawDriftingPetals(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        let colors = [BG.rgb(1, 0.75, 0.85), BG.rgb(1, 0.92, 0.95), BG.rgb(0.95, 0.6, 0.8)]
+        for i in 0..<14 {
+            let speed = BG.hash(i, 91, 35, 70)
+            let span = size.width + 120
+            let progress = BG.fract(BG.hash(i, 92) + t * speed / span)
+            let x = progress * span - 60
+            let y = size.height * BG.hash(i, 93, 0.2, 0.75) + sin(t * 0.9 + CGFloat(i)) * 40
+            let flip = cos(t * BG.hash(i, 94, 1, 2.4) + CGFloat(i))
+            let petalSize = BG.hash(i, 95, 10, 18)
+            var petal = ctx
+            petal.translateBy(x: x, y: y)
+            petal.rotate(by: .radians(Double(t * 0.8 + CGFloat(i))))
+            petal.scaleBy(x: petalSize * max(abs(flip), 0.1), y: petalSize)
+            let color = colors[i % colors.count]
+            petal.fill(
+                BG.ellipse(.zero, 0.32, 0.5),
+                with: .linearGradient(
+                    Gradient(colors: [color, color.opacity(flip < 0 ? 0.55 : 0.8)]),
+                    startPoint: CGPoint(x: 0, y: -0.5),
+                    endPoint: CGPoint(x: 0, y: 0.5)
+                )
+            )
+        }
+    }
+
+    static func drawPollen(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        for i in 0..<32 {
+            let x = BG.wrap(BG.hash(i, 97) * size.width + t * BG.hash(i, 98, 4, 14) + sin(t * 0.4 + CGFloat(i)) * 30, length: size.width, margin: 20)
+            let y = size.height * BG.hash(i, 99, 0.15, 0.85) + sin(t * 0.3 + CGFloat(i) * 2) * 26
+            let pulse = 0.5 + 0.5 * sin(t * BG.hash(i, 100, 0.8, 1.8) + CGFloat(i))
+            ctx.glow(at: CGPoint(x: x, y: y), radius: 9, color: BG.rgb(1, 0.92, 0.55), intensity: Double(0.45 * pulse), additive: true)
+            ctx.fill(BG.circle(CGPoint(x: x, y: y), 1.4), with: .color(BG.rgb(1, 0.95, 0.7, Double(0.6 + 0.4 * pulse))))
+        }
     }
 }
 
-// MARK: - June: Butterflies Animation (suggested)
-// MARK: - June: Butterflies Animation
+// MARK: - June: Butterflies in sunbeams
+
 struct JuneButterfliesAnimation: View {
     let alpha: Double
-    @State private var butterflies: [Butterfly] = []
-    @State private var timer: Timer?
-    @State private var currentSchemeIndex: Int = 0
-    
-    // 5 Different Color Templates
-    private let schemes: [ButterflyScheme] = [
-        // 1. Monarch Style (Orange/Black)
-        ButterflyScheme(primary: .orange, secondary: .black, body: .black),
-        // 2. Blue Morpho Style (Blue/Black)
-        ButterflyScheme(primary: Color(red: 0.0, green: 0.5, blue: 1.0), secondary: .black, body: Color(white: 0.2)),
-        // 3. Swallowtail Style (Yellow/Black)
-        ButterflyScheme(primary: .yellow, secondary: .black, body: .black),
-        // 4. Forest Green Style (Green/DarkGray)
-        ButterflyScheme(primary: Color(red: 0.4, green: 0.8, blue: 0.4), secondary: Color(white: 0.2), body: Color(white: 0.2)),
-        // 5. Purple Emperor (Purple/DarkPurple)
-        ButterflyScheme(primary: .purple, secondary: Color(red: 0.2, green: 0.0, blue: 0.2), body: .black)
-    ]
-    
-    struct ButterflyScheme {
-        var primary: Color
-        var secondary: Color
-        var body: Color
-    }
-    
-    struct Butterfly: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var size: CGFloat
-        var scheme: ButterflyScheme
-        var rotation: Double = 0
-    }
-    
+
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(butterflies) { butterfly in
-                    RealisticButterflyView(scheme: butterfly.scheme)
-                        .frame(width: butterfly.size, height: butterfly.size)
-                        .rotationEffect(.degrees(butterfly.rotation))
-                        .position(x: butterfly.x, y: butterfly.y)
-                }
-            }
-            .onAppear {
-                startButterflies(size: geometry.size)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                startButterflies(size: newSize)
-            }
-            .onDisappear {
-                timer?.invalidate()
-            }
+        AnimatedScene { ctx, size, time in
+            JuneScene.drawSunbeams(in: &ctx, size: size, time: time)
+            JuneScene.drawBokeh(in: &ctx, size: size, time: time)
+            JuneScene.drawButterflies(in: &ctx, size: size, time: time)
         }
-    }
-    
-    private func startButterflies(size: CGSize) {
-        timer?.invalidate()
-        butterflies = []
-        
-        // Add first butterfly immediately
-        addButterfly(size: size)
-        
-        // Schedule new butterflies every 20 seconds
-        timer = Timer.scheduledTimer(
-            withTimeInterval: .random(in: 12...22),
-            repeats: true
-        ) { _ in
-            addButterfly(size: size)
-        }
-    }
-    
-    private func addButterfly(size: CGSize) {
-        let startY = CGFloat.random(in: size.height * 0.2...size.height * 0.8)
-        let targetY = CGFloat.random(in: size.height * 0.2...size.height * 0.8)
-        
-        let scheme = schemes[currentSchemeIndex]
-        currentSchemeIndex = (currentSchemeIndex + 1) % schemes.count
-        
-        // Start off-screen left
-        let butterfly = Butterfly(
-            x: -60,
-            y: startY,
-            size: CGFloat.random(in: 30...100),
-            scheme: scheme
-        )
-        butterflies.append(butterfly)
-        
-        let index = butterflies.count - 1
-        let duration: Double = .random(in: 60...90)
-        
-        // Animate movement across screen
-        withAnimation(.linear(duration: duration)) {
-            butterflies[index].x = size.width + 60
-            butterflies[index].y = targetY
-        }
-        
-        // Slow rotation animation (+- 20 degrees)
-        withAnimation(
-            .easeInOut(
-                duration: .random(
-                    in: 8...12
-                )
-            ).repeatForever(autoreverses: true)
-        ) {
-            butterflies[index].rotation = Double.random(in: -20...20)
-        }
-        
-        // Remove after crossing
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-            butterflies.removeAll { $0.id == butterfly.id }
-        }
+        .opacity(alpha)
     }
 }
 
-struct RealisticButterflyView: View {
-    let scheme: JuneButterfliesAnimation.ButterflyScheme
-    @State private var wingFlap: Double = 0
-    @State private var time: Double = 0
-    @State private var flapTimer: Timer?
-    @State private var speedVariationPhase: Double = Double.random(in: 0...2 * .pi)
-    
-    var body: some View {
-        GeometryReader { geometry in
-            let width = geometry.size.width
-            let height = geometry.size.height
-            
-            ZStack {
-                // Left Wing
-                ZStack {
-                    ButterflyWingShape()
-                        .fill(scheme.primary)
-                    ButterflyWingShape()
-                        .stroke(scheme.secondary, lineWidth: 1)
-                    ButterflyWingPatternShape()
-                        .fill(scheme.secondary.opacity(0.6))
-                }
-                .frame(width: width / 2, height: height)
-                // Left wing rotates along its right edge (center of body)
-                .rotation3DEffect(.degrees(wingFlap), axis: (x: 0, y: 1, z: 0), anchor: .trailing)
-                .position(x: width * 0.25, y: height / 2)
-                
-                // Right Wing (Mirrored)
-                ZStack {
-                    ButterflyWingShape()
-                        .fill(scheme.primary)
-                    ButterflyWingShape()
-                        .stroke(scheme.secondary, lineWidth: 1)
-                    ButterflyWingPatternShape()
-                        .fill(scheme.secondary.opacity(0.6))
-                }
-                .frame(width: width / 2, height: height)
-                .scaleEffect(x: -1, y: 1)
-                // Right wing (flipped) rotates along its left edge (which is now trailing after flip)
-                .rotation3DEffect(.degrees(-wingFlap), axis: (x: 0, y: 1, z: 0), anchor: .leading)
-                .position(x: width * 0.75, y: height / 2)
-                
-                // Body
-                Capsule()
-                    .fill(scheme.body)
-                    .frame(width: width * 0.08, height: height * 0.55)
-                    .position(x: width / 2, y: height / 2)
-                
-                // Antennae
-                Path { path in
-                    path.move(to: CGPoint(x: width * 0.46, y: height * 0.25))
-                    path.addQuadCurve(to: CGPoint(x: width * 0.35, y: height * 0.05), control: CGPoint(x: width * 0.35, y: height * 0.15))
-                    
-                    path.move(to: CGPoint(x: width * 0.54, y: height * 0.25))
-                    path.addQuadCurve(to: CGPoint(x: width * 0.65, y: height * 0.05), control: CGPoint(x: width * 0.65, y: height * 0.15))
-                }
-                .stroke(scheme.body, lineWidth: 1.5)
-            }
-        }
-        .onAppear {
-            startFlapping()
-        }
-        .onDisappear {
-            flapTimer?.invalidate()
-        }
+private enum JuneScene {
+    struct Species {
+        let base: Color
+        let bright: Color
+        let border: Color
+        let spots: Color
+        let eyespot: Bool
+        let iridescent: Bool
     }
-    
-    private func startFlapping() {
-        // Use a timer to manually animate the sine wave for flapping
-        // This gives us complete control over the speed
-        flapTimer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { _ in
-            time += 0.02
-            
-            // Calculate current flap frequency based on a slow sine wave
-            // Varies between 0.5x and 1.5x speed over 5-10 seconds
-            let slowSine = sin(time * 0.5 + speedVariationPhase) // 0.5 rad/s -> ~12s period
-            let speedMultiplier = (1.0 + 0.5 * slowSine) * 0.025 + 0.25
-            
-            // Flap motion: fast sine wave for the actual wings
-            // Base frequency ~5 Hz, modulated by speedMultiplier
-            let flapFrequency = 5.0 * speedMultiplier
-            
-            // Update wing angle
-            // Range: 0 to 60 degrees
-            let rawSine = sin(time * flapFrequency * 2 * .pi)
-            wingFlap = 30 + 30 * rawSine
-        }
-    }
-}
 
-struct ButterflyWingShape: Shape {
-    func path(in rect: CGRect) -> Path {
+    static let species: [Species] = [
+        // Monarch
+        Species(base: BG.rgb(0.85, 0.35, 0.02), bright: BG.rgb(1, 0.62, 0.12), border: BG.rgb(0.08, 0.05, 0.04), spots: .white, eyespot: false, iridescent: false),
+        // Blue morpho
+        Species(base: BG.rgb(0.0, 0.25, 0.75), bright: BG.rgb(0.25, 0.85, 1), border: BG.rgb(0.04, 0.05, 0.12), spots: BG.rgb(0.85, 0.95, 1), eyespot: false, iridescent: true),
+        // Swallowtail
+        Species(base: BG.rgb(0.95, 0.78, 0.1), bright: BG.rgb(1, 0.95, 0.5), border: BG.rgb(0.1, 0.08, 0.05), spots: BG.rgb(0.4, 0.6, 1), eyespot: true, iridescent: false),
+        // Peacock
+        Species(base: BG.rgb(0.55, 0.06, 0.12), bright: BG.rgb(0.9, 0.25, 0.25), border: BG.rgb(0.2, 0.08, 0.06), spots: BG.rgb(1, 0.9, 0.5), eyespot: true, iridescent: false),
+        // Emerald swallowtail
+        Species(base: BG.rgb(0.02, 0.32, 0.22), bright: BG.rgb(0.25, 0.95, 0.6), border: BG.rgb(0.03, 0.08, 0.06), spots: BG.rgb(0.8, 1, 0.85), eyespot: false, iridescent: true)
+    ]
+
+    static let forewing: Path = {
         var path = Path()
-        let w = rect.width
-        let h = rect.height
-
-        // Draw left wing shape (anchored at right edge)
-        path.move(to: CGPoint(x: w, y: h * 0.45))
-
-        // Top Wing
-        path.addCurve(
-            to: CGPoint(x: w * 0.31, y: h * 0.02),
-            control1: CGPoint(x: w * 0.80, y: h * 0.24),
-            control2: CGPoint(x: w * 0.90, y: h * -0.05)
-        )
-        path.addCurve(
-            to: CGPoint(x: w * CGFloat.random(in: 0.52...0.82), y: h * 0.72),
-            control1: CGPoint(x: w * 0.06, y: h * 0.05),
-            control2: CGPoint(x: -w * 0.10, y: h * 0.25)
-        )
-
-        // Bottom Wing
-        path.move(to: CGPoint(x: w, y: h * 0.45))
-        path.addCurve(
-            to: CGPoint(x: w * 0.28, y: h * 0.86),
-            control1: CGPoint(x: w * 0.60, y: h * 0.40),
-            control2: CGPoint(x: w * 0.10, y: h * 0.75)
-        )
-        path.addCurve(
-            to: CGPoint(x: w, y: h * 0.65),
-            control1: CGPoint(x: w * 0.50, y: h * 0.98),
-            control2: CGPoint(x: w * 0.90, y: h * 0.80)
-        )
-
+        path.move(to: CGPoint(x: 0.03, y: -0.1))
+        path.addCurve(to: CGPoint(x: 0.47, y: -0.44), control1: CGPoint(x: 0.12, y: -0.32), control2: CGPoint(x: 0.32, y: -0.47))
+        path.addCurve(to: CGPoint(x: 0.4, y: -0.05), control1: CGPoint(x: 0.55, y: -0.36), control2: CGPoint(x: 0.5, y: -0.13))
+        path.addCurve(to: CGPoint(x: 0.03, y: 0.02), control1: CGPoint(x: 0.3, y: 0.01), control2: CGPoint(x: 0.12, y: 0.03))
         path.closeSubpath()
         return path
-    }
-}
+    }()
 
-struct ButterflyWingPatternShape: Shape {
-    func path(in rect: CGRect) -> Path {
+    static let hindwing: Path = {
         var path = Path()
-        let w = rect.width
-        let h = rect.height
-        
-        // Decorative cutouts
-        // Top
-        path.addEllipse(in: CGRect(x: w * 0.4, y: h * 0.15, width: w * 0.3, height: h * 0.15))
-        // Bottom
-        path.addEllipse(in: CGRect(x: w * 0.5, y: h * 0.65, width: w * 0.25, height: h * 0.15))
-        
+        path.move(to: CGPoint(x: 0.03, y: 0.0))
+        path.addCurve(to: CGPoint(x: 0.38, y: 0.12), control1: CGPoint(x: 0.18, y: -0.03), control2: CGPoint(x: 0.36, y: 0.0))
+        path.addCurve(to: CGPoint(x: 0.2, y: 0.43), control1: CGPoint(x: 0.42, y: 0.27), control2: CGPoint(x: 0.32, y: 0.41))
+        path.addCurve(to: CGPoint(x: 0.03, y: 0.13), control1: CGPoint(x: 0.1, y: 0.45), control2: CGPoint(x: 0.04, y: 0.29))
+        path.closeSubpath()
         return path
+    }()
+
+    static let veins: Path = {
+        var path = Path()
+        let root = CGPoint(x: 0.04, y: -0.02)
+        let ends: [CGPoint] = [
+            CGPoint(x: 0.44, y: -0.42), CGPoint(x: 0.48, y: -0.3), CGPoint(x: 0.46, y: -0.17), CGPoint(x: 0.38, y: -0.07),
+            CGPoint(x: 0.36, y: 0.16), CGPoint(x: 0.33, y: 0.3), CGPoint(x: 0.22, y: 0.4)
+        ]
+        for end in ends {
+            path.move(to: root)
+            path.addQuadCurve(to: end, control: CGPoint(x: (root.x + end.x) * 0.5, y: (root.y + end.y) * 0.5 + 0.03))
+        }
+        return path
+    }()
+
+    static func drawSunbeams(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        let origin = CGPoint(x: size.width * 0.06, y: -size.height * 0.12)
+        let warm = BG.rgb(1, 0.95, 0.75)
+        ctx.glow(at: origin, radius: size.width * 0.4, color: warm, intensity: 0.3)
+        ctx.blurredLayer(radius: 22) { beams in
+            for i in 0..<7 {
+                let angle = 0.42 + CGFloat(i) * 0.11 + sin(t * 0.05 + CGFloat(i)) * 0.03
+                let spread = BG.hash(i, 111, 0.022, 0.05)
+                let breathe = 0.6 + 0.4 * sin(t * 0.3 + CGFloat(i) * 1.9)
+                let length = size.height * 1.7
+                var beam = Path()
+                beam.move(to: origin)
+                beam.addLine(to: CGPoint(x: origin.x + cos(angle - spread) * length, y: origin.y + sin(angle - spread) * length))
+                beam.addLine(to: CGPoint(x: origin.x + cos(angle + spread) * length, y: origin.y + sin(angle + spread) * length))
+                beam.closeSubpath()
+                beams.fill(
+                    beam,
+                    with: .linearGradient(
+                        Gradient(colors: [warm.opacity(Double(0.3 * breathe)), warm.opacity(0)]),
+                        startPoint: origin,
+                        endPoint: CGPoint(x: origin.x + cos(angle) * length * 0.8, y: origin.y + sin(angle) * length * 0.8)
+                    )
+                )
+            }
+        }
+    }
+
+    static func drawBokeh(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        let colors = [BG.rgb(1, 0.9, 0.6), BG.rgb(0.7, 1, 0.7), BG.rgb(1, 0.8, 0.9)]
+        ctx.blurredLayer(radius: 5) { bokeh in
+            for i in 0..<16 {
+                let x = BG.wrap(BG.hash(i, 121) * size.width + t * BG.hash(i, 122, -8, 8), length: size.width, margin: 50)
+                let y = size.height * BG.hash(i, 123) + sin(t * 0.2 + CGFloat(i)) * 30
+                let r = BG.hash(i, 124, 14, 40)
+                let p = CGPoint(x: x, y: y)
+                let color = colors[i % colors.count]
+                let pulse = Double(0.7 + 0.3 * sin(t * 0.5 + CGFloat(i)))
+                bokeh.fill(
+                    BG.circle(p, r),
+                    with: .radialGradient(
+                        Gradient(colors: [color.opacity(0.2 * pulse), color.opacity(0.12 * pulse), color.opacity(0)]),
+                        center: p, startRadius: 0, endRadius: r
+                    )
+                )
+            }
+        }
+    }
+
+    static func flightPosition(k: Int, time t: CGFloat, size: CGSize) -> CGPoint {
+        let duration = BG.hash(k, 81, 38, 58)
+        let progress = BG.fract(BG.hash(k, 82) + t / duration)
+        let travel = k % 2 == 0 ? progress : 1 - progress
+        let x = -120 + travel * (size.width + 240)
+        let baseY = size.height * BG.hash(k, 83, 0.2, 0.7)
+        let wave = sin(progress * 2 * .pi * BG.hash(k, 84, 1.5, 3)) * size.height * 0.08
+        let bob = sin(t * 2.7 + CGFloat(k)) * 10
+        return CGPoint(x: x, y: baseY + wave + bob)
+    }
+
+    static func drawButterflies(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        for k in 0..<5 {
+            let p = flightPosition(k: k, time: t, size: size)
+            let ahead = flightPosition(k: k, time: t + 0.15, size: size)
+            let heading = atan2(ahead.y - p.y, ahead.x - p.x)
+            let wingspan = BG.hash(k, 85, 56, 96)
+            let glide = BG.smoothstep(-0.3, 0.4, sin(t * 0.4 + CGFloat(k) * 2))
+            let flap = sin(t * BG.hash(k, 86, 8, 11) + CGFloat(k)) * BG.lerp(0.25, 1, glide)
+            let open = 0.5 + 0.5 * flap
+            drawButterfly(in: &ctx, at: p, wingspan: wingspan, open: open, heading: heading, species: species[k % species.count])
+        }
+    }
+
+    static func drawButterfly(in ctx: inout GraphicsContext, at p: CGPoint, wingspan: CGFloat, open: CGFloat, heading: CGFloat, species: Species) {
+        // Soft shadow cast on the scene below.
+        let shadowCenter = CGPoint(x: p.x + wingspan * 0.15, y: p.y + wingspan * 0.9)
+        let shadowWidth = wingspan * (0.18 + 0.32 * open)
+        ctx.fill(
+            BG.ellipse(shadowCenter, shadowWidth, wingspan * 0.08),
+            with: .radialGradient(Gradient(colors: [.black.opacity(0.16), .black.opacity(0)]), center: shadowCenter, startRadius: 0, endRadius: shadowWidth)
+        )
+
+        var body = ctx
+        body.translateBy(x: p.x, y: p.y)
+        body.rotate(by: .radians(Double(heading + .pi / 2)))
+        body.scaleBy(x: wingspan, y: wingspan)
+
+        for side in [-1.0, 1.0] as [CGFloat] {
+            var wing = body
+            wing.scaleBy(x: side * (0.1 + 0.9 * open), y: 1)
+            let gradient = Gradient(stops: [
+                .init(color: species.border, location: 0),
+                .init(color: species.base, location: 0.18),
+                .init(color: species.bright, location: 0.55),
+                .init(color: species.base, location: 0.78),
+                .init(color: species.border, location: 0.9)
+            ])
+            let root = CGPoint(x: 0.03, y: 0)
+            wing.fill(hindwing, with: .radialGradient(gradient, center: root, startRadius: 0, endRadius: 0.5))
+            wing.fill(forewing, with: .radialGradient(gradient, center: root, startRadius: 0, endRadius: 0.56))
+            if species.iridescent {
+                // Structural color: a sheen that slides as the wing tilts.
+                let shift = (open - 0.5) * 0.4
+                wing.fill(
+                    forewing,
+                    with: .linearGradient(
+                        Gradient(colors: [.white.opacity(0), .white.opacity(0.4), .white.opacity(0)]),
+                        startPoint: CGPoint(x: 0.05 + shift, y: -0.45),
+                        endPoint: CGPoint(x: 0.45 + shift, y: 0.05)
+                    )
+                )
+            }
+            wing.stroke(veins, with: .color(species.border.opacity(0.45)), lineWidth: 0.01)
+            wing.stroke(forewing, with: .color(species.border.opacity(0.8)), lineWidth: 0.012)
+            wing.stroke(hindwing, with: .color(species.border.opacity(0.8)), lineWidth: 0.012)
+            for i in 0..<5 {
+                let u = CGFloat(i) / 4
+                let spot = CGPoint(x: 0.47 - u * 0.04, y: -0.4 + u * 0.3)
+                wing.fill(BG.circle(spot, 0.013), with: .color(species.spots.opacity(0.9)))
+            }
+            if species.eyespot {
+                let eye = CGPoint(x: 0.22, y: 0.25)
+                wing.fill(BG.circle(eye, 0.06), with: .color(species.spots))
+                wing.fill(BG.circle(eye, 0.042), with: .color(.black))
+                wing.fill(BG.circle(eye, 0.022), with: .color(BG.rgb(0.3, 0.55, 1)))
+                wing.fill(BG.circle(CGPoint(x: eye.x - 0.012, y: eye.y - 0.012), 0.008), with: .color(.white))
+            }
+        }
+
+        // Thorax and abdomen with a rounded highlight.
+        let thorax = Path(roundedRect: CGRect(x: -0.028, y: -0.17, width: 0.056, height: 0.42), cornerRadius: 0.028)
+        body.fill(
+            thorax,
+            with: .linearGradient(
+                Gradient(colors: [BG.rgb(0.35, 0.3, 0.28), BG.rgb(0.06, 0.05, 0.05)]),
+                startPoint: CGPoint(x: -0.03, y: 0),
+                endPoint: CGPoint(x: 0.03, y: 0)
+            )
+        )
+        body.fill(BG.circle(CGPoint(x: 0, y: -0.2), 0.036), with: .color(BG.rgb(0.1, 0.08, 0.08)))
+        var antennae = Path()
+        antennae.move(to: CGPoint(x: -0.01, y: -0.22))
+        antennae.addQuadCurve(to: CGPoint(x: -0.11, y: -0.4), control: CGPoint(x: -0.03, y: -0.34))
+        antennae.move(to: CGPoint(x: 0.01, y: -0.22))
+        antennae.addQuadCurve(to: CGPoint(x: 0.11, y: -0.4), control: CGPoint(x: 0.03, y: -0.34))
+        body.stroke(antennae, with: .color(BG.rgb(0.1, 0.08, 0.08)), lineWidth: 0.012)
+        body.fill(BG.circle(CGPoint(x: -0.11, y: -0.4), 0.014), with: .color(BG.rgb(0.1, 0.08, 0.08)))
+        body.fill(BG.circle(CGPoint(x: 0.11, y: -0.4), 0.014), with: .color(BG.rgb(0.1, 0.08, 0.08)))
     }
 }
 
-// MARK: - July: Fireworks Animation
+// MARK: - July: Fireworks
+
 struct JulyFireworksAnimation: View {
     let alpha: Double
-    @State private var fireworks: [Firework] = []
-    @State private var explosionCounter = 0
-    @State private var spawnTimer: Timer?
 
-    
-    struct Firework: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var particles: [Particle] = []
-        var explosionProgress: CGFloat = 0
-        var isExploding: Bool = false
-    }
-    
-    struct Particle: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var angle: Double
-        var distance: CGFloat
-        var color: Color
-    }
-    
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(fireworks) { firework in
-                    // Rocket trail (when shooting up)
-                    if !firework.isExploding {
-                        Circle()
-                            .fill(Color.orange.opacity(0.6 * alpha))
-                            .frame(width: 3, height: 3)
-                            .position(x: firework.x, y: firework.y)
-                    }
-                    
-                    // Explosion particles
-                    if firework.isExploding {
-                        ForEach(firework.particles) { particle in
-                            Circle()
-                                .fill(particle.color.opacity(alpha))
-                                .frame(width: 6, height: 6) // Larger particles (150%)
-                                .position(
-                                    x: firework.x + cos(particle.angle) * particle.distance * firework.explosionProgress,
-                                    y: firework.y + sin(particle.angle) * particle.distance * firework.explosionProgress
-                                )
-                                .opacity((1 - firework.explosionProgress) * alpha)
-                        }
-                    }
-                }
-            }
-            .onAppear {
-                startFireworks(size: geometry.size)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                startFireworks(size: newSize)
-            }
-            .onDisappear {
-                spawnTimer?.invalidate()
-            }
+        AnimatedScene { ctx, size, time in
+            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.04, 0.06, 0.2), intensity: 0.38, depth: 0.65)
+            AtmospherePainter.stars(in: &ctx, size: size, time: time, count: 70, skyFraction: 0.5, intensity: 0.6)
+            JulyScene.draw(in: &ctx, size: size, time: time)
         }
-    }
-
-    private func startFireworks(size: CGSize) {
-        spawnTimer?.invalidate()
-        // Start first firework
-        addFirework(size: size)
-
-        // Schedule new fireworks (Twice as often -> 3.75s)
-        spawnTimer = Timer.scheduledTimer(withTimeInterval: 3.75, repeats: true) { _ in
-            DispatchQueue.main.async {
-                explosionCounter += 1
-                
-                var count = 1
-                // Every 7th -> group of 7
-                if explosionCounter % 7 == 0 {
-                    count = 7
-                }
-                // Every 3rd (and not 7th) -> group of 3
-                else if explosionCounter % 3 == 0 {
-                    count = 3
-                }
-                // Default random small group
-                else {
-                    count = Int.random(in: 1...2)
-                }
-                
-                for _ in 0..<count {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Double.random(in: 0...2)) {
-                        addFirework(size: size)
-                    }
-                }
-            }
-        }
-    }
-    
-    private func addFirework(size: CGSize) {
-        let startX = CGFloat.random(in: size.width * 0.2...size.width * 0.8)
-        let explosionY = CGFloat.random(in: size.height * 0.15...size.height * 0.35)
-        let firework = Firework(
-            x: startX,
-            y: size.height, // Start from bottom
-            particles: [],
-            isExploding: false // Will explode after shooting up
-        )
-        
-        // Create particles
-        let colors: [Color] = [.red, .blue, .green, .yellow, .purple, .orange]
-        var particles: [Particle] = []
-        let minIntensity = CGFloat.random(in: 1...5) * 50
-        let numberOfParticles = sqrt(minIntensity) * 4
-        for i in 0..<(max(Int(numberOfParticles), 30)) {
-            let angle = Double(i) * 2 * .pi / 30
-            particles.append(Particle(
-                x: firework.x,
-                y: firework.y,
-                angle: angle,
-                distance: CGFloat.random(in: minIntensity...(minIntensity + 50)),
-                color: colors.randomElement() ?? .red
-            ))
-        }
-        
-        var newFirework = firework
-        newFirework.particles = particles
-        fireworks.append(newFirework)
-        
-        let index = fireworks.count - 1
-        
-        // First: shoot up (2 seconds)
-        withAnimation(.easeOut(duration: 2)) {
-            fireworks[index].y = explosionY
-        }
-        
-        // Then: explode (9 seconds)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-            guard index < fireworks.count else { return }
-            fireworks[index].isExploding = true
-            withAnimation(.easeOut(duration: 9)) {
-                fireworks[index].explosionProgress = 1.0
-            }
-        }
-        
-        // Remove after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 11) {
-            fireworks.removeAll { $0.id == firework.id }
-        }
+        .opacity(alpha)
     }
 }
 
-// MARK: - August: Sun and Clouds Animation
+private enum JulyScene {
+    static let interval: CGFloat = 1.5
+    static let maxLifetime: CGFloat = 7
+
+    static let palettes: [[Color]] = [
+        [BG.rgb(1, 0.25, 0.3), BG.rgb(1, 0.85, 0.85)],
+        [BG.rgb(0.3, 0.55, 1), BG.rgb(0.85, 0.92, 1)],
+        [BG.rgb(1, 0.82, 0.3), BG.rgb(1, 0.95, 0.75)],
+        [BG.rgb(0.35, 1, 0.5), BG.rgb(0.85, 1, 0.85)],
+        [BG.rgb(0.85, 0.35, 1), BG.rgb(1, 0.7, 0.95)],
+        [BG.rgb(1, 0.5, 0.15), BG.rgb(1, 0.85, 0.5)]
+    ]
+
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        let firstSlot = max(0, Int(floor((t - maxLifetime) / interval)))
+        let lastSlot = Int(floor(t / interval))
+        guard firstSlot <= lastSlot else { return }
+        for slot in firstSlot...lastSlot {
+            let count: Int
+            if slot % 9 == 8 {
+                count = 5 // Finale cluster.
+            } else if slot % 4 == 3 {
+                count = 2
+            } else {
+                count = BG.hash(slot, 90) < 0.25 ? 0 : 1
+            }
+            for j in 0..<count {
+                let seed = slot * 16 + j
+                let launch = CGFloat(slot) * interval + BG.hash(seed, 91) * interval * 0.9 + CGFloat(j) * 0.2
+                let age = t - launch
+                if age >= 0 {
+                    drawFirework(in: &ctx, size: size, seed: seed, age: age)
+                }
+            }
+        }
+    }
+
+    static func drawFirework(in ctx: inout GraphicsContext, size: CGSize, seed: Int, age: CGFloat) {
+        let startX = size.width * BG.hash(seed, 92, 0.12, 0.88)
+        let apex = CGPoint(x: startX + BG.hash(seed, 94, -60, 60), y: size.height * BG.hash(seed, 93, 0.12, 0.4))
+        let riseTime = BG.hash(seed, 95, 1.2, 1.8)
+        let palette = palettes[Int(BG.hash(seed, 96) * CGFloat(palettes.count)) % palettes.count]
+
+        if age < riseTime {
+            // Rocket climbing with a sparking tail.
+            func rocket(_ u: CGFloat) -> CGPoint {
+                let eased = 1 - (1 - u) * (1 - u)
+                return CGPoint(x: BG.lerp(startX, apex.x, eased), y: BG.lerp(size.height + 10, apex.y, eased))
+            }
+            let u = age / riseTime
+            for k in 0..<12 {
+                let back = max(0, u - CGFloat(k) * 0.015)
+                let p = rocket(back)
+                let fade = Double(1 - CGFloat(k) / 12)
+                ctx.fill(BG.circle(CGPoint(x: p.x + sin(CGFloat(k) * 2.1 + age * 30) * 1.5, y: p.y), 1.6), with: .color(BG.rgb(1, 0.8, 0.45, 0.8 * fade)))
+            }
+            let head = rocket(u)
+            ctx.glow(at: head, radius: 14, color: BG.rgb(1, 0.85, 0.5), intensity: 0.7)
+            ctx.fill(BG.circle(head, 2.2), with: .color(.white))
+            return
+        }
+
+        let b = age - riseTime
+        let life = BG.hash(seed, 97, 2.8, 4.6)
+        guard b < life else { return }
+        let kind = Int(BG.hash(seed, 98) * 5) % 5 // 0 peony, 1 chrysanthemum, 2 willow, 3 ring, 4 strobe
+
+        // Burst flash lighting up the sky.
+        let flash = max(0, 1 - b / 0.4)
+        if flash > 0 {
+            ctx.glow(at: apex, radius: 420, color: palette[0], intensity: Double(0.16 * flash))
+            ctx.glow(at: apex, radius: 90, color: .white, intensity: Double(0.7 * flash))
+        }
+
+        let count = kind == 3 ? 44 : 60
+        let baseSpeed = BG.hash(seed, 99, 150, 230)
+        let drag: CGFloat = kind == 2 ? 0.9 : 1.6
+        let gravity: CGFloat = kind == 2 ? 95 : 60
+        let trail: CGFloat = (kind == 1 || kind == 2) ? 0.45 : 0.12
+        let ringTilt = BG.hash(seed, 100, 0.3, 0.6)
+        let ringSpin = BG.hash(seed, 101) * .pi
+        let fade = 1 - BG.smoothstep(life * 0.5, life, b)
+
+        func position(_ direction: CGVector, _ speed: CGFloat, _ tau: CGFloat) -> CGPoint {
+            let distance = speed * (1 - exp(-drag * tau)) / drag
+            return CGPoint(
+                x: apex.x + direction.dx * distance,
+                y: apex.y + direction.dy * distance + 0.5 * gravity * tau * tau
+            )
+        }
+
+        for i in 0..<count {
+            let particleSeed = seed * 97 + i
+            let angle = CGFloat(i) / CGFloat(count) * 2 * .pi + BG.hash(particleSeed, 102) * 0.08
+            var direction = CGVector(dx: cos(angle), dy: sin(angle))
+            var speed = baseSpeed
+            if kind == 3 {
+                // A tilted ring: squash then rotate the circle.
+                let squashed = CGVector(dx: direction.dx, dy: direction.dy * ringTilt)
+                direction = CGVector(
+                    dx: squashed.dx * cos(ringSpin) - squashed.dy * sin(ringSpin),
+                    dy: squashed.dx * sin(ringSpin) + squashed.dy * cos(ringSpin)
+                )
+            } else {
+                speed *= BG.hash(particleSeed, 103, 0.62, 1)
+            }
+
+            var alpha = fade
+            if kind == 4 {
+                alpha *= sin(b * 38 + CGFloat(i) * 1.7) > 0 ? 1 : 0.15
+            }
+            guard alpha > 0.02 else { continue }
+
+            let head = position(direction, speed, b)
+            let tail = position(direction, speed, max(0, b - trail))
+            let color = palette[i % 2 == 0 ? 0 : 1]
+            var streak = Path()
+            streak.move(to: tail)
+            streak.addLine(to: head)
+            ctx.stroke(
+                streak,
+                with: .linearGradient(
+                    Gradient(colors: [color.opacity(0), color.opacity(Double(alpha) * 0.75)]),
+                    startPoint: tail,
+                    endPoint: head
+                ),
+                style: StrokeStyle(lineWidth: kind == 2 ? 1.6 : 2.2, lineCap: .round)
+            )
+            let hot = b < 0.3 ? Color.white : color
+            ctx.fill(BG.circle(head, kind == 2 ? 1.8 : 2.4), with: .color(hot.opacity(Double(alpha))))
+            if kind == 2 && b > life * 0.6 && BG.hash(particleSeed, 104) < 0.4 {
+                ctx.sparkle(at: head, size: 4, color: BG.rgb(1, 0.9, 0.6), intensity: Double(alpha) * 0.8)
+            }
+        }
+        // Lingering smoke where the shell burst.
+        let smoke = BG.smoothstep(0.2, 1.2, b) * fade
+        ctx.glow(at: CGPoint(x: apex.x, y: apex.y + b * 12), radius: 120, color: BG.rgb(0.75, 0.75, 0.85), intensity: Double(0.08 * smoke))
+    }
+}
+
+// MARK: - August: Blazing sun and drifting cumulus
+
 struct AugustSunCloudsAnimation: View {
     let alpha: Double
-    @State private var sunProgress: CGFloat = 0
-    @State private var sunRotation: Double = 0
-    @State private var clouds: [Cloud] = []
-    @State private var cloudSpawnTimer: Timer?
-    @State private var sunGeneration: Int = 0
 
-    struct Cloud: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var size: CGFloat
-        var seed: Int = 0
-    }
-    
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Sun moving across sky in an arc (SF Symbol)
-                Image(systemName: "sun.max.fill")
-                    .font(.system(size: 140)) // 2x size
-                    .foregroundColor(.yellow.opacity(0.5 * alpha)) // 0.5x opacity
-                    .rotationEffect(.degrees(sunRotation))
-                    .position(
-                        x: geometry.size.width * sunProgress,
-                        y: calculateSunArcY(progress: sunProgress, height: geometry.size.height)
-                    )
-                
-                // Clouds floating by
-                ForEach(clouds) { cloud in
-                    CloudShape(seed: cloud.seed)
-                        .fill(Color.white.opacity(0.6 * alpha))
-                        .blur(radius: 5) // Blur effect like February
-                        .frame(width: cloud.size, height: cloud.size * 0.6)
-                        .position(x: cloud.x, y: cloud.y)
-                }
-            }
-            .onAppear {
-                startAnimation(size: geometry.size)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                startAnimation(size: newSize)
-            }
-            .onDisappear {
-                cloudSpawnTimer?.invalidate()
-            }
+        AnimatedScene { ctx, size, time in
+            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(1, 0.93, 0.72), intensity: 0.16, depth: 0.45)
+            let sun = SkyScene.sunPosition(size: size, time: time, duration: 1200, start: 0.5, height: 0.14, radius: 62)
+            SunPainter.draw(in: &ctx, center: sun, radius: 62, time: time, warmth: 0.12, canvas: size)
+            SkyScene.drawBirds(in: &ctx, size: size, time: time)
+            SkyScene.drawClouds(in: &ctx, size: size, time: time, count: 6, yRange: 0.06...0.32, palette: .summer, light: sun, salt: 0)
         }
-    }
-
-    private func calculateSunArcY(progress: CGFloat, height: CGFloat) -> CGFloat {
-        // Create a slight arc: starts at 0.15, peaks at middle (0.12), ends at 0.15
-        // Using a parabolic curve for the arc
-        let startY = height * 0.15
-        let peakY = height * 0.12 // Higher point in the middle (arc peaks)
-        let arcHeight = startY - peakY // How much higher the arc goes
-        
-        // Parabolic arc: y = startY - arcHeight * 4 * progress * (1 - progress)
-        // This creates a smooth arc that peaks in the middle
-        let arcOffset = arcHeight * 4 * progress * (1 - progress)
-        return startY - arcOffset
-    }
-    
-    private func startAnimation(size: CGSize) {
-        // Sun animation (1200 seconds - 5% speed)
-        sunGeneration += 1
-        let generation = sunGeneration
-
-        // Start random transit between 0.4 and 0.6
-        let startProgress = Double.random(in: 0.4...0.6)
-        sunProgress = startProgress
-
-        let fullDuration = 1200.0
-        let remaining = 1.0 - startProgress
-        let firstLegDuration = fullDuration * remaining // Proportional duration for the initial partial leg
-        animateSunCycle(duration: firstLegDuration, fullDuration: fullDuration, generation: generation)
-
-        // Slow rotation
-        withAnimation(.linear(duration: 400).repeatForever(autoreverses: false)) {
-            sunRotation = 360
-        }
-
-        // Start clouds
-        startClouds(size: size)
-    }
-
-    /// Sweeps the sun from its current position to the far edge, then snaps back
-    /// to the start (no animation) and repeats. Using repeatForever(autoreverses: false)
-    /// here would replay the interpolation from the animation's original starting value
-    /// every cycle, making the sun visibly jump backward mid-sky instead of wrapping cleanly.
-    private func animateSunCycle(duration: Double, fullDuration: Double, generation: Int) {
-        withAnimation(.linear(duration: duration)) {
-            sunProgress = 1.0
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-            guard generation == sunGeneration else { return }
-            sunProgress = 0 // Snap back off-screen instantly, unanimated
-            animateSunCycle(duration: fullDuration, fullDuration: fullDuration, generation: generation)
-        }
-    }
-    
-    private func startClouds(size: CGSize) {
-        cloudSpawnTimer?.invalidate()
-        // Add more initial clouds (at least 4)
-        for _ in 0..<4 {
-            addCloud(size: size, randomX: true)
-        }
-
-        // Add new clouds periodically
-        cloudSpawnTimer = Timer.scheduledTimer(withTimeInterval: 12, repeats: true) { _ in
-            addCloud(size: size, randomX: false)
-        }
-    }
-    
-    private func addCloud(size: CGSize, randomX: Bool = false) {
-        let startX = randomX ? CGFloat.random(in: -150...size.width) : -150
-        let cloud = Cloud(
-            x: startX,
-            y: CGFloat.random(in: size.height * 0.1...size.height * 0.3),
-            size: CGFloat.random(in: 200...280), // Larger clouds
-            seed: Int.random(in: 0...100)
-        )
-        clouds.append(cloud)
-        
-        let index = clouds.count - 1
-        
-        // Move cloud across screen
-        // Randomize duration slightly to prevent "unit" movement
-        let duration = Double.random(in: 60...100) // Much slower
-        
-        // Calculate remaining distance if starting in middle
-        let remainingDistance = size.width + 150 - startX
-        let totalDistance = size.width + 300
-        let adjustedDuration = duration * (Double(remainingDistance) / Double(totalDistance))
-        
-        withAnimation(.linear(duration: adjustedDuration).repeatForever(autoreverses: false)) {
-            clouds[index].x = size.width + 150
-        }
-        
-        // Remove after crossing
-        DispatchQueue.main.asyncAfter(deadline: .now() + adjustedDuration) {
-            clouds.removeAll { $0.id == cloud.id }
-        }
+        .opacity(alpha)
     }
 }
 
-struct CloudShape: Shape {
-    var seed: Int = 0
-    
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        let radius = min(rect.width, rect.height) / 3
-        
-        // Use deterministic RNG
-        var rng = LinearCongruentialGenerator(seed: seed)
-        let randomOffset = { (range: ClosedRange<CGFloat>, generator: inout LinearCongruentialGenerator) -> CGFloat in
-             return CGFloat.random(in: range, using: &generator)
-        }
-        
-        // Base cloud
-        path.addEllipse(in: CGRect(x: center.x - radius * 1.0, y: center.y - radius * 0.4, width: radius * 0.7, height: radius * 0.7))
-        path.addEllipse(in: CGRect(x: center.x - radius * 0.5, y: center.y - radius * 0.6, width: radius * 0.9, height: radius * 0.9))
-        path.addEllipse(in: CGRect(x: center.x, y: center.y - radius * 0.5, width: radius * 1.0, height: radius * 1.0))
-        path.addEllipse(in: CGRect(x: center.x + radius * 0.5, y: center.y - radius * 0.4, width: radius * 0.8, height: radius * 0.8))
-        path.addEllipse(in: CGRect(x: center.x + radius * 0.3, y: center.y + radius * 0.1, width: radius * 0.6, height: radius * 0.6))
-        
-        // Add random variation based on seed
-        for _ in 0..<3 {
-            let rx = randomOffset(-0.8...0.8, &rng) * radius
-            let ry = randomOffset(-0.5...0.5, &rng) * radius
-            let rSize = randomOffset(0.6...0.9, &rng) * radius
-            path.addEllipse(in: CGRect(x: center.x + rx, y: center.y + ry, width: rSize, height: rSize))
-        }
-        
-        return path
-    }
-}
+// MARK: - September: Golden-hour sun, clouds and falling leaves
 
-// MARK: - September: Sun, Clouds, and Falling Leaves Animation
 struct SeptemberLeavesAnimation: View {
     let alpha: Double
-    @State private var sunProgress: CGFloat = 0
-    @State private var sunRotation: Double = 0
-    @State private var clouds: [SeptemberCloud] = []
-    @State private var leaves: [Leaf] = []
-    @State private var cloudSpawnTimer: Timer?
-    @State private var leafSpawnTimer: Timer?
-    @State private var sunGeneration: Int = 0
 
-    struct SeptemberCloud: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var size: CGFloat
-    }
-    
-    struct Leaf: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var rotation: Double = 0
-        var size: CGFloat
-        var color: Color
-    }
-    
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Sun moving across sky (SF Symbol)
-                Image(systemName: "sun.max.fill")
-                    .font(.system(size: 140)) // 2x size
-                    .foregroundColor(.yellow.opacity(0.5 * alpha)) // 0.5x opacity
-                    .rotationEffect(.degrees(sunRotation))
-                    .position(
-                        x: geometry.size.width * sunProgress,
-                        y: geometry.size.height * 0.15
-                    )
-                
-                // Clouds floating by
-                ForEach(clouds) { cloud in
-                    CloudShape()
-                        .fill(Color.white.opacity(0.6 * alpha))
-                        .frame(width: cloud.size, height: cloud.size * 0.6)
-                        .position(x: cloud.x, y: cloud.y)
-                        .blur(radius: 30)
-                }
-                
-                // Falling leaves
-                ForEach(leaves) { leaf in
-                    LeafShape()
-                        .fill(leaf.color.opacity(0.7 * alpha))
-                        .frame(width: leaf.size, height: leaf.size)
-                        .rotationEffect(.degrees(leaf.rotation))
-                        .position(x: leaf.x, y: leaf.y)
-                }
-            }
-            .onAppear {
-                startAnimation(size: geometry.size)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                startAnimation(size: newSize)
-            }
-            .onDisappear {
-                cloudSpawnTimer?.invalidate()
-                leafSpawnTimer?.invalidate()
-            }
+        AnimatedScene { ctx, size, time in
+            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(1, 0.8, 0.55), intensity: 0.2, depth: 0.5)
+            AtmospherePainter.bottomHaze(in: &ctx, size: size, color: BG.rgb(1, 0.75, 0.45), intensity: 0.12, depth: 0.3)
+            let sun = SkyScene.sunPosition(size: size, time: time, duration: 4000, start: 0.7, height: 0.17, radius: 58)
+            SunPainter.draw(in: &ctx, center: sun, radius: 58, time: time, warmth: 0.6, canvas: size)
+            SkyScene.drawClouds(in: &ctx, size: size, time: time, count: 5, yRange: 0.05...0.5, palette: .golden, light: sun, salt: 40)
+            FallingLeavesRenderer.draw(in: &ctx, size: size, time: time, count: 22, windBase: 14, gustiness: 18, fallSpeed: 45...85, salt: 0)
+        }
+        .opacity(alpha)
+    }
+}
+
+private enum SkyScene {
+    /// Sun drifting left to right on a shallow arc; it is fully off-screen when it wraps.
+    static func sunPosition(size: CGSize, time: Double, duration: CGFloat, start: CGFloat, height: CGFloat, radius: CGFloat) -> CGPoint {
+        let progress = BG.fract(start + CGFloat(time) / duration)
+        let margin = radius * 4
+        let x = -margin + progress * (size.width + margin * 2)
+        let arc = 4 * progress * (1 - progress)
+        let y = size.height * (height + 0.05) - size.height * 0.07 * arc
+        return CGPoint(x: x, y: y)
+    }
+
+    static func drawClouds(in ctx: inout GraphicsContext, size: CGSize, time: Double, count: Int, yRange: ClosedRange<CGFloat>, palette: CloudPalette, light: CGPoint, salt: Int) {
+        let t = CGFloat(time)
+        for k in 0..<count {
+            let depth = CGFloat(k) / CGFloat(max(count - 1, 1)) // far first, near last
+            let width = BG.lerp(220, 420, depth) * BG.hash(k + salt, 131, 0.9, 1.1)
+            let speed = BG.lerp(5, 15, depth)
+            let x = BG.wrap(BG.hash(k + salt, 132) * size.width + t * speed, length: size.width, margin: width * 0.7)
+            let y = size.height * BG.hash(k + salt, 133, yRange.lowerBound, yRange.upperBound)
+            let center = CGPoint(x: x, y: y)
+            CloudPainter.draw(
+                in: &ctx,
+                puffs: CloudPainter.cumulusPuffs(seed: k + salt + 100, width: width),
+                center: center,
+                width: width,
+                palette: palette,
+                opacity: Double(BG.lerp(0.6, 0.92, depth)),
+                lightDirection: CGVector(dx: light.x - center.x, dy: light.y - center.y),
+                softness: BG.lerp(0.05, 0.025, depth)
+            )
         }
     }
 
-    private func startAnimation(size: CGSize) {
-        // Sun animation (4000 seconds - 5% speed)
-        sunGeneration += 1
-        let generation = sunGeneration
-
-        // Start random transit between 0.6 and 0.8
-        let startProgress = Double.random(in: 0.6...0.8)
-        sunProgress = startProgress
-
-        let fullDuration = 4000.0
-        let remaining = 1.0 - startProgress
-        let firstLegDuration = fullDuration * remaining
-        animateSunCycle(duration: firstLegDuration, fullDuration: fullDuration, generation: generation)
-
-        // Slow rotation (slower)
-        withAnimation(.linear(duration: 1400).repeatForever(autoreverses: false)) {
-            sunRotation = 360
-        }
-
-        // Start clouds
-        startClouds(size: size)
-
-        // Start leaves
-        startLeaves(size: size)
-    }
-
-    /// See AugustSunCloudsAnimation.animateSunCycle: repeatForever(autoreverses: false)
-    /// would replay from the original starting value each cycle, snapping the sun
-    /// backward mid-sky. This reschedules a fresh full-length animation each wrap instead.
-    private func animateSunCycle(duration: Double, fullDuration: Double, generation: Int) {
-        withAnimation(.linear(duration: duration)) {
-            sunProgress = 1.0
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-            guard generation == sunGeneration else { return }
-            sunProgress = 0
-            animateSunCycle(duration: fullDuration, fullDuration: fullDuration, generation: generation)
-        }
-    }
-    
-    private func startClouds(size: CGSize) {
-        cloudSpawnTimer?.invalidate()
-        // Add initial clouds
-        for _ in 0..<4 {
-            addCloud(size: size, randomX: true)
-        }
-
-        // Add new clouds periodically
-        cloudSpawnTimer = Timer.scheduledTimer(withTimeInterval: 12, repeats: true) { _ in
-            addCloud(size: size, randomX: false)
-        }
-    }
-    
-    private func addCloud(size: CGSize, randomX: Bool = false) {
-        let startX = randomX ? CGFloat.random(in: -150...size.width) : -150
-        let cloud = SeptemberCloud(
-            x: startX,
-            y: CGFloat.random(in: size.height * 0.05...size.height * 0.6), // Wider Y range
-            size: CGFloat.random(in: 200...350) // Larger clouds
-        )
-        clouds.append(cloud)
-        
-        let index = clouds.count - 1
-        
-        // Move cloud across screen
-        // Randomize duration slightly to prevent "unit" movement
-        let duration = Double.random(in: 70...120) // Much slower (70% slower approx)
-        
-        // Calculate remaining distance if starting in middle
-        let remainingDistance = size.width + 150 - startX
-        let totalDistance = size.width + 300
-        let adjustedDuration = duration * (Double(remainingDistance) / Double(totalDistance))
-        
-        withAnimation(.linear(duration: adjustedDuration).repeatForever(autoreverses: false)) {
-            clouds[index].x = size.width + 150
-        }
-        
-        // Remove after crossing
-        DispatchQueue.main.asyncAfter(deadline: .now() + adjustedDuration) {
-            clouds.removeAll { $0.id == cloud.id }
-        }
-    }
-    
-    private func startLeaves(size: CGSize) {
-        leafSpawnTimer?.invalidate()
-        // Add fewer leaves (half the amount)
-        for _ in 0..<10 {
-            addLeaf(size: size, delay: Double.random(in: 0...3))
-        }
-        leafSpawnTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in // Slower spawn rate
-            addLeaf(size: size)
-        }
-    }
-    
-    private func addLeaf(size: CGSize, delay: Double = 0) {
-        let colors: [Color] = [.orange, .red, .yellow, .brown]
-        let leaf = Leaf(
-            x: CGFloat.random(in: -50...size.width + 50),
-            y: -30,
-            size: CGFloat.random(in: 18...28),
-            color: colors.randomElement() ?? .orange
-        )
-        let leafId = leaf.id
-        leaves.append(leaf)
-        
-        let duration = Double.random(in: 6...9) // Slower fall
-        let newRotation = Double.random(in: 360...1080)
-        let xOffset = CGFloat.random(in: -80...80)
-        
-        // Fall and rotate (slower)
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-            guard let index = self.leaves.firstIndex(where: { $0.id == leafId }) else { return }
-            
-            // Ensure index is still valid before accessing
-            guard index < self.leaves.count else { return }
-            
-            withAnimation(.easeIn(duration: duration)) {
-                // Check again inside animation block
-                if let currentIndex = self.leaves.firstIndex(where: { $0.id == leafId }),
-                   currentIndex < self.leaves.count {
-                    self.leaves[currentIndex].y = size.height + 50
-                    self.leaves[currentIndex].rotation = newRotation
-                    self.leaves[currentIndex].x += xOffset
-                }
-            }
-        }
-        
-        // Remove after falling
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay + duration) {
-            self.leaves.removeAll { $0.id == leafId }
+    static func drawBirds(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        for i in 0..<4 {
+            let duration = BG.hash(i, 141, 40, 70)
+            let progress = BG.fract(BG.hash(i, 142) + t / duration)
+            let x = -40 + progress * (size.width + 80)
+            let y = size.height * BG.hash(i, 143, 0.18, 0.4) + sin(t * 0.4 + CGFloat(i)) * 14
+            let span = BG.hash(i, 144, 10, 18)
+            let beat = sin(t * BG.hash(i, 145, 4, 6) + CGFloat(i))
+            let wingY = beat * span * 0.35
+            var bird = Path()
+            bird.move(to: CGPoint(x: x - span, y: y + wingY))
+            bird.addQuadCurve(to: CGPoint(x: x, y: y), control: CGPoint(x: x - span * 0.5, y: y - span * 0.35 + wingY * 0.3))
+            bird.addQuadCurve(to: CGPoint(x: x + span, y: y + wingY), control: CGPoint(x: x + span * 0.5, y: y - span * 0.35 + wingY * 0.3))
+            ctx.stroke(bird, with: .color(BG.rgb(0.2, 0.22, 0.3, 0.55)), style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
         }
     }
 }
 
-struct LeafShape: Shape {
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        let width = rect.width
-        let height = rect.height
-        
-        // More realistic leaf shape with pointed tip and rounded base
-        // Start at tip (top)
-        path.move(to: CGPoint(x: center.x, y: center.y - height * 0.5))
-        
-        // Left side with curves
-        path.addQuadCurve(
-            to: CGPoint(x: center.x - width * 0.35, y: center.y - height * 0.1),
-            control: CGPoint(x: center.x - width * 0.2, y: center.y - height * 0.3)
-        )
-        path.addQuadCurve(
-            to: CGPoint(x: center.x - width * 0.25, y: center.y + height * 0.2),
-            control: CGPoint(x: center.x - width * 0.3, y: center.y + height * 0.05)
-        )
-        
-        // Bottom curve
-        path.addQuadCurve(
-            to: CGPoint(x: center.x, y: center.y + height * 0.45),
-            control: CGPoint(x: center.x - width * 0.1, y: center.y + height * 0.35)
-        )
-        
-        // Right side (mirror)
-        path.addQuadCurve(
-            to: CGPoint(x: center.x + width * 0.25, y: center.y + height * 0.2),
-            control: CGPoint(x: center.x + width * 0.1, y: center.y + height * 0.35)
-        )
-        path.addQuadCurve(
-            to: CGPoint(x: center.x + width * 0.35, y: center.y - height * 0.1),
-            control: CGPoint(x: center.x + width * 0.3, y: center.y + height * 0.05)
-        )
-        path.addQuadCurve(
-            to: CGPoint(x: center.x, y: center.y - height * 0.5),
-            control: CGPoint(x: center.x + width * 0.2, y: center.y - height * 0.3)
-        )
-        
-        path.closeSubpath()
-        
-        // Add a stem line at the bottom
-        path.move(to: CGPoint(x: center.x, y: center.y + height * 0.45))
-        path.addLine(to: CGPoint(x: center.x, y: center.y + height * 0.5))
-        
-        return path
+/// Leaves falling through gusty wind, tumbling in 3D, with near leaves out of focus.
+private enum FallingLeavesRenderer {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, count: Int, windBase: CGFloat, gustiness: CGFloat, fallSpeed: ClosedRange<CGFloat>, salt: Int) {
+        let t = CGFloat(time)
+        // Integral of the wind speed so horizontal drift stays continuous.
+        let slowGust: CGFloat = -0.6 / 0.23 * cos(t * 0.23)
+        let fastGust: CGFloat = -0.4 / 0.61 * cos(t * 0.61 + 1)
+        let drift: CGFloat = windBase * t + gustiness * (slowGust + fastGust)
+        let gust: CGFloat = sin(t * 0.23) * 0.6 + sin(t * 0.61 + 1) * 0.4
+
+        func drawLeaf(_ i: Int, in target: inout GraphicsContext, near: Bool) {
+            let seed = i + salt
+            let depth: CGFloat = near ? 1 : BG.hash(seed, 150, 0.3, 0.85)
+            let speed = BG.lerp(fallSpeed.lowerBound, fallSpeed.upperBound, BG.hash(seed, 151)) * BG.lerp(0.6, 1.3, depth)
+            let span = size.height + 140
+            let progress = BG.fract(BG.hash(seed, 152) + t * speed / span)
+            let y = progress * span - 70
+            let flutterRate = BG.hash(seed, 153, 0.8, 1.6)
+            let flutter = sin(t * flutterRate + BG.hash(seed, 154) * 6.28)
+            let x = BG.wrap(BG.hash(seed, 155) * size.width + drift * depth + flutter * 40, length: size.width, margin: 70)
+            let rotation = Double(flutter * 0.9 + t * BG.hash(seed, 156, -0.8, 0.8) + gust * 0.3)
+            let flip = cos(t * BG.hash(seed, 157, 0.9, 2.2) + BG.hash(seed, 158) * 6.28)
+            let leafSize = BG.lerp(16, 34, depth) * (near ? 1.6 : 1)
+            let fade = BG.smoothstep(0, 0.08, progress) * (1 - BG.smoothstep(0.88, 1, progress))
+            let palette = LeafPalette.autumn[Int(BG.hash(seed, 159) * CGFloat(LeafPalette.autumn.count)) % LeafPalette.autumn.count]
+            LeafPainter.draw(
+                in: &target,
+                at: CGPoint(x: x, y: y),
+                size: leafSize,
+                rotation: rotation,
+                flip: flip,
+                palette: palette,
+                maple: BG.hash(seed, 160) < 0.55,
+                opacity: Double(fade * BG.lerp(0.6, 0.95, depth))
+            )
+        }
+
+        let nearCount = max(1, count / 6)
+        for i in 0..<count {
+            drawLeaf(i, in: &ctx, near: false)
+        }
+        ctx.blurredLayer(radius: 4) { near in
+            for i in 0..<nearCount {
+                drawLeaf(i + 5000, in: &near, near: true)
+            }
+        }
     }
 }
 
-// MARK: - October: Moon and Bats Animation
-// MARK: - October: Moon and Bats Animation
+// MARK: - October: Phase-accurate moon, bats, fog and jack-o'-lanterns
+
 struct OctoberMoonBatsAnimation: View {
     let alpha: Double
-    @State private var moonProgress: CGFloat = 0
-    @State private var clouds: [Cloud] = []
-    @State private var bats: [BatBoid] = []
-    @State private var timer: Timer?
-    @State private var viewSize: CGSize = .zero
-    @State private var simulationTime: Double = 0
-    @State private var cloudGeneration: Int = 0
-    @State private var moonGeneration: Int = 0
+    /// The day whose moon phase is shown (the user's current selection/focus).
+    let moonDate: Date
+    @State private var moonAnimator = MoonPhaseAnimator(duration: 2.5)
+    @State private var flock = BatFlock()
 
-    // Boid Configuration
-    struct BatBoid: Identifiable {
-        let id = UUID()
+    init(alpha: Double = 1.0, moonDate: Date = Date()) {
+        self.alpha = alpha
+        self.moonDate = moonDate
+    }
+
+    var body: some View {
+        let targetPhase = MoonPhase.fraction(forDay: moonDate)
+        let animator = moonAnimator
+        let bats = flock
+        AnimatedScene { ctx, size, time in
+            let phase = animator.phase(target: targetPhase, time: time)
+            OctoberScene.draw(in: &ctx, size: size, time: time, phase: phase, flock: bats)
+        }
+        .opacity(alpha)
+    }
+}
+
+private enum OctoberScene {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, phase: Double, flock: BatFlock) {
+        let t = CGFloat(time)
+        AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.07, 0.05, 0.2), intensity: 0.32, depth: 0.65)
+        AtmospherePainter.stars(in: &ctx, size: size, time: time, count: 110, skyFraction: 0.55, intensity: 0.8)
+
+        // The moon swings slowly across the top of the sky (no wrap-around jump).
+        let orbit = 2 * CGFloat.pi * t / 1500 + 0.95
+        let moonRadius = min(size.width, size.height) * 0.075
+        let moon = CGPoint(
+            x: size.width * (0.5 + 0.33 * sin(orbit)),
+            y: size.height * (0.17 - 0.035 * cos(orbit))
+        )
+        MoonPainter.draw(in: &ctx, center: moon, radius: moonRadius, phase: phase)
+
+        drawClouds(in: &ctx, size: size, time: t, moon: moon, phase: phase)
+
+        flock.step(time: time, size: size)
+        for bat in flock.bats {
+            let flap = sin(CGFloat(time * bat.flapRate) + bat.flapPhase)
+            let bank = max(-0.5, min(0.5, bat.velocity.dy / 6))
+            drawBat(in: &ctx, at: bat.position, size: bat.size, flap: flap, bank: bank, moon: moon)
+        }
+
+        let flicker = 0.78 + 0.12 * sin(t * 13) + 0.1 * sin(t * 23.7 + 1)
+        drawPumpkin(in: &ctx, at: CGPoint(x: size.width * 0.055, y: size.height - 46), size: 78, flicker: flicker)
+        drawPumpkin(in: &ctx, at: CGPoint(x: size.width * 0.94, y: size.height - 36), size: 58, flicker: 0.85 + 0.15 * sin(t * 17 + 2))
+        drawFog(in: &ctx, size: size, time: t)
+    }
+
+    static func drawClouds(in ctx: inout GraphicsContext, size: CGSize, time t: CGFloat, moon: CGPoint, phase: Double) {
+        let lit = MoonPhase.illumination(phase)
+        let palette = CloudPalette(
+            light: BG.rgb(0.55 + 0.35 * lit, 0.58 + 0.34 * lit, 0.7 + 0.28 * lit),
+            body: CloudPalette.night.body,
+            shade: CloudPalette.night.shade
+        )
+        for k in 0..<4 {
+            let width = BG.hash(k, 171, 300, 460)
+            let duration = BG.hash(k, 172, 70, 120)
+            let progress = BG.fract(BG.hash(k, 173) + t / duration)
+            let x = -width + progress * (size.width + width * 2)
+            let y = size.height * BG.hash(k, 174, 0.08, 0.3)
+            let edgeFade = BG.smoothstep(0, 0.12, progress) * (1 - BG.smoothstep(0.88, 1, progress))
+            let center = CGPoint(x: x, y: y)
+            CloudPainter.draw(
+                in: &ctx,
+                puffs: CloudPainter.cumulusPuffs(seed: k + 200, width: width),
+                center: center,
+                width: width,
+                palette: palette,
+                opacity: Double(0.6 * edgeFade),
+                lightDirection: CGVector(dx: moon.x - center.x, dy: moon.y - center.y),
+                softness: 0.06
+            )
+        }
+    }
+
+    static func drawBat(in ctx: inout GraphicsContext, at p: CGPoint, size: CGFloat, flap: CGFloat, bank: CGFloat, moon: CGPoint) {
+        var bat = ctx
+        bat.translateBy(x: p.x, y: p.y)
+        bat.rotate(by: .radians(Double(bank)))
+        bat.scaleBy(x: size, y: size)
+
+        let tipY = -0.32 * flap
+        let wristY = -0.18 * flap - 0.05
+        var wing = Path()
+        wing.move(to: CGPoint(x: 0.05, y: -0.05))
+        wing.addQuadCurve(to: CGPoint(x: 0.26, y: wristY), control: CGPoint(x: 0.14, y: wristY - 0.08))
+        wing.addLine(to: CGPoint(x: 0.5, y: tipY))
+        wing.addQuadCurve(to: CGPoint(x: 0.37, y: tipY * 0.4 + 0.1), control: CGPoint(x: 0.4, y: tipY * 0.7 + 0.02))
+        wing.addQuadCurve(to: CGPoint(x: 0.22, y: wristY * 0.3 + 0.13), control: CGPoint(x: 0.27, y: wristY * 0.3 + 0.03))
+        wing.addQuadCurve(to: CGPoint(x: 0.04, y: 0.1), control: CGPoint(x: 0.1, y: 0.03))
+        wing.closeSubpath()
+
+        var silhouette = Path()
+        silhouette.addPath(wing)
+        silhouette.addPath(wing.applying(CGAffineTransform(scaleX: -1, y: 1)))
+        silhouette.addPath(BG.ellipse(CGPoint(x: 0, y: 0.02), 0.07, 0.13))
+        silhouette.addPath(BG.circle(CGPoint(x: 0, y: -0.12), 0.055))
+        var ears = Path()
+        ears.move(to: CGPoint(x: -0.05, y: -0.14))
+        ears.addLine(to: CGPoint(x: -0.04, y: -0.24))
+        ears.addLine(to: CGPoint(x: -0.012, y: -0.16))
+        ears.move(to: CGPoint(x: 0.05, y: -0.14))
+        ears.addLine(to: CGPoint(x: 0.04, y: -0.24))
+        ears.addLine(to: CGPoint(x: 0.012, y: -0.16))
+        silhouette.addPath(ears)
+
+        bat.fill(silhouette, with: .color(BG.rgb(0.07, 0.05, 0.1, 0.92)))
+        // Moonlit rim on the edges facing the moon.
+        let toMoon = CGVector(dx: moon.x - p.x, dy: moon.y - p.y)
+        let distance = max(1, sqrt(toMoon.dx * toMoon.dx + toMoon.dy * toMoon.dy))
+        bat.stroke(
+            silhouette,
+            with: .linearGradient(
+                Gradient(colors: [BG.rgb(0.75, 0.8, 1, 0.45), BG.rgb(0.75, 0.8, 1, 0)]),
+                startPoint: CGPoint(x: toMoon.dx / distance * 0.5, y: toMoon.dy / distance * 0.5),
+                endPoint: .zero
+            ),
+            lineWidth: 0.025
+        )
+    }
+
+    static func drawPumpkin(in ctx: inout GraphicsContext, at p: CGPoint, size s: CGFloat, flicker: CGFloat) {
+        let candle = BG.rgb(1, 0.6, 0.12)
+        let groundShadow = CGPoint(x: p.x, y: p.y + s * 0.34)
+        ctx.fill(
+            BG.ellipse(groundShadow, s * 0.5, s * 0.07),
+            with: .radialGradient(Gradient(colors: [.black.opacity(0.35), .black.opacity(0)]), center: groundShadow, startRadius: 0, endRadius: s * 0.5)
+        )
+        ctx.glow(at: p, radius: s * 1.8, color: candle, intensity: Double(0.32 * flicker))
+
+        // Ribbed body, outer ribs first.
+        for j in [-2, 2, -1, 1, 0] {
+            let offset = CGFloat(j) * s * 0.15
+            let rib = BG.ellipse(CGPoint(x: p.x + offset, y: p.y), s * (0.26 - abs(CGFloat(j)) * 0.025), s * 0.36)
+            ctx.fill(
+                rib,
+                with: .linearGradient(
+                    Gradient(colors: [BG.rgb(1, 0.62, 0.15), BG.rgb(0.88, 0.4, 0.04), BG.rgb(0.5, 0.18, 0.02)]),
+                    startPoint: CGPoint(x: p.x + offset - s * 0.25, y: p.y - s * 0.3),
+                    endPoint: CGPoint(x: p.x + offset + s * 0.25, y: p.y + s * 0.35)
+                )
+            )
+            ctx.stroke(rib, with: .color(BG.rgb(0.45, 0.15, 0.0, 0.5)), lineWidth: s * 0.012)
+        }
+        ctx.fill(BG.ellipse(CGPoint(x: p.x - s * 0.18, y: p.y - s * 0.18), s * 0.06, s * 0.1), with: .color(.white.opacity(0.18)))
+
+        var stem = Path()
+        stem.move(to: CGPoint(x: p.x - s * 0.045, y: p.y - s * 0.32))
+        stem.addQuadCurve(to: CGPoint(x: p.x + s * 0.03, y: p.y - s * 0.47), control: CGPoint(x: p.x - s * 0.04, y: p.y - s * 0.42))
+        stem.addLine(to: CGPoint(x: p.x + s * 0.07, y: p.y - s * 0.44))
+        stem.addQuadCurve(to: CGPoint(x: p.x + s * 0.04, y: p.y - s * 0.31), control: CGPoint(x: p.x + s * 0.03, y: p.y - s * 0.38))
+        stem.closeSubpath()
+        ctx.fill(stem, with: .linearGradient(Gradient(colors: [BG.rgb(0.4, 0.45, 0.18), BG.rgb(0.2, 0.2, 0.08)]), startPoint: CGPoint(x: p.x - s * 0.05, y: p.y - s * 0.4), endPoint: CGPoint(x: p.x + s * 0.07, y: p.y - s * 0.4)))
+
+        // Carved face, lit from within.
+        var face = Path()
+        for side in [-1.0, 1.0] as [CGFloat] {
+            face.move(to: CGPoint(x: p.x + side * s * 0.2, y: p.y - s * 0.02))
+            face.addLine(to: CGPoint(x: p.x + side * s * 0.13, y: p.y - s * 0.15))
+            face.addLine(to: CGPoint(x: p.x + side * s * 0.06, y: p.y - s * 0.02))
+            face.closeSubpath()
+        }
+        face.move(to: CGPoint(x: p.x - s * 0.035, y: p.y + s * 0.07))
+        face.addLine(to: CGPoint(x: p.x, y: p.y + s * 0.01))
+        face.addLine(to: CGPoint(x: p.x + s * 0.035, y: p.y + s * 0.07))
+        face.closeSubpath()
+        let mouthLeft = p.x - s * 0.24
+        let mouthTop = p.y + s * 0.11
+        face.move(to: CGPoint(x: mouthLeft, y: mouthTop))
+        let teeth = 6
+        for i in 1...teeth {
+            let x = mouthLeft + s * 0.48 * CGFloat(i) / CGFloat(teeth)
+            face.addLine(to: CGPoint(x: x - s * 0.04, y: mouthTop + (i % 2 == 0 ? s * 0.05 : 0)))
+        }
+        face.addLine(to: CGPoint(x: p.x + s * 0.24, y: mouthTop))
+        face.addQuadCurve(to: CGPoint(x: mouthLeft, y: mouthTop), control: CGPoint(x: p.x, y: mouthTop + s * 0.22))
+        face.closeSubpath()
+        ctx.fill(
+            face,
+            with: .radialGradient(
+                Gradient(colors: [BG.rgb(1, 0.97, 0.7, Double(flicker)), BG.rgb(1, 0.6, 0.08, Double(flicker)), BG.rgb(0.7, 0.25, 0.02)]),
+                center: CGPoint(x: p.x, y: p.y + s * 0.05),
+                startRadius: 0,
+                endRadius: s * 0.3
+            )
+        )
+        ctx.stroke(face, with: .color(BG.rgb(0.4, 0.12, 0.0, 0.6)), lineWidth: s * 0.01)
+    }
+
+    static func drawFog(in ctx: inout GraphicsContext, size: CGSize, time t: CGFloat) {
+        ctx.blurredLayer(radius: 24) { fog in
+            for i in 0..<5 {
+                let x = BG.wrap(BG.hash(i, 181) * size.width + t * BG.hash(i, 182, 6, 16), length: size.width, margin: size.width * 0.3)
+                let y = size.height * BG.hash(i, 183, 0.94, 1.0)
+                let rx = size.width * BG.hash(i, 184, 0.25, 0.4)
+                let ry = size.height * BG.hash(i, 185, 0.04, 0.07)
+                let center = CGPoint(x: x, y: y)
+                fog.fill(
+                    BG.ellipse(center, rx, ry),
+                    with: .radialGradient(
+                        Gradient(colors: [BG.rgb(0.72, 0.7, 0.85, 0.32), BG.rgb(0.72, 0.7, 0.85, 0)]),
+                        center: center, startRadius: 0, endRadius: rx
+                    )
+                )
+            }
+        }
+    }
+}
+
+/// Bat murmuration (boids), stepped once per rendered frame.
+final class BatFlock {
+    struct Bat {
         var position: CGPoint
         var velocity: CGVector
         var size: CGFloat
-        var wingFlapSpeed: Double
-    }
-    
-    struct Cloud: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var size: CGFloat
-        var opacity: Double = 0
-        var seed: Int = 0
-    }
-    
-    init(alpha: Double = 1.0) {
-        self.alpha = alpha
-    }
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Moon moving across top (textured)
-                TexturedMoonView()
-                    .opacity(0.45 * alpha) // Half opacity (was 0.9)
-                    .frame(width: 160, height: 160) // 2x size (was 80)
-                    .position(
-                        x: geometry.size.width * moonProgress,
-                        y: geometry.size.height * 0.15
-                    )
-                
-                // Clouds floating by
-                ForEach(clouds) { cloud in
-                    CloudShape(seed: cloud.seed)
-                        .fill(Color.gray.opacity(cloud.opacity * 0.5 * alpha))
-                        .blur(radius: 5) // Blur effect
-                        .frame(width: cloud.size, height: cloud.size * 0.6)
-                        .position(x: cloud.x, y: cloud.y)
-                }
-                
-                // Bats flying in murmuration
-                ForEach(bats) { bat in
-                    BatView(color: Color.black.opacity(0.8 * alpha), flapSpeed: bat.wingFlapSpeed)
-                        .frame(width: bat.size, height: bat.size * 0.6)
-                        // Rotate bat to face velocity direction
-                        .rotationEffect(.radians(atan2(bat.velocity.dy, bat.velocity.dx)))
-                        .position(bat.position)
-                }
-            }
-            .onAppear {
-                viewSize = geometry.size
-                startAnimation(size: geometry.size)
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                viewSize = newSize
-                startAnimation(size: newSize)
-            }
-            .onDisappear {
-                timer?.invalidate()
-            }
-        }
-    }
-    
-    private func startAnimation(size: CGSize) {
-        // Moon animation (1200 seconds - 5% speed)
-        moonGeneration += 1
-        let generation = moonGeneration
-
-        // Start random transit between 0.75 and 0.9
-        let startProgress = Double.random(in: 0.75...0.9)
-        moonProgress = startProgress
-
-        let fullDuration = 1200.0
-        let remaining = 1.0 - startProgress
-        let firstLegDuration = fullDuration * remaining
-        animateMoonCycle(duration: firstLegDuration, fullDuration: fullDuration, generation: generation)
-
-        // Start clouds
-        startClouds(size: size)
-
-        // Initialize Bats for Murmuration
-        initBats(size: size)
-
-        // Start Simulation Timer
-        timer?.invalidate()
-        simulationTime = 0
-        timer = Timer.scheduledTimer(withTimeInterval: 0.03, repeats: true) { _ in
-            simulationTime += 0.03
-            updateBats()
-        }
+        var flapRate: Double
+        var flapPhase: CGFloat
     }
 
-    /// See AugustSunCloudsAnimation.animateSunCycle: repeatForever(autoreverses: false)
-    /// would replay from the original starting value each cycle, snapping the moon
-    /// backward mid-sky. This reschedules a fresh full-length animation each wrap instead.
-    private func animateMoonCycle(duration: Double, fullDuration: Double, generation: Int) {
-        withAnimation(.linear(duration: duration)) {
-            moonProgress = 1.0
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-            guard generation == moonGeneration else { return }
-            moonProgress = 0
-            animateMoonCycle(duration: fullDuration, fullDuration: fullDuration, generation: generation)
-        }
-    }
-    
-    // MARK: - Cloud Logic
-    private func startClouds(size: CGSize) {
-        // Bump the generation so any in-flight asyncAfter chain from a
-        // previous call (e.g. before a resize) recognizes it's stale and stops.
-        cloudGeneration += 1
-        let generation = cloudGeneration
-        clouds = []
-        for _ in 0..<5 {
-            let delay = Double.random(in: 0...8)
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                guard generation == cloudGeneration else { return }
-                addCloud(size: size)
-            }
-        }
-        scheduleNextCloud(size: size, generation: generation)
-    }
+    private(set) var bats: [Bat] = []
+    private var lastTime: Double?
+    private var lastSize: CGSize = .zero
 
-    private func scheduleNextCloud(size: CGSize, generation: Int) {
-        let interval = Double.random(in: 10...25)
-        DispatchQueue.main.asyncAfter(deadline: .now() + interval) {
-            guard generation == cloudGeneration else { return }
-            addCloud(size: size)
-            scheduleNextCloud(size: size, generation: generation)
+    func step(time: Double, size: CGSize) {
+        if bats.isEmpty || size != lastSize {
+            spawn(size: size)
+            lastSize = size
+            lastTime = time
+            return
         }
-    }
-    
-    private func addCloud(size: CGSize) {
-        let baseDuration = Double.random(in: 15...50) // More random speed
-        let extraDuration = Double.random(in: 0...20)
-        let totalDuration = baseDuration + extraDuration
-        
-        let cloud = Cloud(
-            x: -150,
-            y: CGFloat.random(in: size.height * 0.12...size.height * 0.28),
-            size: CGFloat.random(in: 200...280), // Much larger
-            opacity: 0,
-            seed: Int.random(in: 0...100)
-        )
-        let cloudId = cloud.id
-        clouds.append(cloud)
-        
-        DispatchQueue.main.async {
-            if let index = self.clouds.firstIndex(where: { $0.id == cloudId }) {
-                withAnimation(.easeIn(duration: 2)) {
-                    self.clouds[index].opacity = 1.0
-                }
-            }
+        let dt = min(max(time - (lastTime ?? time), 0), 0.1)
+        lastTime = time
+        // Tuning below was authored for 0.03 s simulation ticks.
+        let ticks = CGFloat(dt / 0.03)
+        guard ticks > 0 else { return }
+
+        let visualRange: CGFloat = 80
+        let protectedRange: CGFloat = 25
+        var centering: CGFloat = 0.005
+        let avoid: CGFloat = 0.08
+        var matching: CGFloat = 0.05
+        let turn: CGFloat = 0.4
+        let maxSpeed: CGFloat = 5
+        let minSpeed: CGFloat = 2
+
+        // Scatter for 5 s out of every 22 s, then regroup.
+        if time.truncatingRemainder(dividingBy: 22) > 17 {
+            centering = -0.002
+            matching = 0
         }
-        
-        DispatchQueue.main.async {
-            if let index = self.clouds.firstIndex(where: { $0.id == cloudId }) {
-                withAnimation(.linear(duration: totalDuration)) {
-                    self.clouds[index].x = size.width + 150
-                }
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration - 2) {
-            if let index = self.clouds.firstIndex(where: { $0.id == cloudId }) {
-                withAnimation(.easeOut(duration: 2)) {
-                    self.clouds[index].opacity = 0.0
-                }
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration) {
-            self.clouds.removeAll { $0.id == cloudId }
-        }
-    }
-    
-    // MARK: - Murmuration Logic (Boids Algorithm)
-    private func initBats(size: CGSize) {
-        bats = []
-        let numBats = Int.random(in: 5...20)
-        
-        for _ in 0..<numBats {
-            bats.append(BatBoid(
-                position: CGPoint(
-                    x: CGFloat.random(in: 0...size.width),
-                    y: CGFloat.random(in: size.height * 0.2...size.height * 0.6)
-                ),
-                velocity: CGVector(
-                    dx: CGFloat.random(in: -3...3),
-                    dy: CGFloat.random(in: -1...1)
-                ),
-                size: CGFloat.random(in: 30...50),
-                wingFlapSpeed: Double.random(in: 0.1...0.2)
-            ))
-        }
-    }
-    
-    private func updateBats() {
-        // Parameters for flocking behavior
-        let visualRange: CGFloat = 80.0
-        let protectedRange: CGFloat = 25.0 // Separation distance
-        var centeringFactor: CGFloat = 0.005 // Cohesion
-        let avoidFactor: CGFloat = 0.08 // Separation strength
-        var matchingFactor: CGFloat = 0.05 // Alignment
-        let turnFactor: CGFloat = 0.4
-        let maxSpeed: CGFloat = 5.0
-        let minSpeed: CGFloat = 2.0
-        
-        // Break murmuration every 17 seconds for 5 seconds
-        let cycleTime = simulationTime.truncatingRemainder(dividingBy: 22)
-        if cycleTime > 17 {
-            // Random dispersal mode
-            centeringFactor = -0.002 // Slight repulsion from center (disperse)
-            matchingFactor = 0 // No alignment
-            // avoidFactor stays to keep them from crashing
-        }
-        
-        for i in 0..<bats.count {
+
+        let snapshot = bats
+        for i in bats.indices {
             var boid = bats[i]
-            
-            var closeDx: CGFloat = 0
-            var closeDy: CGFloat = 0
-            var xVelAvg: CGFloat = 0
-            var yVelAvg: CGFloat = 0
-            var xPosAvg: CGFloat = 0
-            var yPosAvg: CGFloat = 0
-            var neighbors = 0
-            
-            // Interaction with other bats
-            for otherBoid in bats {
-                if otherBoid.id == boid.id { continue }
-                
-                let dx = boid.position.x - otherBoid.position.x
-                let dy = boid.position.y - otherBoid.position.y
-                let distance = sqrt(dx*dx + dy*dy)
-                
-                // Separation
+            var closeDx: CGFloat = 0, closeDy: CGFloat = 0
+            var velocityX: CGFloat = 0, velocityY: CGFloat = 0
+            var positionX: CGFloat = 0, positionY: CGFloat = 0
+            var neighbors: CGFloat = 0
+
+            for (j, other) in snapshot.enumerated() where j != i {
+                let dx = boid.position.x - other.position.x
+                let dy = boid.position.y - other.position.y
+                let distance = sqrt(dx * dx + dy * dy)
                 if distance < protectedRange {
                     closeDx += dx
                     closeDy += dy
                 }
-                
-                // Alignment & Cohesion
                 if distance < visualRange {
-                    xVelAvg += otherBoid.velocity.dx
-                    yVelAvg += otherBoid.velocity.dy
-                    xPosAvg += otherBoid.position.x
-                    yPosAvg += otherBoid.position.y
+                    velocityX += other.velocity.dx
+                    velocityY += other.velocity.dy
+                    positionX += other.position.x
+                    positionY += other.position.y
                     neighbors += 1
                 }
             }
-            
-            // 1. Separation
-            boid.velocity.dx += closeDx * avoidFactor
-            boid.velocity.dy += closeDy * avoidFactor
-            
+
+            boid.velocity.dx += closeDx * avoid * ticks
+            boid.velocity.dy += closeDy * avoid * ticks
             if neighbors > 0 {
-                // 2. Alignment
-                xVelAvg /= CGFloat(neighbors)
-                yVelAvg /= CGFloat(neighbors)
-                boid.velocity.dx += (xVelAvg - boid.velocity.dx) * matchingFactor
-                boid.velocity.dy += (yVelAvg - boid.velocity.dy) * matchingFactor
-                
-                // 3. Cohesion
-                xPosAvg /= CGFloat(neighbors)
-                yPosAvg /= CGFloat(neighbors)
-                boid.velocity.dx += (xPosAvg - boid.position.x) * centeringFactor
-                boid.velocity.dy += (yPosAvg - boid.position.y) * centeringFactor
+                boid.velocity.dx += (velocityX / neighbors - boid.velocity.dx) * matching * ticks
+                boid.velocity.dy += (velocityY / neighbors - boid.velocity.dy) * matching * ticks
+                boid.velocity.dx += (positionX / neighbors - boid.position.x) * centering * ticks
+                boid.velocity.dy += (positionY / neighbors - boid.position.y) * centering * ticks
             }
-            
-            // Screen Edges (Soft turning)
+
             let margin: CGFloat = 50
-            if boid.position.x < margin {
-                boid.velocity.dx += turnFactor
-            }
-            if boid.position.x > viewSize.width - margin {
-                boid.velocity.dx -= turnFactor
-            }
-            if boid.position.y < margin + 50 { // Keep away from top/moon
-                boid.velocity.dy += turnFactor
-            }
-            if boid.position.y > viewSize.height * 0.7 { // Keep in upper/mid sky
-                boid.velocity.dy -= turnFactor
-            }
-            
-            // Update Position
-            boid.position.x += boid.velocity.dx
-            boid.position.y += boid.velocity.dy
-            
-            // Speed Limit
+            if boid.position.x < margin { boid.velocity.dx += turn * ticks }
+            if boid.position.x > size.width - margin { boid.velocity.dx -= turn * ticks }
+            if boid.position.y < margin + 50 { boid.velocity.dy += turn * ticks }
+            if boid.position.y > size.height * 0.7 { boid.velocity.dy -= turn * ticks }
+
             let speed = sqrt(boid.velocity.dx * boid.velocity.dx + boid.velocity.dy * boid.velocity.dy)
             if speed > maxSpeed {
-                boid.velocity.dx = (boid.velocity.dx / speed) * maxSpeed
-                boid.velocity.dy = (boid.velocity.dy / speed) * maxSpeed
+                boid.velocity.dx = boid.velocity.dx / speed * maxSpeed
+                boid.velocity.dy = boid.velocity.dy / speed * maxSpeed
             } else if speed < minSpeed && speed > 0 {
-                boid.velocity.dx = (boid.velocity.dx / speed) * minSpeed
-                boid.velocity.dy = (boid.velocity.dy / speed) * minSpeed
+                boid.velocity.dx = boid.velocity.dx / speed * minSpeed
+                boid.velocity.dy = boid.velocity.dy / speed * minSpeed
             }
-            
+
+            boid.position.x += boid.velocity.dx * ticks
+            boid.position.y += boid.velocity.dy * ticks
             bats[i] = boid
         }
     }
-}
 
-struct TexturedMoonView: View {
-    var body: some View {
-        GeometryReader { geometry in
-            let size = min(geometry.size.width, geometry.size.height)
-            
-            ZStack {
-                // Base Sphere with 3D-like shading (Light top-left, dark bottom-right)
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            gradient: Gradient(colors: [Color(white: 0.96), Color(white: 0.80)]),
-                            center: UnitPoint(x: 0.35, y: 0.35),
-                            startRadius: size * 0.1,
-                            endRadius: size * 0.9
-                        )
-                    )
-                
-                // Craters and Mares
-                Group {
-                    // Large Mare (Dark patch)
-                    Ellipse()
-                        .fill(Color(white: 0.6)) // Darker for contrast
-                        .frame(width: size * 0.4, height: size * 0.3)
-                        .offset(x: -size * 0.15, y: -size * 0.1)
-                        .rotationEffect(.degrees(15))
-                    
-                    Ellipse()
-                        .fill(Color(white: 0.55)) // Darker for contrast
-                        .frame(width: size * 0.3, height: size * 0.25)
-                        .offset(x: size * 0.2, y: size * 0.25)
-                        .rotationEffect(.degrees(-10))
-                    
-                    // Distinct Craters
-                    Group {
-                        MoonCrater(size: size * 0.18).offset(x: size * 0.15, y: -size * 0.2)
-                        MoonCrater(size: size * 0.14).offset(x: -size * 0.25, y: size * 0.15)
-                        MoonCrater(size: size * 0.10).offset(x: -size * 0.1, y: -size * 0.25)
-                        MoonCrater(size: size * 0.08).offset(x: size * 0.3, y: size * 0.05)
-                        MoonCrater(size: size * 0.06).offset(x: 0, y: size * 0.35)
-                        MoonCrater(size: size * 0.05).offset(x: -size * 0.3, y: -size * 0.1)
-                        // Extra craters
-                        MoonCrater(size: size * 0.04).offset(x: size * 0.1, y: size * 0.3)
-                        MoonCrater(size: size * 0.03).offset(x: -size * 0.15, y: -size * 0.05)
-                        MoonCrater(size: size * 0.05).offset(x: size * 0.25, y: -size * 0.25)
-                        MoonCrater(size: size * 0.04).offset(x: -size * 0.05, y: size * 0.05)
-                        MoonCrater(size: size * 0.03).offset(x: size * 0.05, y: -size * 0.35)
-                        MoonCrater(size: size * 0.02).offset(x: -size * 0.35, y: size * 0.2)
-                    }
-                }
-                .clipShape(Circle()) // Keep textures inside the moon sphere
-                
-                // Subtle Rim Light / Glow for contrast
-                Circle()
-                    .strokeBorder(Color.white.opacity(0.3), lineWidth: size * 0.02)
-            }
+    private func spawn(size: CGSize) {
+        guard size.width > 0, size.height > 0 else { return }
+        bats = (0..<Int.random(in: 10...20)).map { _ in
+            Bat(
+                position: CGPoint(
+                    x: CGFloat.random(in: 0...size.width),
+                    y: CGFloat.random(in: size.height * 0.2...size.height * 0.6)
+                ),
+                velocity: CGVector(dx: CGFloat.random(in: -3...3), dy: CGFloat.random(in: -1...1)),
+                size: CGFloat.random(in: 30...52),
+                flapRate: Double.random(in: 13...19),
+                flapPhase: CGFloat.random(in: 0...(2 * .pi))
+            )
         }
     }
 }
 
-// Helper view for craters
-struct MoonCrater: View {
-    let size: CGFloat
-    
-    var body: some View {
-        ZStack {
-            // Crater base
-            Circle()
-                .fill(Color(white: 0.5)) // Darker for contrast against 0.9 moon
-            
-            // Inner shadow for depth (offset to bottom right to match moon lighting)
-            Circle()
-                .fill(Color(white: 0.65))
-                .scaleEffect(0.7)
-                .offset(x: size * 0.08, y: size * 0.08)
-                .blur(radius: size * 0.05)
-        }
-        .frame(width: size, height: size)
-    }
-}
+// MARK: - November: Wind-blown leaves
 
-struct BatView: View {
-    let color: Color
-    var flapSpeed: Double = 0.15
-    @State private var wingFlap: Double = 0
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Body
-                Ellipse()
-                    .fill(color)
-                    .frame(width: geometry.size.width * 0.2, height: geometry.size.height * 0.5)
-                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                
-                // Left Wing
-                Path { path in
-                    path.move(to: CGPoint(x: geometry.size.width * 0.4, y: geometry.size.height * 0.5))
-                    path.addQuadCurve(
-                        to: CGPoint(x: 0, y: geometry.size.height * 0.2),
-                        control: CGPoint(x: geometry.size.width * 0.1, y: geometry.size.height * 0.1)
-                    )
-                    path.addQuadCurve(
-                        to: CGPoint(x: geometry.size.width * 0.4, y: geometry.size.height * 0.6),
-                        control: CGPoint(x: geometry.size.width * 0.1, y: geometry.size.height * 0.8)
-                    )
-                    path.closeSubpath()
-                }
-                .fill(color)
-                // Flap animation using scale on Y axis to simulate 3D flapping
-                .scaleEffect(y: wingFlap, anchor: .trailing)
-                
-                // Right Wing
-                Path { path in
-                    path.move(to: CGPoint(x: geometry.size.width * 0.6, y: geometry.size.height * 0.5))
-                    path.addQuadCurve(
-                        to: CGPoint(x: geometry.size.width, y: geometry.size.height * 0.2),
-                        control: CGPoint(x: geometry.size.width * 0.9, y: geometry.size.height * 0.1)
-                    )
-                    path.addQuadCurve(
-                        to: CGPoint(x: geometry.size.width * 0.6, y: geometry.size.height * 0.6),
-                        control: CGPoint(x: geometry.size.width * 0.9, y: geometry.size.height * 0.8)
-                    )
-                    path.closeSubpath()
-                }
-                .fill(color)
-                // Flap animation using scale on Y axis
-                .scaleEffect(y: wingFlap, anchor: .leading)
-            }
-        }
-        .onAppear {
-            // Flap wings
-            withAnimation(.easeInOut(duration: flapSpeed).repeatForever(autoreverses: true)) {
-                wingFlap = -0.5 // Flap up/down
-            }
-        }
-    }
-}
-
-// MARK: - November: Leaves Blowing Animation
-// MARK: - November: Leaves Blowing Animation
 struct NovemberLeavesAnimation: View {
     let alpha: Double
-    @State private var leaves: [FallingLeaf] = []
-    @State private var timer: Timer?
-    @State private var animationTime: Double = 0
-    @State private var viewSize: CGSize = .zero
-    
-    struct FallingLeaf: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var y: CGFloat
-        var rotation: Double = 0
-        var size: CGFloat
-        var color: Color
-        var speed: Double
-        var drift: Double
-        var startTime: Double
-    }
-    
+
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                ForEach(leaves) { leaf in
-                    // Calculate opacity based on position: fade in at top, fade out at bottom
-                    let currentY = leaf.y
-                    let fadeInHeight = geometry.size.height * 0.1 // Fade in over top 10%
-                    let fadeOutStart = geometry.size.height * 0.85 // Start fading out at 85% down
-                    let fadeOutHeight = geometry.size.height * 0.15 // Fade out over bottom 15%
-                    
-                    let opacity: Double = {
-                        if currentY < fadeInHeight {
-                            // Fading in at top
-                            return Double(currentY / fadeInHeight)
-                        } else if currentY > fadeOutStart {
-                            // Fading out at bottom
-                            let fadeOutProgress = (currentY - fadeOutStart) / fadeOutHeight
-                            return Double(1.0 - min(1.0, fadeOutProgress))
-                        } else {
-                            // Fully visible in middle
-                            return 1.0
-                        }
-                    }()
-                    
-                    LeafShape()
-                        .fill(leaf.color.opacity(opacity * 0.7 * alpha))
-                        .frame(width: leaf.size, height: leaf.size)
-                        .rotationEffect(.degrees(leaf.rotation))
-                        .position(x: leaf.x, y: leaf.y)
-                }
-            }
-            .onAppear {
-                viewSize = geometry.size
-                startLeaves()
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                viewSize = newSize
-                startLeaves()
-            }
-            .onDisappear {
-                timer?.invalidate()
-            }
-        }
-    }
-    
-    private func startLeaves() {
-        timer?.invalidate()
-        leaves = [] // Reset for a clean start allows the visual of "starting over" if resized, but user wants continuous.
-        // However, if we don't clear, we might get duplicates on resize. 
-        // Let's clear for now as it's safer for layout changes.
-        
-        guard viewSize.width > 0 && viewSize.height > 0 else { return }
-        
-        // Add initial leaves to populate the screen immediately
-        for _ in 0..<15 {
-            addLeaf(startY: CGFloat.random(in: -100...viewSize.height))
-        }
-        
-        // Create a timer that runs in .common mode so it doesn't pause during scrolling
-        let checkTimer = Timer(timeInterval: 0.3, repeats: true) { _ in
-            self.addLeaf(startY: -30)
-        }
-        RunLoop.main.add(checkTimer, forMode: .common)
-        self.timer = checkTimer
-    }
-    
-    private func addLeaf(startY: CGFloat, startTime: Double = 0) {
-        let colors: [Color] = [.orange, .red, .yellow, .brown]
-        let leaf = FallingLeaf(
-            x: CGFloat.random(in: -50...viewSize.width + 50),
-            y: startY,
-            rotation: Double.random(in: 0...360),
-            size: CGFloat.random(in: 20...30),
-            color: colors.randomElement() ?? .orange,
-            speed: 0, // Unused
-            drift: 0, // Unused
-            startTime: 0 // Unused
-        )
-        
-        let id = leaf.id
-        leaves.append(leaf)
-        
-        // Speed increased by 30% (was 30...60) -> approx 40...80
-        // More variance
-        let speed = Double.random(in: 20...90) 
-        let distance = viewSize.height + 100 - startY
-        let duration = Double(distance) / speed
-        let drift = CGFloat.random(in: -50...50)
-        let finalRotation = leaf.rotation + Double.random(in: 180...720)
-        
-        withAnimation(.easeIn(duration: duration)) {
-            if let index = leaves.firstIndex(where: { $0.id == id }) {
-                leaves[index].y = viewSize.height + 100
-                leaves[index].x += drift
-                leaves[index].rotation = finalRotation
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-            leaves.removeAll { $0.id == id }
-        }
-    }
-    
 
+    var body: some View {
+        AnimatedScene { ctx, size, time in
+            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.7, 0.62, 0.55), intensity: 0.16, depth: 0.45)
+            AtmospherePainter.bottomHaze(in: &ctx, size: size, color: BG.rgb(0.85, 0.55, 0.3), intensity: 0.14, depth: 0.25)
+            FallingLeavesRenderer.draw(in: &ctx, size: size, time: time, count: 34, windBase: 55, gustiness: 70, fallSpeed: 30...80, salt: 9000)
+            NovemberScene.drawLeafPile(in: &ctx, size: size, time: time)
+        }
+        .opacity(alpha)
+    }
 }
 
-// MARK: - December: Christmas Lights Animation
+private enum NovemberScene {
+    static func drawLeafPile(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        let gust = sin(t * 0.23) * 0.6 + sin(t * 0.61 + 1) * 0.4
+        let count = Int(size.width / 22)
+        for i in 0..<count {
+            let x = BG.hash(i, 191) * size.width
+            let y = size.height - BG.hash(i, 192, -4, 26)
+            let rustle = Double(sin(t * 2.2 + CGFloat(i)) * 0.06 * max(0, gust))
+            let palette = LeafPalette.autumn[i % LeafPalette.autumn.count]
+            LeafPainter.draw(
+                in: &ctx,
+                at: CGPoint(x: x, y: y),
+                size: BG.hash(i, 193, 20, 34),
+                rotation: Double(BG.hash(i, 194) * 6.28) + rustle,
+                flip: BG.hash(i, 195, 0.55, 1),
+                palette: palette,
+                maple: i % 3 != 0,
+                opacity: 0.85
+            )
+        }
+    }
+}
+
+// MARK: - December: Glowing C9 light strand over snowfall
+
 struct DecemberChristmasLightsAnimation: View {
     let alpha: Double
-    @State private var lights: [Light] = []
-    @State private var windOffset: CGFloat = 0 // Wind displacement
-    @State private var windTimer: Timer?
-    @State private var flickerTimer: Timer?
 
-    struct Light: Identifiable {
-        let id = UUID()
-        var x: CGFloat
-        var baseY: CGFloat // Base Y position for draping
-        var brightness: Double = 1.0
-        var color: Color
-    }
-    
     init(alpha: Double = 1.0) {
         self.alpha = alpha
     }
-    
+
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Add falling snow for winter atmosphere
-                JanuarySnowAnimation(alpha: alpha)
-                
-                // Green cord connecting lights (draping effect with wind) - drawn behind bulbs
-                Path { path in
-                    let startY: CGFloat = 0 // Top of screen
-                    let midY = geometry.size.height * 0.07 // Slight drape
-                    let endY: CGFloat = 0 // Top of screen
-                    
-                    // Calculate wind-affected positions
-                    let startWindY = startY + windOffset * 0.1 // Top moves very little
-                    let midWindY = midY + windOffset * 0.8 // Middle moves more
-                    let endWindY = endY + windOffset * 0.1 // Top moves very little
-                    
-                    path.move(to: CGPoint(x: 0, y: startWindY))
-                    path.addQuadCurve(
-                        to: CGPoint(x: geometry.size.width, y: endWindY),
-                        control: CGPoint(x: geometry.size.width / 2, y: midWindY)
-                    )
-                }
-                .stroke(Color.green.opacity(0.6 * alpha), lineWidth: 2)
-                
-                // Lights along the cord (with wind movement) - drawn on top so they overlap cord
-                ForEach(lights) { light in
-                    VintageBulbShape()
-                        .fill(light.color.opacity(light.brightness * alpha))
-                        .frame(width: 10, height: 18) // Skinnier (reduced width from 14 to 10)
-                        .rotationEffect(.degrees(180)) // Upside down
-                        .position(
-                            x: light.x,
-                            y: calculateCordY(
-                                x: light.x,
-                                width: geometry.size.width,
-                                startY: 0, // Match path start
-                                midY: geometry.size.height * 0.07, // Match path mid
-                                endY: 0 // Match path end
-                            ) + 9 // Hang 9 pixels below the cord (half the bulb height)
-                        )
-                        .shadow(color: light.color.opacity(light.brightness * 0.5 * alpha), radius: 5)
-                }
-            }
-            .onAppear {
-                startLights(size: geometry.size)
-                startWindAnimation()
-            }
-            .onChange(of: geometry.size) { _, newSize in
-                windTimer?.invalidate()
-                startLights(size: newSize)
-                startWindAnimation()
-            }
-            .onDisappear {
-                windTimer?.invalidate()
-                flickerTimer?.invalidate()
-            }
+        AnimatedScene { ctx, size, time in
+            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(1, 0.72, 0.42), intensity: 0.12, depth: 0.22)
+            SnowRenderer.draw(in: &ctx, size: size, time: time, density: 0.6, wind: CGFloat(sin(time * 0.35)) * 0.3)
+            DecemberScene.drawStrand(in: &ctx, size: size, time: time)
         }
-    }
-
-    /// Calculate Y position on the cord curve with wind effect
-    /// Uses the same quadratic Bezier curve formula as the cord path
-    private func calculateCordY(x: CGFloat, width: CGFloat, startY: CGFloat, midY: CGFloat, endY: CGFloat) -> CGFloat {
-        // Normalize x position (0 to 1) for the Bezier curve parameter t
-        let t = x / width
-        
-        // Calculate wind-affected control points (same as cord)
-        let startWindY = startY + windOffset * 0.1
-        let midWindY = midY + windOffset * 0.8
-        let endWindY = endY + windOffset * 0.1
-        
-        // Quadratic Bezier curve formula: P(t) = (1-t)²P₀ + 2(1-t)tP₁ + t²P₂
-        // P₀ = start point, P₁ = control point, P₂ = end point
-        let y = (1 - t) * (1 - t) * startWindY + 2 * (1 - t) * t * midWindY + t * t * endWindY
-        
-        return y
-    }
-    
-    private func startWindAnimation() {
-        // Occasional subtle wind gusts
-        windTimer?.invalidate()
-        windTimer = Timer.scheduledTimer(withTimeInterval: Double.random(in: 8...15), repeats: true) { _ in
-            // Random wind strength (subtle)
-            let windStrength = CGFloat.random(in: -8...8)
-            let duration = Double.random(in: 3...6)
-            
-            // Animate wind
-            withAnimation(.easeInOut(duration: duration)) {
-                windOffset = windStrength
-            }
-            
-            // Return to neutral (or slight opposite)
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                withAnimation(.easeInOut(duration: duration * 0.8)) {
-                    windOffset = windStrength * 0.3 // Slight return, not fully neutral
-                }
-            }
-        }
-    }
-    
-    private func startLights(size: CGSize) {
-        // Create bunting of lights across top with draping effect
-        let colors: [Color] = [.red, .green, .blue, .yellow, .purple, .orange]
-        let spacing = size.width / 25 // More lights
-        lights = []
-        
-        let startY = 0.0
-        let midY = size.height * 0.07
-        let endY = 0.0
-        
-        for i in 0..<25 {
-            let x = spacing * CGFloat(i) + spacing / 2
-            // Calculate Y position using the same quadratic Bezier formula as the cord
-            let t = x / size.width
-            let y = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * midY + t * t * endY
-            
-            lights.append(Light(
-                x: x,
-                baseY: y, // Store base Y (though we'll recalculate from cord formula)
-                brightness: Double.random(in: 0.3...1.0),
-                color: colors[i % colors.count]
-            ))
-        }
-        
-        // Animate flickering/dimming
-        animateLights()
-    }
-    
-    private func animateLights() {
-        flickerTimer?.invalidate()
-        flickerTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
-            for i in lights.indices {
-                withAnimation(.easeInOut(duration: Double.random(in: 0.3...1.0))) {
-                    lights[i].brightness = Double.random(in: 0.2...1.0)
-                }
-            }
-        }
+        .opacity(alpha)
     }
 }
 
-struct VintageBulbShape: Shape {
-    func path(in rect: CGRect) -> Path {
+private enum DecemberScene {
+    static let colors: [Color] = [
+        BG.rgb(1, 0.16, 0.14),
+        BG.rgb(0.12, 0.88, 0.35),
+        BG.rgb(0.2, 0.45, 1),
+        BG.rgb(1, 0.72, 0.15),
+        BG.rgb(0.95, 0.3, 0.82)
+    ]
+
+    /// Unit C9 bulb glass (socket at the origin, hanging toward +y).
+    static let glass: Path = {
         var path = Path()
-        let center = CGPoint(x: rect.midX, y: rect.midY)
-        let width = rect.width
-        let height = rect.height
-        
-        // Vintage Christmas bulb shape: rounded bulb with small base
-        // Main bulb (oval/rounded shape)
-        let bulbWidth = width * 0.85
-        let bulbHeight = height * 0.75
-        let bulbRect = CGRect(
-            x: center.x - bulbWidth / 2,
-            y: center.y - bulbHeight / 2,
-            width: bulbWidth,
-            height: bulbHeight
-        )
-        path.addEllipse(in: bulbRect)
-        
-        // Small base/neck at bottom (rectangular with rounded top)
-        let baseWidth = width * 0.25
-        let baseHeight = height * 0.25
-        let baseRect = CGRect(
-            x: center.x - baseWidth / 2,
-            y: center.y + bulbHeight / 2 - baseHeight * 0.3,
-            width: baseWidth,
-            height: baseHeight
-        )
-        path.addRoundedRect(in: baseRect, cornerSize: CGSize(width: baseWidth * 0.3, height: baseWidth * 0.3))
-        
+        path.move(to: CGPoint(x: 0, y: 1))
+        path.addCurve(to: CGPoint(x: 0.2, y: 0.44), control1: CGPoint(x: 0.1, y: 0.9), control2: CGPoint(x: 0.22, y: 0.62))
+        path.addCurve(to: CGPoint(x: 0, y: 0.26), control1: CGPoint(x: 0.18, y: 0.3), control2: CGPoint(x: 0.08, y: 0.26))
+        path.addCurve(to: CGPoint(x: -0.2, y: 0.44), control1: CGPoint(x: -0.08, y: 0.26), control2: CGPoint(x: -0.18, y: 0.3))
+        path.addCurve(to: CGPoint(x: 0, y: 1), control1: CGPoint(x: -0.22, y: 0.62), control2: CGPoint(x: -0.1, y: 0.9))
+        path.closeSubpath()
         return path
+    }()
+
+    static func drawStrand(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
+        let t = CGFloat(time)
+        let wind = sin(t * 0.35) * 0.6 + sin(t * 0.9 + 1) * 0.25
+        let hooks = 4
+        let bulbsPerSwag = 7
+        let bulbLength: CGFloat = 36
+
+        var cord = Path()
+        var bulbs: [(point: CGPoint, swing: Double, index: Int)] = []
+
+        for k in 0..<hooks {
+            let p0 = CGPoint(x: size.width * CGFloat(k) / CGFloat(hooks), y: -4)
+            let p2 = CGPoint(x: size.width * CGFloat(k + 1) / CGFloat(hooks), y: -4)
+            let sag = size.height * 0.075 * (1 + 0.12 * sin(t * 0.5 + CGFloat(k))) + abs(wind) * 4
+            let control = CGPoint(x: (p0.x + p2.x) / 2 + wind * 22, y: p0.y + sag * 2)
+            cord.move(to: p0)
+            cord.addQuadCurve(to: p2, control: control)
+
+            for i in 0..<bulbsPerSwag {
+                let u = (CGFloat(i) + 0.5) / CGFloat(bulbsPerSwag)
+                let a = (1 - u) * (1 - u)
+                let b = 2 * (1 - u) * u
+                let c = u * u
+                let point = CGPoint(x: a * p0.x + b * control.x + c * p2.x, y: a * p0.y + b * control.y + c * p2.y)
+                let index = k * bulbsPerSwag + i
+                let swing = Double(sin(t * 1.3 + CGFloat(index)) * 0.08 - wind * 0.15)
+                bulbs.append((point: point, swing: swing, index: index))
+            }
+        }
+
+        // Cord: dark twisted wire with a highlight.
+        ctx.stroke(cord, with: .color(BG.rgb(0.04, 0.2, 0.08)), style: StrokeStyle(lineWidth: 3.6, lineCap: .round))
+        var highlight = ctx
+        highlight.translateBy(x: 0, y: -0.8)
+        highlight.stroke(cord, with: .color(BG.rgb(0.4, 0.65, 0.4, 0.55)), style: StrokeStyle(lineWidth: 1, lineCap: .round, dash: [5, 3]))
+
+        for bulb in bulbs {
+            let color = colors[bulb.index % colors.count]
+            let chase = 0.5 + 0.5 * sin(t * 2.2 - CGFloat(bulb.index) * 0.55)
+            let twinkle = pow(max(0, sin(t * BG.hash(bulb.index, 201, 1.5, 3.5) + BG.hash(bulb.index, 202) * 6.28)), 6)
+            let brightness = BG.clamp01(0.3 + 0.5 * chase + 0.3 * twinkle)
+            drawBulb(in: &ctx, at: bulb.point, length: bulbLength, swing: bulb.swing, color: color, brightness: brightness)
+        }
+    }
+
+    static func drawBulb(in ctx: inout GraphicsContext, at socket: CGPoint, length: CGFloat, swing: Double, color: Color, brightness: CGFloat) {
+        let glowCenter = CGPoint(x: socket.x - CGFloat(sin(swing)) * length * 0.6, y: socket.y + CGFloat(cos(swing)) * length * 0.6)
+        ctx.glow(at: glowCenter, radius: length * 2.1, color: color, intensity: Double(0.5 * brightness))
+        ctx.glow(at: glowCenter, radius: length * 0.8, color: color, intensity: Double(0.45 * brightness), additive: true)
+
+        var bulb = ctx
+        bulb.translateBy(x: socket.x, y: socket.y)
+        bulb.rotate(by: .radians(swing))
+        bulb.scaleBy(x: length, y: length)
+
+        // Socket: a small green cylinder.
+        let socketRect = Path(roundedRect: CGRect(x: -0.12, y: -0.02, width: 0.24, height: 0.32), cornerRadius: 0.05)
+        bulb.fill(
+            socketRect,
+            with: .linearGradient(
+                Gradient(colors: [BG.rgb(0.05, 0.25, 0.1), BG.rgb(0.35, 0.65, 0.4), BG.rgb(0.04, 0.2, 0.08)]),
+                startPoint: CGPoint(x: -0.12, y: 0),
+                endPoint: CGPoint(x: 0.12, y: 0)
+            )
+        )
+
+        // Glass: hot white core fading through the bulb's color to a darker rim.
+        let core = Color.white.opacity(Double(0.35 + 0.65 * brightness))
+        bulb.fill(
+            glass,
+            with: .radialGradient(
+                Gradient(stops: [
+                    .init(color: core, location: 0),
+                    .init(color: color, location: 0.45),
+                    .init(color: color.opacity(0.85), location: 1)
+                ]),
+                center: CGPoint(x: -0.04, y: 0.58),
+                startRadius: 0,
+                endRadius: 0.42
+            )
+        )
+        bulb.fill(glass, with: .color(.black.opacity(Double((1 - brightness) * 0.45))))
+        bulb.fill(BG.ellipse(CGPoint(x: -0.08, y: 0.5), 0.03, 0.11), with: .color(.white.opacity(0.75)))
+        bulb.stroke(glass, with: .color(.white.opacity(0.2)), lineWidth: 0.02)
     }
 }
-

@@ -125,7 +125,10 @@ struct ContentView: View {
             
             // Background animations (only in month view) - Edge to edge
             if calendarViewModel.viewMode == .month {
-                MonthBackgroundAnimationView(currentDate: calendarViewModel.currentDate)
+                MonthBackgroundAnimationView(
+                    currentDate: calendarViewModel.currentDate,
+                    selectedDate: calendarViewModel.selectedDate
+                )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
             }
@@ -406,7 +409,10 @@ struct ContentView: View {
             
             // Background animations (only in month view) - Edge to edge
             if calendarViewModel.viewMode == .month {
-                MonthBackgroundAnimationView(currentDate: calendarViewModel.currentDate)
+                MonthBackgroundAnimationView(
+                    currentDate: calendarViewModel.currentDate,
+                    selectedDate: calendarViewModel.selectedDate
+                )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
             }
