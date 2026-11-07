@@ -40,6 +40,21 @@ struct ContentView: View {
 #endif
     
     
+    /// Presentations that hide the month background completely. On tvOS every sheet is
+    /// full screen; elsewhere sheets leave the background partly visible.
+    private var isMonthBackgroundCovered: Bool {
+        #if os(tvOS)
+        return calendarViewModel.showSettings
+            || calendarViewModel.showEventTemplates
+            || calendarViewModel.showViewModeSelector
+            || calendarViewModel.showTVEventManagement
+            || showQuickAdd
+            || showPermissionPrimer
+        #else
+        return showPermissionPrimer
+        #endif
+    }
+
     private var mainContentView: some View {
         ZStack {
             if calendarViewModel.viewMode == .agenda {
@@ -149,7 +164,8 @@ struct ContentView: View {
             if calendarViewModel.viewMode == .month {
                 MonthBackgroundAnimationView(
                     currentDate: calendarViewModel.currentDate,
-                    selectedDate: calendarViewModel.selectedDate
+                    selectedDate: calendarViewModel.selectedDate,
+                    isPaused: isMonthBackgroundCovered
                 )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()
@@ -433,7 +449,8 @@ struct ContentView: View {
             if calendarViewModel.viewMode == .month {
                 MonthBackgroundAnimationView(
                     currentDate: calendarViewModel.currentDate,
-                    selectedDate: calendarViewModel.selectedDate
+                    selectedDate: calendarViewModel.selectedDate,
+                    isPaused: isMonthBackgroundCovered
                 )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .ignoresSafeArea()

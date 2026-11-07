@@ -29,8 +29,8 @@ struct DayView: View {
     #if !os(tvOS)
     @State private var weatherInfo: WeatherInfo?
     @State private var weatherForecast: WeatherForecast?
-    @State private var weatherDisplayState: WeatherDisplayState = .icon
-    @State private var weatherRotationTask: Task<Void, Never>?
+    /// Shared across all cells so the weather indicators flip together on one timer.
+    private let weatherClock = WeatherRotationClock.shared
     #endif
     
 #if os(tvOS)
@@ -77,7 +77,6 @@ struct DayView: View {
             .overlay(todayOverlay)
             .overlay(weatherOverlay)
             .onAppear(perform: handleAppear)
-            .onDisappear(perform: handleDisappear)
             .onChange(of: day.date) { _, _ in
                 handleDateChange(day.date)
             }
@@ -306,7 +305,7 @@ struct DayView: View {
                 weatherInfo: weatherInfo,
                 weatherForecast: weatherForecast,
                 date: day.date,
-                displayState: weatherDisplayState
+                displayState: weatherClock.state
             )
             .padding(.top, 2)
             .padding(.trailing, 4)
@@ -319,14 +318,8 @@ struct DayView: View {
         #if !os(tvOS)
         if featureFlags.weatherIntegration {
             loadWeatherForDay()
-            startWeatherRotation()
+            weatherClock.start()
         }
-        #endif
-    }
-    
-    private func handleDisappear() {
-        #if !os(tvOS)
-        stopWeatherRotation()
         #endif
     }
     
@@ -395,48 +388,15 @@ struct DayView: View {
         weatherManager.getWeatherForCoordinates(latitude: location.latitude, longitude: location.longitude, date: day.date) { weather in
             DispatchQueue.main.async {
                 weatherInfo = weather
-                // Restart rotation when weather data loads
-                if weather != nil {
-                    startWeatherRotation()
-                }
             }
             
             // Try to get forecast for high/low temps (using coordinates directly, avoids geocoding)
             weatherManager.getWeatherForecastForCoordinates(latitude: location.latitude, longitude: location.longitude) { forecast in
                 DispatchQueue.main.async {
                     weatherForecast = forecast
-                    // Restart rotation when forecast loads
-                    if forecast != nil {
-                        startWeatherRotation()
-                    }
                 }
             }
         }
-    }
-    
-    private func startWeatherRotation() {
-        stopWeatherRotation()
-        weatherRotationTask = Task { @MainActor in
-            while !Task.isCancelled {
-                // Rotate through states: icon -> high temp -> feels like (if available)
-                weatherDisplayState = .icon
-                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
-                
-                if Task.isCancelled { break }
-                weatherDisplayState = .highTemp
-                try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
-                
-                if Task.isCancelled { break }
-                // Only show feels like if we have that data (for now, skip it as we don't have it)
-                // weatherDisplayState = .feelsLike
-                // try? await Task.sleep(nanoseconds: 10_000_000_000) // 10 seconds
-            }
-        }
-    }
-    
-    private func stopWeatherRotation() {
-        weatherRotationTask?.cancel()
-        weatherRotationTask = nil
     }
     #endif
     
