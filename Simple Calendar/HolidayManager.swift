@@ -35,257 +35,10 @@ class HolidayManager: ObservableObject {
     // Cache for holidays on specific dates to avoid repeated filtering
     private var dateHolidaysCache: [String: [CalendarHoliday]] = [:] // "year-month-day" -> Holidays cache
 
-    private let allHolidays: [CalendarHoliday] = [
-        // MARK: - Government/Banking Holidays (National)
-        .newYearsDay,
-        .martinLutherKingJrDay,
-        .presidentsDay,
-        .washingtonsBirthday,
-        .lincolnsBirthday,
-        .patriotDay,
-        .memorialDay,
-        .juneteenth,
-        .flagDay,
-        .fourthOfJuly,
-        .constitutionDay,
-        .laborDay,
-        .indigenousPeoplesDay,
-        .electionDay,
-        .veteransDay,
-        .pearlHarborDay,
-        .arborDay,
-        
-        // MARK: - Religious Holidays
-        .epiphany,
-        .threeKingsDay,
-        .candlemas,
-        .stValentinesDay,
-        .stPatricksDay,
-        .ashWednesday,
-        .lentBegins,
-        .mardiGras,
-        .palmSunday,
-        .maundyThursday,
-        .goodFriday,
-        .holySaturday,
-        .easter,
-        .easterMonday,
-        .ascensionDay,
-        .pentecost,
-        .whitMonday,
-        .trinitySunday,
-        .corpusChristi,
-        .feastOfTheAssumption,
-        .allSaintsDay,
-        .allSoulsDay,
-        .firstSundayOfAdvent,
-        .stNicholasDay,
-        .immaculateConception,
-        .christmasEve,
-        .christmasDay,
-        .roshHashanah,
-        .yomKippur,
-        .hanukkah,
-        .passover,
-        .purim,
-        .sukkot,
-        .shavuot,
-        .tuBshevat,
-        .lagBOmer,
-        .tishaBAv,
-        .simchatTorah,
-        .sheminiAtzeret,
-        .diwali,
-        .ramadanStart,
-        .eidAlFitr,
-        .eidAlAdha,
-        .vesak,
-        .holi,
-        
-        // MARK: - Social/Cultural Holidays
-        .newYearsEve,
-        .chineseNewYear,
-        .groundhogDay,
-        .superBowlSunday,
-        .valentinesDay,
-        .nationalPizzaDay,
-        .aprilFoolsDay,
-        .earthDay,
-        .cincoDeMayo,
-        .kentuckyDerby,
-        .nationalHamburgerDay,
-        .mothersDay,
-        .nationalDonutDay,
-        .fathersDay,
-        .nationalIceCreamDay,
-        .bastilleDay,
-        .canadaDay,
-        .grandparentsDay,
-        .nationalCoffeeDay,
-        .nationalTacoDay,
-        .halloween,
-        .dayOfTheDead,
-        .thanksgiving,
-        .blackFriday,
-        .cyberMonday,
-        .kwanzaa,
-        .boxingDay,
-        
-        // MARK: - Seasonal Holidays
-        .vernalEquinox,
-        .firstDayOfSpring,
-        .summerSolstice,
-        .firstDayOfSummer,
-        .autumnalEquinox,
-        .winterSolstice,
-        
-        // MARK: - Educational Holidays
-        .piDay,
-        .teachersDay,
-        .bookLoversDay,
-        
-        // MARK: - Additional Holidays
-        .inaugurationDay,
-        .leapDay,
-        .daylightSavingTimeStarts,
-        .daylightSavingTimeEnds,
-        .taxDay,
-        .nationalPetDay,
-        .mayDay,
-        .starWarsDay,
-        .mothersDayWeekend,
-        .armedForcesDay,
-        .emancipationProclamationDay,
-        .rosaParksDay,
-        .billOfRightsDay,
-        .wrightBrothersDay,
-        .nationalFriendshipDay,
-        .nationalSiblingsDay,
-        .nationalWomensDay,
-        .stGeorgesDay,
-        .walpurgisNight,
-        
-        // MARK: - Additional Unique Holidays
-        .talkLikeAPirateDay,
-        .nationalMargaritaDay,
-        .nationalCheeseDay,
-        .nationalChocolateDay,
-        .nationalPancakeDay,
-        .nationalSandwichDay,
-        .nationalCookieDay,
-        .nationalPretzelDay,
-        .nationalBubbleBathDay,
-        .nationalPajamaDay,
-        
-        // MARK: - Awareness Days
-        .blackHistoryMonthStart,
-        .autismAwarenessDay,
-        .breastCancerAwarenessMonthStart,
-        .mentalHealthAwarenessMonthStart,
-        .worldAidsDay,
-        .heartMonthStart,
-        .diabetesAwarenessMonthStart,
-        .alzheimersAwarenessMonthStart,
-        .worldCancerDay,
-        .worldWaterDay,
-        .earthHour,
-        .worldHealthDay,
-        .arborDayAwareness,
-        .nationalStrokeAwarenessMonthStart,
-        .nationalSkinCancerAwarenessMonthStart,
-        .worldEnvironmentDay,
-        .nationalSuicidePreventionMonthStart,
-        .worldOceansDay,
-        .nationalDomesticViolenceAwarenessMonthStart,
-        
-        // MARK: - Additional Seasonal Holidays
-        .firstDayOfWinter,
-        .firstDayOfFall,
-        
-        // MARK: - Additional Food Holidays
-        .nationalGrilledCheeseDay,
-        .nationalBaconDay,
-        .nationalApplePieDay,
-        .nationalIceCreamForBreakfastDay,
-        
-        // MARK: - Additional Pet Holidays
-        .nationalDogDay,
-        .nationalCatDay,
-        .adoptAShelterPetDay,
-        .nationalPuppyDay,
-        .nationalAnimalDay,
-        .worldWildlifeDay,
-        .nationalParksDay,
-        
-        // MARK: - Additional Fun/Culture Holidays
-        .marioDay,
-        .nationalVideoGameDay,
-        .nationalComicBookDay,
-        .nationalMovieDay,
-        .batmanDay,
-        .pokemonDay,
-        
-        // MARK: - Additional Kindness/Mental Health Holidays
-        .randomActsOfKindnessDay,
-        .worldMentalHealthDay,
-        .nationalKindnessDay,
-        .nationalBestFriendsDay,
-        .worldSmileDay,
-        .worldHappinessDay,
-        .nationalComplimentDay,
-        .nationalRelaxationDay,
-        
-        // MARK: - Additional Educational Holidays
-        .nationalSTEMDay,
-        .nationalReadingDay,
-        .worldBookDay,
-        .nationalTriviaDay,
-        .nationalCartoonistsDay,
-        .nationalPhotographyDay,
-        .nationalCreativityDay,
-        
-        // MARK: - Additional Lifestyle Holidays
-        .newYearsResolutionsDay,
-        .nationalCleanYourRoomDay,
-        .nationalOrganizeYourHomeDay,
-        .nationalWorkFromHomeDay,
-        .nationalTakeAWalkDay,
-        
-        // MARK: - Additional Fun Holidays
-        .nationalHatDay,
-        .nationalLeftHandersDay,
-        .nationalPicnicDay,
-        .nationalJokeDay,
-        .nationalThanksATeacherDay,
-        .nationalBringYourPetToWorkDay,
-        
-        // MARK: - Lunar Phases
-        .newMoonJanuary,
-        .fullMoonJanuary,
-        .newMoonFebruary,
-        .fullMoonFebruary,
-        .newMoonMarch,
-        .fullMoonMarch,
-        .newMoonApril,
-        .fullMoonApril,
-        .newMoonMay,
-        .fullMoonMay,
-        .newMoonJune,
-        .fullMoonJune,
-        .newMoonJuly,
-        .fullMoonJuly,
-        .newMoonAugust,
-        .fullMoonAugust,
-        .newMoonSeptember,
-        .fullMoonSeptember,
-        .newMoonOctober,
-        .fullMoonOctober,
-        .newMoonNovember,
-        .fullMoonNovember,
-        .newMoonDecember,
-        .fullMoonDecember,
-        .blueMoon
-    ]
+    /// Every holiday definition, in display priority order. Which of them a
+    /// user sees depends on their regions (HolidayRegionManager) and enabled
+    /// categories (HolidayCategoryManager); see `isVisible(_:)`.
+    private let allHolidays: [CalendarHoliday] = HolidayCatalog.definitions
 
     private init() {
         // Load holidays for a small window around current year asynchronously
@@ -377,9 +130,8 @@ class HolidayManager: ObservableObject {
         for (_, yearHolidays) in cachedHolidays {
             allHolidays.append(contentsOf: yearHolidays)
         }
-        // Filter by enabled categories
-        let categoryManager = HolidayCategoryManager.shared
-        allHolidays = allHolidays.filter { categoryManager.isEnabled($0.category) }
+        // Filter by enabled categories and active regions
+        allHolidays = allHolidays.filter(isVisible)
         self.holidays = allHolidays.sorted(by: { $0.date < $1.date })
 
         // Limit cache size after updating
@@ -413,10 +165,16 @@ class HolidayManager: ObservableObject {
         }
     }
     
-    /// Filter holidays by enabled categories
-    private func filterByEnabledCategories(_ holidays: [CalendarHoliday]) -> [CalendarHoliday] {
-        let categoryManager = HolidayCategoryManager.shared
-        return holidays.filter { categoryManager.isEnabled($0.category) }
+    /// A holiday is shown when its category is enabled and it belongs to the
+    /// worldwide calendar or a calendar of one of the user's active regions.
+    private func isVisible(_ holiday: CalendarHoliday) -> Bool {
+        HolidayCategoryManager.shared.isEnabled(holiday.category)
+            && HolidayRegionManager.shared.isVisible(holiday)
+    }
+
+    /// Filter holidays by enabled categories and active regions
+    private func filterVisible(_ holidays: [CalendarHoliday]) -> [CalendarHoliday] {
+        holidays.filter(isVisible)
     }
     
     /// Load holidays for a specific year if not already loaded and within supported range
@@ -523,8 +281,8 @@ class HolidayManager: ObservableObject {
         // The holidays will appear once async loading completes
         if let yearHolidays = cachedHolidays[year] {
             let matchingHolidays = yearHolidays.filter { $0.occursOn(date) }
-            // Filter by enabled categories
-            let filteredHolidays = filterByEnabledCategories(matchingHolidays)
+            // Filter by enabled categories and active regions
+            let filteredHolidays = filterVisible(matchingHolidays)
             // Remove duplicates by name to avoid showing the same holiday twice
             var seenNames = Set<String>()
             let finalHolidays = filteredHolidays.filter { holiday in
@@ -558,8 +316,8 @@ class HolidayManager: ObservableObject {
                 let components = Calendar(identifier: .gregorian).dateComponents([.month, .year], from: holiday.date)
                 return components.month == month && components.year == year
             }
-            // Filter by enabled categories
-            return filterByEnabledCategories(monthHolidays)
+            // Filter by enabled categories and active regions
+            return filterVisible(monthHolidays)
         }
         
         // Return empty if not loaded yet
@@ -585,9 +343,9 @@ class HolidayManager: ObservableObject {
         // Ensure we have holidays loaded for this year (async)
         ensureHolidaysForYear(year)
         
-        // Return cached holidays filtered by enabled categories
+        // Return cached holidays filtered by enabled categories and active regions
         if let yearHolidays = cachedHolidays[year] {
-            return filterByEnabledCategories(yearHolidays)
+            return filterVisible(yearHolidays)
         }
         return []
     }
@@ -637,5 +395,13 @@ class HolidayManager: ObservableObject {
     /// Clear date-specific holiday cache (called when categories change)
     func clearDateHolidaysCache() {
         dateHolidaysCache.removeAll()
+    }
+
+    /// Called when the active holiday regions change: drop per-date results
+    /// and republish the filtered holiday list. Computed dates stay cached,
+    /// since they don't depend on region.
+    func holidayFiltersDidChange() {
+        clearDateHolidaysCache()
+        updatePublishedHolidays()
     }
 }

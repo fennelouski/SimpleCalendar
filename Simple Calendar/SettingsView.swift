@@ -34,6 +34,7 @@ struct SettingsContentView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
     @StateObject private var featureFlags = FeatureFlags.shared
     @StateObject private var holidayCategoryManager = HolidayCategoryManager.shared
+    @StateObject private var holidayRegionManager = HolidayRegionManager.shared
     @Binding var showSettings: Bool
     @FocusState private var focusedTheme: ColorTheme?
     @State private var showAboutView = false
@@ -42,9 +43,82 @@ struct SettingsContentView: View {
     @AppStorage("CalendarPlay.allowEventPhotoQueries") private var allowEventPhotoQueries = false
     @AppStorage("CalendarPlay.allowOnlineWeather") private var allowOnlineWeather = false
     @State private var preservedFocusedCategory: CalendarHoliday.CalendarHolidayCategory? = nil
+    @State private var preservedFocusedRegionRow: String? = nil
     @State private var focusRestoreTrigger: UUID = UUID()
     var googleOAuthManager: GoogleOAuthManager?
-    
+
+    // MARK: - Holiday Regions
+
+    /// Which regional holiday calendars are shown. The device's region is on
+    /// by default; other regions can be added on top.
+    private var holidayRegionsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Holiday Regions".localized)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundColor(themeManager.currentPalette.textPrimary)
+                .padding(.horizontal, 16)
+
+            VStack(spacing: 0) {
+                HolidayRegionToggleRow(
+                    rowID: "followDevice",
+                    title: "Match Device Region".localized,
+                    subtitle: "\(holidayRegionManager.deviceRegion.flag) \(holidayRegionManager.deviceRegion.displayName)",
+                    isOn: holidayRegionManager.followsDeviceRegion,
+                    isLocked: false,
+                    themeManager: themeManager,
+                    shouldRestoreFocus: preservedFocusedRegionRow == "followDevice",
+                    focusRestoreTrigger: focusRestoreTrigger,
+                    onFocusChange: { preservedFocusedRegionRow = $0 },
+                    onToggle: {
+                        holidayRegionManager.setFollowsDeviceRegion(!holidayRegionManager.followsDeviceRegion)
+                        restoreFocusAfterToggle()
+                    }
+                )
+
+                ForEach(holidayRegionManager.selectableRegions) { region in
+                    Divider()
+                    HolidayRegionToggleRow(
+                        rowID: region.code,
+                        title: "\(region.flag) \(region.displayName)",
+                        subtitle: regionSubtitle(for: region),
+                        isOn: holidayRegionManager.isActive(region),
+                        isLocked: holidayRegionManager.isActiveAutomatically(region),
+                        themeManager: themeManager,
+                        shouldRestoreFocus: preservedFocusedRegionRow == region.code,
+                        focusRestoreTrigger: focusRestoreTrigger,
+                        onFocusChange: { preservedFocusedRegionRow = $0 },
+                        onToggle: {
+                            holidayRegionManager.toggle(region)
+                            restoreFocusAfterToggle()
+                        }
+                    )
+                }
+            }
+            .background(themeManager.currentPalette.surface.opacity(0.5))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, 16)
+        }
+    }
+
+    private func regionSubtitle(for region: HolidayRegion) -> String {
+        if holidayRegionManager.isActiveAutomatically(region) {
+            return "Your region, included automatically".localized
+        }
+        guard let calendar = HolidayCatalog.calendar(for: region) else {
+            return "No regional holidays yet".localized
+        }
+        let count = calendar.holidays.count
+        return count == 1 ? "1 holiday".localized : "%d holidays".localized(with: count)
+    }
+
+    private func restoreFocusAfterToggle() {
+        // Same focus restoration as the holiday category rows (tvOS re-renders the list).
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            focusRestoreTrigger = UUID()
+        }
+    }
+
     var body: some View {
         ZStack {
             themeManager.currentPalette.calendarBackground
@@ -431,6 +505,8 @@ struct SettingsContentView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 .padding(.horizontal, 16)
                             }
+
+                            holidayRegionsSection
                         }
                         
                         
@@ -1169,6 +1245,96 @@ struct SettingsRowView: View {
     }
 }
 #endif
+
+// MARK: - Holiday Region Toggle Row
+/// A region row in Settings. Mirrors `HolidayCategoryToggleRow` (including tvOS
+/// focus restoration) but takes plain values and an action, since region state
+/// lives in `HolidayRegionManager`.
+struct HolidayRegionToggleRow: View {
+    let rowID: String
+    let title: String
+    let subtitle: String
+    let isOn: Bool
+    /// Shown as on but can't be switched off here (the device region while "Match Device Region" is on).
+    let isLocked: Bool
+    @ObservedObject var themeManager: ThemeManager
+    var shouldRestoreFocus: Bool
+    var focusRestoreTrigger: UUID
+    var onFocusChange: ((String?) -> Void)?
+    var onToggle: () -> Void
+
+#if os(tvOS)
+    @FocusState private var isFocused: Bool
+    @State private var lastRestoreTrigger: UUID?
+
+    var body: some View {
+        HStack(spacing: 12) {
+            labels
+            Spacer()
+            Image(systemName: isOn ? (isLocked ? "lock.circle.fill" : "checkmark.circle.fill") : "circle")
+                .foregroundColor(isOn ? themeManager.currentPalette.primary : themeManager.currentPalette.textSecondary)
+                .font(.system(size: 24))
+        }
+        .contentShape(Rectangle())
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isFocused ? themeManager.currentPalette.primary.opacity(0.15) : Color.clear)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(isFocused ? themeManager.currentPalette.primary : Color.clear, lineWidth: 2)
+                )
+        )
+        .scaleEffect(isFocused ? 1.02 : 1.0)
+        .animation(.easeInOut(duration: 0.2), value: isFocused)
+        .focusable()
+        .focused($isFocused)
+        .onChange(of: isFocused) { _, newValue in
+            if newValue {
+                onFocusChange?(rowID)
+            }
+        }
+        .onChange(of: focusRestoreTrigger) { _, trigger in
+            if shouldRestoreFocus && trigger != lastRestoreTrigger && !isFocused {
+                lastRestoreTrigger = trigger
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    isFocused = true
+                }
+            }
+        }
+        .onTapGesture {
+            if !isLocked { onToggle() }
+        }
+    }
+#else
+    var body: some View {
+        HStack(spacing: 12) {
+            labels
+            Spacer()
+            Toggle("", isOn: Binding(get: { isOn }, set: { _ in onToggle() }))
+                .labelsHidden()
+                .disabled(isLocked)
+        }
+        .padding(.vertical, 12)
+        .padding(.horizontal, 16)
+    }
+#endif
+
+    private var labels: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.body)
+                .fontWeight(.medium)
+                .foregroundColor(themeManager.currentPalette.textPrimary)
+                .lineLimit(nil)
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundColor(themeManager.currentPalette.textSecondary)
+                .lineLimit(nil)
+        }
+    }
+}
 
 // MARK: - Holiday Category Toggle Row
 struct HolidayCategoryToggleRow: View {
