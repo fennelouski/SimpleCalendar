@@ -45,6 +45,9 @@ struct AstronomicalInfoSection: View {
                     VStack(alignment: .leading, spacing: 16) {
                         // Sunrise and Sunset (side by side)
                         sunriseSunsetRow(astronomicalData: data)
+                        Text("Estimated from this device's time zone and region; times may differ from your city.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                         
                         // Daylight and Night Duration (side by side)
                         daylightNightRow(astronomicalData: data)
@@ -72,6 +75,9 @@ struct AstronomicalInfoSection: View {
                     VStack(alignment: .leading, spacing: 16) {
                         // Sunrise and Sunset (side by side)
                         sunriseSunsetRow(astronomicalData: data)
+                        Text("Estimated from this device's time zone and region; times may differ from your city.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                         
                         // Daylight and Night Duration (side by side)
                         daylightNightRow(astronomicalData: data)
@@ -190,6 +196,7 @@ struct AstronomicalInfoSection: View {
     }
     
     private func loadWeather() {
+        guard CalendarNetworkConsent.allows(CalendarNetworkConsent.weather) else { return }
         // Check if we've already loaded weather for this date
         let calendar = Calendar.current
         if let lastDate = lastLoadedDate,
@@ -483,7 +490,7 @@ struct TwilightTransitionRow: View {
             Text(label)
                 .font(.system(size: 16, weight: .medium))
                 .foregroundColor(themeManager.currentPalette.textPrimary)
-                .lineLimit(1)
+                .fixedSize(horizontal: false, vertical: true)
             
             Spacer()
         }

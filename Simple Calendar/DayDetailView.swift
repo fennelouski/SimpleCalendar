@@ -51,7 +51,7 @@ struct DayDetailView: View {
     // Computed properties for event filtering logic
     private var filteredEvents: [CalendarEvent] {
         let allDayEvents = calendarViewModel.events.filter { event in
-            Calendar(identifier: .gregorian).isDate(event.startDate, inSameDayAs: date)
+            event.occurs(on: date)
         }
 
         // Separate user events (tvOS-created) from other events
@@ -77,7 +77,7 @@ struct DayDetailView: View {
 
     private var shouldShowOversizedEmoji: Bool {
         let allDayEvents = calendarViewModel.events.filter { event in
-            Calendar(identifier: .gregorian).isDate(event.startDate, inSameDayAs: date)
+            event.occurs(on: date)
         }
         let userEventsCount = allDayEvents.filter { $0.calendarIdentifier == "tv_local" }.count
 
@@ -270,7 +270,8 @@ struct DayDetailView: View {
         defer { isLoadingOnThisDay = false }
         
         do {
-            onThisDayData = try await onThisDayService.fetchData(for: date)
+            let result = try await onThisDayService.fetchData(for: date)
+            if featureFlags.onThisDayEnabled { onThisDayData = result }
         } catch {
             onThisDayError = error
             print("Failed to load On This Day data: \(error.localizedDescription)")

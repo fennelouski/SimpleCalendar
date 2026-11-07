@@ -14,6 +14,7 @@ struct EventDetailView: View {
     @EnvironmentObject var themeManager: ThemeManager
     @EnvironmentObject var uiConfig: UIConfiguration
     @State private var eventImage: PlatformImage?
+    @AppStorage(CalendarNetworkConsent.weather) private var allowsOnlineWeather = false
     @State private var weatherInfo: WeatherInfo?
 
     init(event: CalendarEvent, showOversizedEmoji: Bool = true) {
@@ -40,15 +41,8 @@ struct EventDetailView: View {
                         .cornerRadius(8)
                     
                     // Attribution overlay
-                    if UserDefaults.standard.bool(forKey: "showUnsplashAttribution"),
-                       let metadata = calendarViewModel.getImageMetadataForEvent(event) {
-                        Text("Photo by %@".localized(with: metadata.author))
-                            .font(.caption2)
-                            .foregroundColor(themeManager.currentPalette.textPrimary)
-                            .padding(6)
-                            .background(themeManager.currentPalette.surface.opacity(0.9))
-                            .cornerRadius(4)
-                            .padding(4)
+                    if let metadata = calendarViewModel.getImageMetadataForEvent(event) {
+                        UnsplashAttributionView(author: metadata.author, authorURL: metadata.authorUrl).padding(4)
                     }
                 }
             }
@@ -167,7 +161,7 @@ struct EventDetailView: View {
                     .cornerRadius(8)
                 
                 // Weather info for events with location
-                if let weather = weatherInfo {
+                if allowsOnlineWeather, let weather = weatherInfo {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Weather Forecast".localized)
                             .font(uiConfig.eventDetailFont)
@@ -191,6 +185,7 @@ struct EventDetailView: View {
                                 .foregroundColor(themeManager.currentPalette.textSecondary)
                         }
                         .font(uiConfig.captionFont)
+                        OpenMeteoAttributionView()
                     }
                     .padding(12)
                     .frame(maxWidth: .infinity) // Match map view width
@@ -216,11 +211,11 @@ struct EventDetailView: View {
     }
     
     private func loadEventImage() {
-        if let imageId = event.imageRepositoryId {
-            eventImage = ImageManager.shared.getImage(for: imageId)
+        if let imageId = event.imageRepositoryId, let image = ImageManager.shared.getImage(for: imageId) {
+            eventImage = image
         } else {
             // Try to fetch an image for this event
-            ImageManager.shared.findOrFetchImage(for: event) { imageId in
+            calendarViewModel.fetchImageForEvent(event) { imageId in
                 if let imageId = imageId {
                     DispatchQueue.main.async {
                         self.eventImage = ImageManager.shared.getImage(for: imageId)

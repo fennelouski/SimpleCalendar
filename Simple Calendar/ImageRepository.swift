@@ -20,6 +20,9 @@ struct ImageMetadata: Codable {
     let tags: [String]
     let locationQuery: String?
     let titleQuery: String?
+    var isUserSelected: Bool? = nil
+
+    var isDisposableCache: Bool { unsplashId != nil && isUserSelected == false }
 
     var isExpired: Bool {
         let expirationDate = cachedAt.addingTimeInterval(7 * 24 * 60 * 60) // 7 days
@@ -30,23 +33,31 @@ struct ImageMetadata: Codable {
 class ImageRepository {
     static let shared = ImageRepository()
 
+    private let lock = NSRecursiveLock()
     private let cacheDirectory: URL
     private let metadataFile: URL
+    private var metadataReadable = true
     private var imageMetadata: [String: ImageMetadata] = [:]
     private let memoryCache = NSCache<NSString, PlatformImage>()
     private let maxCacheSize = 50 * 1024 * 1024 // 50MB limit for memory cache
 
-    private init() {
-        let cachesDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        cacheDirectory = cachesDirectory.appendingPathComponent("CalendarImages")
+    init(directory: URL? = nil) {
+        let support = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+        cacheDirectory = directory ?? support.appendingPathComponent("CalendarImages", isDirectory: true)
         metadataFile = cacheDirectory.appendingPathComponent("metadata.json")
-
         try? FileManager.default.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
-
-        // Set memory cache limits
+        if directory == nil {
+            // Retain the old cache as a recovery source; selected/imported images now live durably.
+            let legacy = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!.appendingPathComponent("CalendarImages")
+            if let files = try? FileManager.default.contentsOfDirectory(at: legacy, includingPropertiesForKeys: nil) {
+                for source in files {
+                    let target = cacheDirectory.appendingPathComponent(source.lastPathComponent)
+                    if !FileManager.default.fileExists(atPath: target.path) { try? FileManager.default.copyItem(at: source, to: target) }
+                }
+            }
+        }
         memoryCache.totalCostLimit = maxCacheSize
-        memoryCache.countLimit = 100 // Max 100 images in memory
-
+        memoryCache.countLimit = 100
         loadMetadata()
         cleanupExpiredImages()
         setupMemoryPressureHandler()
@@ -70,6 +81,7 @@ class ImageRepository {
     // MARK: - Public Methods
 
     func getImage(for id: String) -> PlatformImage? {
+        lock.lock(); defer { lock.unlock() }
         guard imageMetadata[id] != nil else { return nil }
 
         // Check memory cache first
@@ -90,37 +102,43 @@ class ImageRepository {
     }
 
     func getImageMetadata(for id: String) -> ImageMetadata? {
+        lock.lock(); defer { lock.unlock() }
         return imageMetadata[id]
     }
 
-    func saveImage(_ image: PlatformImage, metadata: ImageMetadata) {
+    @discardableResult
+    func saveImage(_ image: PlatformImage, metadata: ImageMetadata) -> Bool {
+        lock.lock(); defer { lock.unlock() }
+        guard metadataReadable else { return false }
         let imagePath = cacheDirectory.appendingPathComponent("\(metadata.id).jpg")
-
-        // Save image
+        let imageData: Data?
         #if os(macOS)
-        if let tiffData = image.tiffRepresentation,
-           let bitmapImageRep = NSBitmapImageRep(data: tiffData),
-           let jpegData = bitmapImageRep.representation(using: .jpeg, properties: [.compressionFactor: 0.8]) {
-            try? jpegData.write(to: imagePath)
-        }
+        imageData = image.tiffRepresentation.flatMap { NSBitmapImageRep(data: $0)?.representation(using: .jpeg, properties: [.compressionFactor: 0.8]) }
         #else
-        if let imageData = image.jpegData(compressionQuality: 0.8) {
-            try? imageData.write(to: imagePath)
-        }
+        imageData = image.jpegData(compressionQuality: 0.8)
         #endif
-
-        // Save metadata
-        imageMetadata[metadata.id] = metadata
-        saveMetadata()
-
-        // Periodically limit cache size
-        DispatchQueue.global(qos: .background).async {
-            self.limitCacheSize()
-        }
+        guard let imageData else { return false }
+        var updated = imageMetadata
+        updated[metadata.id] = metadata
+        let previousBytes = try? Data(contentsOf: imagePath)
+        do {
+            let index = try JSONEncoder().encode(updated)
+            try imageData.write(to: imagePath, options: .atomic)
+            do { try index.write(to: metadataFile, options: .atomic) }
+            catch {
+                if let previousBytes { try? previousBytes.write(to: imagePath, options: .atomic) }
+                else { try? FileManager.default.removeItem(at: imagePath) }
+                throw error
+            }
+            imageMetadata = updated
+            memoryCache.setObject(image, forKey: metadata.id as NSString)
+            return true
+        } catch { return false }
     }
 
     func findSimilarImages(for title: String, location: String? = nil) -> [ImageMetadata] {
-        var candidates = imageMetadata.values.filter { !$0.isExpired }
+        lock.lock(); defer { lock.unlock() }
+        var candidates = imageMetadata.values.filter { !$0.isExpired || !$0.isDisposableCache }
 
         // Prioritize images with similar titles
         if !title.isEmpty {
@@ -136,12 +154,14 @@ class ImageRepository {
     }
 
     func getRandomImage() -> ImageMetadata? {
-        let validImages = imageMetadata.values.filter { !$0.isExpired }
+        lock.lock(); defer { lock.unlock() }
+        let validImages = imageMetadata.values.filter { !$0.isExpired || !$0.isDisposableCache }
         return validImages.randomElement()
     }
 
     func clearExpiredImages() {
-        let expiredIds = imageMetadata.values.filter { $0.isExpired }.map { $0.id }
+        lock.lock(); defer { lock.unlock() }
+        let expiredIds = imageMetadata.values.filter { $0.isDisposableCache && $0.isExpired }.map { $0.id }
 
         for id in expiredIds {
             imageMetadata.removeValue(forKey: id)
@@ -154,76 +174,45 @@ class ImageRepository {
     }
 
     func limitCacheSize(maxImages: Int = 200) {
-        // If we have too many images, remove oldest ones
-        if imageMetadata.count > maxImages {
-            let sortedByAge = imageMetadata.values.sorted { $0.cachedAt < $1.cachedAt }
-            let imagesToRemove = sortedByAge.prefix(imageMetadata.count - maxImages)
-
-            for metadata in imagesToRemove {
-                imageMetadata.removeValue(forKey: metadata.id)
-                let imagePath = cacheDirectory.appendingPathComponent("\(metadata.id).jpg")
-                try? FileManager.default.removeItem(at: imagePath)
-                memoryCache.removeObject(forKey: metadata.id as NSString)
-            }
-
-            saveMetadata()
+        lock.lock(); defer { lock.unlock() }
+        let disposable = imageMetadata.values.filter { $0.isDisposableCache }.sorted { $0.cachedAt < $1.cachedAt }
+        var totalBytes = disposable.reduce(0) { total, item in
+            total + ((try? cacheDirectory.appendingPathComponent("\(item.id).jpg").resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0)
         }
-
-        // Also limit disk space (rough estimate: 1MB per image on average)
-        let maxDiskSize = 200 * 1024 * 1024 // 200MB
-        do {
-            let contents = try FileManager.default.contentsOfDirectory(at: cacheDirectory, includingPropertiesForKeys: [.fileSizeKey])
-            let totalSize = contents.reduce(0) { total, url in
-                let size = (try? url.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
-                return total + size
-            }
-
-            if totalSize > maxDiskSize {
-                // Remove oldest files until we're under the limit
-                let sortedContents = contents.sorted {
-                    let date1 = (try? $0.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
-                    let date2 = (try? $1.resourceValues(forKeys: [.creationDateKey]))?.creationDate ?? Date.distantPast
-                    return date1 < date2
-                }
-
-                var currentSize = totalSize
-                for url in sortedContents {
-                    if currentSize <= maxDiskSize { break }
-                    let size = (try? url.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
-                    try? FileManager.default.removeItem(at: url)
-                    currentSize -= size
-
-                    // Also remove from metadata if it's tracked
-                    let filename = url.deletingPathExtension().lastPathComponent
-                    imageMetadata.removeValue(forKey: filename)
-                    memoryCache.removeObject(forKey: filename as NSString)
-                }
-                saveMetadata()
-            }
-        } catch {
-            print("Error managing cache size: \(error)")
+        var count = disposable.count
+        for item in disposable where count > maxImages || totalBytes > 200 * 1024 * 1024 {
+            let path = cacheDirectory.appendingPathComponent("\(item.id).jpg")
+            let size = (try? path.resourceValues(forKeys: [.fileSizeKey]))?.fileSize ?? 0
+            do { try FileManager.default.removeItem(at: path) }
+            catch { continue }
+            imageMetadata.removeValue(forKey: item.id)
+            memoryCache.removeObject(forKey: item.id as NSString)
+            count -= 1
+            totalBytes -= size
         }
+        saveMetadata()
     }
 
     // MARK: - Private Methods
 
     private func loadMetadata() {
+        guard FileManager.default.fileExists(atPath: metadataFile.path) else { return }
         guard let data = try? Data(contentsOf: metadataFile),
               let decoded = try? JSONDecoder().decode([String: ImageMetadata].self, from: data) else {
+            metadataReadable = false
             return
         }
         imageMetadata = decoded
     }
 
     private func saveMetadata() {
+        guard metadataReadable else { return }
         guard let data = try? JSONEncoder().encode(imageMetadata) else { return }
-        try? data.write(to: metadataFile)
+        try? data.write(to: metadataFile, options: .atomic)
     }
 
     private func cleanupExpiredImages() {
-        DispatchQueue.global(qos: .background).async {
-            self.clearExpiredImages()
-        }
+        clearExpiredImages()
     }
 
     private func similarityScore(for metadata: ImageMetadata, with words: [String], location: String?) -> Double {

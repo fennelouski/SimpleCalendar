@@ -13,10 +13,10 @@ struct TVEventManagementView: View {
     @EnvironmentObject var calendarViewModel: CalendarViewModel
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.presentationMode) var presentationMode
-    @Environment(\.modelContext) private var modelContext
 
     @State private var eventsForDate: [CalendarEvent] = []
     @State private var showCreateEvent = false
+    @State private var eventToDelete: CalendarEvent?
     @State private var editingEvent: CalendarEvent? = nil
     @State private var selectedEvent: CalendarEvent? = nil
 
@@ -53,6 +53,9 @@ struct TVEventManagementView: View {
                 .padding(.top, 40)
                 .padding(.bottom, 20)
 
+                if let error = calendarViewModel.storageError {
+                    Text(error).foregroundStyle(.red).padding()
+                }
                 // Content
                 if eventsForDate.isEmpty {
                     // No events view
@@ -81,7 +84,7 @@ struct TVEventManagementView: View {
                                 } editAction: {
                                     editingEvent = event
                                 } deleteAction: {
-                                    deleteEvent(event)
+                                    eventToDelete = event
                                 }
                             }
                         }
@@ -131,16 +134,22 @@ struct TVEventManagementView: View {
             .onAppear {
                 loadEventsForDate()
             }
+            .confirmationDialog("Delete this event?", isPresented: Binding(
+                get: { eventToDelete != nil }, set: { if !$0 { eventToDelete = nil } }
+            ), titleVisibility: .visible) {
+                if let eventToDelete {
+                    Button("Delete event", role: .destructive) { deleteEvent(eventToDelete) }
+                }
+                Button("Cancel", role: .cancel) { eventToDelete = nil }
+            }
             .sheet(isPresented: $showCreateEvent) {
                 TVEventCreationView(selectedDate: selectedDate, onEventCreated: { newEvent in
                     addEvent(newEvent)
-                    showCreateEvent = false
                 })
             }
             .sheet(item: $editingEvent) { event in
                 TVEventCreationView(selectedDate: selectedDate, editingEvent: event, onEventCreated: { updatedEvent in
                     updateEvent(updatedEvent)
-                    editingEvent = nil
                 })
             }
             .sheet(item: $selectedEvent) { event in
@@ -153,34 +162,24 @@ struct TVEventManagementView: View {
     }
 
     private func loadEventsForDate() {
-        let calendar = Calendar(identifier: .gregorian)
-        let startOfDay = calendar.startOfDay(for: selectedDate)
-        _ = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
-
-        eventsForDate = calendarViewModel.events.filter { event in
-            let eventStart = calendar.startOfDay(for: event.startDate)
-            return eventStart == startOfDay
-        }
+        eventsForDate = calendarViewModel.events.filter { $0.occurs(on: selectedDate) }
     }
 
-    private func addEvent(_ event: CalendarEvent) {
-        calendarViewModel.events.append(event)
-        calendarViewModel.events.sort { $0.startDate < $1.startDate }
-        loadEventsForDate() // Refresh the list
+    private func addEvent(_ event: CalendarEvent) -> Bool {
+        guard calendarViewModel.addEvent(event) else { return false }
+        loadEventsForDate()
+        return true
     }
 
-    private func updateEvent(_ event: CalendarEvent) {
-        if let index = calendarViewModel.events.firstIndex(where: { $0.id == event.id }) {
-            calendarViewModel.events[index] = event
-            calendarViewModel.events.sort { $0.startDate < $1.startDate }
-            loadEventsForDate() // Refresh the list
-        }
+    private func updateEvent(_ event: CalendarEvent) -> Bool {
+        addEvent(event)
     }
 
     private func deleteEvent(_ event: CalendarEvent) {
-        calendarViewModel.events.removeAll { $0.id == event.id }
-        loadEventsForDate() // Refresh the list
+        eventToDelete = nil
+        if calendarViewModel.deleteLocalEvent(event) { loadEventsForDate() }
     }
+
 }
 
 struct TVEventRow: View {

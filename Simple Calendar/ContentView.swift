@@ -31,6 +31,7 @@ struct ContentView: View {
     @State private var refreshTrigger: UUID = UUID()
     @FocusState private var focusedDate: Date?
     @State private var showPermissionPrimer = false
+    @AppStorage(CalendarNetworkConsent.weather) private var allowsOnlineWeather = false
     
     
 #if os(tvOS)
@@ -74,6 +75,16 @@ struct ContentView: View {
                     .overlay(keyCommandsOverlay, alignment: .center)
             }
         }
+        .safeAreaInset(edge: .top) {
+            if let error = calendarViewModel.storageError {
+                HStack {
+                    Text("Saved events: \(error)")
+                    Button("Retry") { calendarViewModel.reloadLocalEvents() }
+                }
+                .padding()
+                .background(.regularMaterial)
+            }
+        }
         .overlay(SettingsView())
         #if !os(tvOS)
         .sheet(isPresented: $calendarViewModel.showEventCreation) {
@@ -84,7 +95,11 @@ struct ContentView: View {
             EventTemplateSelector(selectedDate: calendarViewModel.selectedDate ?? Date())
         }
         .sheet(isPresented: $showQuickAdd) {
+            #if os(tvOS)
+            TVEventCreationView(selectedDate: calendarViewModel.selectedDate ?? Date()) { calendarViewModel.addEvent($0) }
+            #else
             QuickAddView(isPresented: $showQuickAdd)
+            #endif
         }
         .sheet(isPresented: $calendarViewModel.showViewModeSelector) {
             ViewModeSelectorView()
@@ -92,9 +107,11 @@ struct ContentView: View {
         .sheet(isPresented: $calendarViewModel.showSettings) {
             SettingsContentView(showSettings: $calendarViewModel.showSettings, googleOAuthManager: calendarViewModel.googleOAuthManager ?? GoogleOAuthManager())
         }
-//        .sheet(isPresented: $calendarViewModel.showTVEventManagement) {
-//            TVEventManagementView(selectedDate: calendarViewModel.selectedDate ?? Date())
-//        }
+        #if os(tvOS)
+        .sheet(isPresented: $calendarViewModel.showTVEventManagement) {
+            TVEventManagementView(selectedDate: calendarViewModel.selectedDate ?? Date())
+        }
+        #endif
         #if !os(macOS)
         .fullScreenCover(isPresented: $showPermissionPrimer) {
             PermissionPrimerView(
@@ -109,6 +126,11 @@ struct ContentView: View {
         }
         #endif
         .roundedCorners(.small)
+        #if !os(tvOS)
+        .safeAreaInset(edge: .bottom) {
+            if allowsOnlineWeather && featureFlags.weatherIntegration { OpenMeteoAttributionView().padding(.vertical, 3) }
+        }
+        #endif
     }
     
     var body: some View {
@@ -419,6 +441,10 @@ struct ContentView: View {
             
             // Content that respects safe areas
             mainContentView
+            if calendarViewModel.currentBackgroundImage != nil, let photo = calendarViewModel.currentBackgroundPhoto {
+                VStack { Spacer(); HStack { Spacer(); UnsplashAttributionView(author: photo.user.name, authorURL: photo.user.links.html) } }
+                    .padding(8)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: .ToggleDaylightVisualization)) { _ in
             FeatureFlags.shared.daylightVisualizationCalendar.toggle()
@@ -817,7 +843,9 @@ struct ContentView: View {
 #endif
             let rowsCount = calculateRowsCount(for: days.count, columns: daysPerRow)
 #if os(tvOS)
-            let cellHeight = availableHeight / CGFloat(rowsCount) // Let rows expand to fill available space on tvOS
+            // The first tvOS layout pass can propose zero height; never pass a
+            // negative or non-finite dimension to the day-cell frames.
+            let cellHeight = max(60, availableHeight / CGFloat(max(1, rowsCount)))
 #else
             let cellHeight = max(availableHeight / CGFloat(rowsCount), 60) // Minimum height of 60
 #endif
@@ -1290,8 +1318,7 @@ struct ContentView: View {
         let dayStart = calendar.startOfDay(for: date)
         
         let events = calendarViewModel.events.filter { event in
-            let eventStart = calendar.startOfDay(for: event.startDate)
-            return eventStart == dayStart
+            event.occurs(on: dayStart, calendar: calendar)
         }
         
         // Use normalized date (dayStart) for id and date to ensure focus matching works correctly
@@ -1431,4 +1458,3 @@ private func dayName(for columnIndex: Int, availableWidth: CGFloat? = nil) -> St
     ContentView()
         .environmentObject(CalendarViewModel())
 }
-

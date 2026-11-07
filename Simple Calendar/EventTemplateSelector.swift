@@ -208,6 +208,7 @@ struct EventCreationFromTemplateView: View {
     var body: some View {
         NavigationView {
             Form {
+                if let error = calendarViewModel.storageError { Text(error).foregroundStyle(.red) }
                 Section(header: Text("Event Details".localized)) {
                     TextField("Title".localized, text: $event.title)
                         .font(.headline)
@@ -308,9 +309,7 @@ struct EventCreationFromTemplateView: View {
     private func saveEvent() {
         #if os(tvOS)
         // On tvOS, add the event directly to the viewModel
-        calendarViewModel.events.append(event)
-        calendarViewModel.events.sort { $0.startDate < $1.startDate }
-        presentationMode.wrappedValue.dismiss()
+        if calendarViewModel.addEvent(event) { presentationMode.wrappedValue.dismiss() }
         #else
         eventStore.requestAccess(to: .event) { granted, error in
             guard granted else { return }

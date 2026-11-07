@@ -14,6 +14,7 @@ struct QuickAddView: View {
     @Binding var isPresented: Bool
 
     @State private var title = ""
+    @State private var eventID = UUID().uuidString
     @State private var selectedDate = Date()
     @State private var startTime = Date()
     @State private var endTime = Date().addingTimeInterval(3600) // 1 hour later
@@ -85,6 +86,10 @@ struct QuickAddView: View {
                     #endif
                     .padding(.horizontal)
 
+                if let error = calendarViewModel.storageError {
+                    Text(error).foregroundStyle(.red).padding(.horizontal)
+                }
+
                 // Action Buttons
                 HStack {
                     Button("Cancel".localized) {
@@ -116,10 +121,10 @@ struct QuickAddView: View {
         guard !title.trimmingCharacters(in: .whitespaces).isEmpty else { return }
 
         let event = CalendarEvent(
-            id: UUID().uuidString,
+            id: eventID,
             title: title,
             startDate: isAllDay ? Calendar(identifier: .gregorian).startOfDay(for: selectedDate) : combineDateAndTime(selectedDate, time: startTime),
-            endDate: isAllDay ? Calendar(identifier: .gregorian).startOfDay(for: selectedDate.addingTimeInterval(24 * 60 * 60)) : combineDateAndTime(selectedDate, time: endTime),
+            endDate: isAllDay ? Calendar(identifier: .gregorian).date(byAdding: .day, value: 1, to: Calendar(identifier: .gregorian).startOfDay(for: selectedDate)) ?? selectedDate : combineDateAndTime(selectedDate, time: endTime),
             location: location.isEmpty ? nil : location,
             notes: nil,
             calendarIdentifier: "quick_add",
@@ -127,8 +132,7 @@ struct QuickAddView: View {
         )
 
         // Add to calendar
-        calendarViewModel.addEvent(event)
-        isPresented = false
+        if calendarViewModel.addEvent(event) { isPresented = false }
     }
 
     private func combineDateAndTime(_ date: Date, time: Date) -> Date {
@@ -143,15 +147,5 @@ struct QuickAddView: View {
             hour: timeComponents.hour,
             minute: timeComponents.minute
         )) ?? date
-    }
-}
-
-// Extension to add quick add to CalendarViewModel
-extension CalendarViewModel {
-    func addEvent(_ event: CalendarEvent) {
-        // For now, just add to local events
-        // In a real implementation, this would save to the system calendar
-        events.append(event)
-        events.sort { $0.startDate < $1.startDate }
     }
 }

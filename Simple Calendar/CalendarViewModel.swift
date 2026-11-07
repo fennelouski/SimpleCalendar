@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 #if !os(tvOS)
 import EventKit
 #endif
@@ -57,6 +58,55 @@ class CalendarViewModel: ObservableObject {
         }
     }
     @Published var events: [CalendarEvent] = []
+    @Published var storageError: String?
+    private var localContainer: ModelContainer?
+
+    func attachLocalStore(_ container: ModelContainer) {
+        localContainer = container
+        reloadLocalEvents()
+    }
+
+    private func replaceLocalEvents(_ local: [CalendarEvent]) {
+        events = (events.filter { !LocalCalendarEvents.isLocal($0) } + local)
+            .sorted { $0.startDate < $1.startDate }
+    }
+
+    func reloadLocalEvents() {
+        guard let localContainer else { return }
+        do {
+            replaceLocalEvents(try LocalCalendarEvents.load(from: localContainer))
+            storageError = nil
+        } catch { storageError = error.localizedDescription }
+    }
+
+    @discardableResult
+    func addEvent(_ event: CalendarEvent) -> Bool {
+        guard let localContainer else {
+            storageError = "Saved events are not available yet. Please try again."
+            return false
+        }
+        do {
+            replaceLocalEvents(try LocalCalendarEvents.save(event, in: localContainer))
+            storageError = nil
+            return true
+        } catch {
+            storageError = error.localizedDescription
+            return false
+        }
+    }
+
+    @discardableResult
+    func deleteLocalEvent(_ event: CalendarEvent) -> Bool {
+        guard let localContainer else { return false }
+        do {
+            replaceLocalEvents(try LocalCalendarEvents.delete(id: event.id, from: localContainer))
+            storageError = nil
+            return true
+        } catch {
+            storageError = error.localizedDescription
+            return false
+        }
+    }
     @Published var showDayDetail: Bool = false
     @Published var showSearch: Bool = false
     @Published var showKeyCommands: Bool = false
@@ -67,6 +117,7 @@ class CalendarViewModel: ObservableObject {
     @Published var selectedEventForImage: CalendarEvent?
     @Published var showTVEventManagement: Bool = false
     @Published var currentBackgroundImage: PlatformImage? = nil
+    @Published var currentBackgroundPhoto: UnsplashPhoto? = nil
 
     #if !os(tvOS)
     private let eventStore = EKEventStore()
@@ -154,6 +205,7 @@ class CalendarViewModel: ObservableObject {
     #endif
 
     func loadAllEvents() {
+        reloadLocalEvents()
         #if !os(tvOS)
         loadGoogleEvents()
         #endif
@@ -191,7 +243,7 @@ class CalendarViewModel: ObservableObject {
             }
 
             // Combine with existing events (keeping Google events)
-            let googleEvents = self.events.filter { $0.id.hasPrefix("google_") }
+            let googleEvents = self.events.filter { !$0.id.hasPrefix("system_") }
             self.events = (systemEvents + googleEvents).sorted { $0.startDate < $1.startDate }
         }
     }
@@ -209,7 +261,7 @@ class CalendarViewModel: ObservableObject {
 
             DispatchQueue.main.async {
                 // Combine with existing events (keeping system events)
-                let systemEvents = self.events.filter { $0.id.hasPrefix("system_") }
+                let systemEvents = self.events.filter { !$0.id.hasPrefix("google_") }
                 self.events = (systemEvents + googleEvents).sorted { $0.startDate < $1.startDate }
             }
         }
@@ -485,9 +537,17 @@ class CalendarViewModel: ObservableObject {
         showImageSelection = true
     }
 
-    func assignImageToEvent(_ event: CalendarEvent, imageId: String) {
-        event.imageRepositoryId = imageId
-        objectWillChange.send()
+    @discardableResult
+    func assignImageToEvent(_ event: CalendarEvent, imageId: String) -> Bool {
+        if LocalCalendarEvents.isLocal(event) {
+            let updated = LocalCalendarEvents.copy(event)
+            updated.imageRepositoryId = imageId
+            return addEvent(updated)
+        } else {
+            event.imageRepositoryId = imageId
+            objectWillChange.send()
+            return true
+        }
     }
 
     func getImageForEvent(_ event: CalendarEvent) -> PlatformImage? {
@@ -501,7 +561,12 @@ class CalendarViewModel: ObservableObject {
     }
 
     func fetchImageForEvent(_ event: CalendarEvent, completion: @escaping (String?) -> Void) {
-        imageManager.findOrFetchImage(for: event, completion: completion)
+        imageManager.findOrFetchImage(for: event) { [weak self] imageID in
+            guard let self, let imageID else { completion(nil); return }
+            DispatchQueue.main.async {
+                completion(self.assignImageToEvent(event, imageId: imageID) ? imageID : nil)
+            }
+        }
     }
 
     private func setupSyncTimer() {
@@ -589,7 +654,8 @@ class CalendarViewModel: ObservableObject {
     }
 
     @objc func fetchRandomUnsplashImage() {
-        guard FeatureFlags.shared.automaticUnsplashImages else { return }
+        guard FeatureFlags.shared.automaticUnsplashImages,
+              let ticket = CalendarNetworkRequests.shared.ticket(for: CalendarNetworkConsent.photos) else { return }
         
         // Use a relevant query based on the current month/season
         let monthName = currentDate.formatted(.dateTime.month(.wide))
@@ -602,7 +668,9 @@ class CalendarViewModel: ObservableObject {
                 guard let data = data, let image = PlatformImage(data: data) else { return }
                 
                 DispatchQueue.main.async {
+                    guard FeatureFlags.shared.automaticUnsplashImages, CalendarNetworkRequests.shared.isValid(ticket) else { return }
                     self.currentBackgroundImage = image
+                    self.currentBackgroundPhoto = photo
                     // Track download
                     UnsplashAPI.shared.trackDownload(for: photo.id)
                 }

@@ -28,15 +28,18 @@ class EventExporter {
         """
 
         let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.calendar = Calendar(identifier: .gregorian)
         dateFormatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
         dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
 
         for event in events {
             icsContent += "BEGIN:VEVENT\n"
-            icsContent += "UID:\(event.id)\n"
+            icsContent += "UID:\(escapeString(event.id))\n"
             icsContent += "DTSTAMP:\(dateFormatter.string(from: Date()))\n"
-            icsContent += "DTSTART:\(formatDate(event.startDate, isAllDay: event.isAllDay))\n"
-            icsContent += "DTEND:\(formatDate(event.endDate, isAllDay: event.isAllDay))\n"
+            let dateType = event.isAllDay ? ";VALUE=DATE" : ""
+            icsContent += "DTSTART\(dateType):\(formatDate(event.startDate, isAllDay: event.isAllDay))\n"
+            icsContent += "DTEND\(dateType):\(formatDate(event.endDate, isAllDay: event.isAllDay))\n"
             icsContent += "SUMMARY:\(escapeString(event.title))\n"
 
             if let location = event.location {
@@ -56,17 +59,32 @@ class EventExporter {
 
         icsContent += "END:VCALENDAR\n"
 
-        return icsContent
+        // RFC 5545 requires CRLF and lines no longer than 75 UTF-8 octets.
+        return icsContent.split(separator: "\n", omittingEmptySubsequences: false).map { line in
+            var folded = ""
+            var bytes = 0
+            for scalar in line.unicodeScalars {
+                let character = String(scalar)
+                if bytes + character.utf8.count > 75 { folded += "\r\n "; bytes = 1 }
+                folded += character
+                bytes += character.utf8.count
+            }
+            return folded
+        }.joined(separator: "\r\n")
     }
 
     private static func formatDate(_ date: Date, isAllDay: Bool) -> String {
         if isAllDay {
             let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.calendar = Calendar(identifier: .gregorian)
             dateFormatter.dateFormat = "yyyyMMdd"
-            dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
+            dateFormatter.timeZone = .current
             return dateFormatter.string(from: date)
         } else {
             let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+            dateFormatter.calendar = Calendar(identifier: .gregorian)
             dateFormatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
             dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
             return dateFormatter.string(from: date)
@@ -75,6 +93,8 @@ class EventExporter {
 
     private static func escapeString(_ string: String) -> String {
         return string
+            .replacingOccurrences(of: "\r\n", with: "\n")
+            .replacingOccurrences(of: "\r", with: "\n")
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: ";", with: "\\;")
             .replacingOccurrences(of: ",", with: "\\,")
@@ -83,7 +103,7 @@ class EventExporter {
 
     static func exportSingleEvent(_ event: CalendarEvent) -> URL? {
         let tempDirectory = FileManager.default.temporaryDirectory
-        let fileName = "event_\(event.title.replacingOccurrences(of: " ", with: "_")).ics"
+        let fileName = "event_\(UUID().uuidString).ics"
         let fileURL = tempDirectory.appendingPathComponent(fileName)
 
         do {
@@ -97,13 +117,15 @@ class EventExporter {
 
     static func exportEventsInDateRange(startDate: Date, endDate: Date, events: [CalendarEvent]) -> URL? {
         let eventsInRange = events.filter { event in
-            event.startDate >= startDate && event.startDate <= endDate
+            event.startDate < endDate && event.endDate > startDate
         }
 
         guard !eventsInRange.isEmpty else { return nil }
 
         let tempDirectory = FileManager.default.temporaryDirectory
         let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.calendar = Calendar(identifier: .gregorian)
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let dateRange = "\(dateFormatter.string(from: startDate))_to_\(dateFormatter.string(from: endDate))"
         let fileName = "calendar_events_\(dateRange).ics"

@@ -84,6 +84,7 @@ class FeatureFlags: ObservableObject {
     @Published var onThisDayEnabled: Bool = true {
         didSet {
             UserDefaults.standard.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
+            CalendarNetworkRequests.shared.refreshConsent()
             // Also sync to iCloud
             NSUbiquitousKeyValueStore.default.set(onThisDayEnabled, forKey: "feature_onThisDayEnabled")
             NSUbiquitousKeyValueStore.default.synchronize()

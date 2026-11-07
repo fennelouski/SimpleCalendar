@@ -69,7 +69,7 @@ struct EventIconManager {
         "breakfast": "🥞",
         "coffee": "☕",
         "restaurant": "🍽️",
-        "bar": "🍸",
+        "bar": "🎵",
         "date": "💑",
         
         // Sports & Activities

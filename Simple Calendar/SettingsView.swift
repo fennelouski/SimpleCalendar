@@ -37,6 +37,10 @@ struct SettingsContentView: View {
     @Binding var showSettings: Bool
     @FocusState private var focusedTheme: ColorTheme?
     @State private var showAboutView = false
+    @AppStorage("aiEventSharingConsent_v1") private var aiSharingConsent = false
+    @AppStorage("CalendarPlay.allowOnlinePhotos") private var allowOnlinePhotos = false
+    @AppStorage("CalendarPlay.allowEventPhotoQueries") private var allowEventPhotoQueries = false
+    @AppStorage("CalendarPlay.allowOnlineWeather") private var allowOnlineWeather = false
     @State private var preservedFocusedCategory: CalendarHoliday.CalendarHolidayCategory? = nil
     @State private var focusRestoreTrigger: UUID = UUID()
     var googleOAuthManager: GoogleOAuthManager?
@@ -779,6 +783,36 @@ struct SettingsContentView: View {
                         }
 #endif
                         
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Privacy").font(.headline)
+                            Toggle("Allow AI event parsing", isOn: $aiSharingConsent)
+                            Text("When you select Parse event with AI, Calendar Play sends the description, selected date and time zone to its server and OpenAI. Turning this off prevents new requests from this device; it does not erase information already sent.")
+                                .font(.subheadline)
+                            Toggle("Allow online photos", isOn: $allowOnlinePhotos)
+                                .onChange(of: allowOnlinePhotos) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }
+                            Text("Photo searches go through Calendar Play's server to Unsplash. Photo servers receive your IP address. Saved images stay on this device when this is off.")
+                                .font(.subheadline)
+                            Toggle("Use event titles and locations to find photos", isOn: $allowEventPhotoQueries)
+                                .onChange(of: allowEventPhotoQueries) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }
+                                .disabled(!allowOnlinePhotos)
+                            Text("When both photo options are on, event details can be sent automatically to find matching photos. Leave this off to enter your own search terms.")
+                                .font(.subheadline)
+                            Text("Sunrise, sunset and daylight times use a local estimate from this device's time zone and region. The estimate can differ from your city. No network location lookup is made.")
+                                .font(.subheadline)
+                            #if os(tvOS)
+                            Toggle("Allow online maps", isOn: $allowOnlineWeather)
+                                .onChange(of: allowOnlineWeather) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }
+                            Text("Sends location text to Apple to find places and show maps. Weather requests are not available on Apple TV.").font(.subheadline)
+                            #else
+                            Toggle("Allow online maps and weather", isOn: $allowOnlineWeather)
+                                .onChange(of: allowOnlineWeather) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }
+                            Text("Sends event locations or estimated coordinates to Apple place search and geocoding, and to weather providers for forecasts.").font(.subheadline)
+                            #endif
+                            Link("Privacy policy", destination: URL(string: "https://nathanfennel.com/calendar-play/privacy.html")!)
+                            Link("Support", destination: URL(string: "https://nathanfennel.com/calendar-play/support.html")!)
+                        }
+                        .padding()
+
                         // About Section (moved to bottom)
                         VStack(alignment: .leading, spacing: 12) {
                             Text("About".localized)
@@ -796,7 +830,7 @@ struct SettingsContentView: View {
                                             .fontWeight(.medium)
                                             .foregroundColor(themeManager.currentPalette.textPrimary)
                                         
-                                        Text("Calendar Play 1.0.0")
+                                        Text("Calendar Play \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "")")
                                             .font(.subheadline)
                                             .foregroundColor(themeManager.currentPalette.textSecondary)
                                     }
@@ -920,8 +954,7 @@ struct AboutView: View {
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(themeManager.currentPalette.textPrimary)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
+                            .fixedSize(horizontal: false, vertical: true)
                         
                         Spacer()
                     }
