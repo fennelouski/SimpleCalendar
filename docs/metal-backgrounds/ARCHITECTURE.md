@@ -12,6 +12,7 @@ This is the engineering spec shared by all twelve month scenes. Month documents 
 - Shared GPU systems (particles, clouds, bloom, noise, wind, sun/moon, sky) so each month is mostly *content*, not plumbing.
 - Scenes react to the selected/focused day through discrete transitions (section 9).
 - Fits a fixed GPU budget and degrades gracefully on older hardware.
+- **Stays off the CPU.** The app already works the CPU hard, so the background must cost almost nothing there: under 0.5 ms of CPU per frame, rendered off the main thread (section 13).
 - Deterministic enough for snapshot tests.
 
 **Non-goals**
@@ -53,8 +54,8 @@ The `Simple Calendar` folder is an Xcode *synchronized* group, so new files and 
 ```text
 Simple Calendar/
   MetalBackgrounds/
-    MetalBackgroundView.swift      // SwiftUI ↔ MTKView bridge (UIView/NSView representable)
-    BackgroundRenderer.swift       // MTKViewDelegate: frame loop, scene switching, post-processing
+    MetalBackgroundView.swift      // SwiftUI bridge: CAMetalLayer-backed UIView/NSView representable
+    BackgroundRenderer.swift       // render-thread frame loop (CAMetalDisplayLink), scene switching, post-processing
     RendererResources.swift        // device, queue, pipeline cache, shared textures and targets
     FrameContext.swift             // per-frame CPU data handed to scenes
     SceneSignals.swift             // selection-derived signals (moon phase, daylight, holidays…)
@@ -63,6 +64,7 @@ Simple Calendar/
     ShaderTypes.swift              // Swift mirrors of shader structs (+ layout tests)
     Systems/
       ParticleSystem.swift         // GPU particle buffers and dispatch
+      SwarmSystem.swift            // GPU flow-field flocks (bats, birds)
       CloudSystem.swift
       SkySystem.swift
       CelestialSystem.swift        // sun and moon
@@ -83,39 +85,41 @@ Keep `MoonPhase.swift` (astronomy) as is and reuse it. `MoonPhaseAnimator` becom
 
 ## 4. View layer: `MetalBackgroundView`
 
-A `UIViewRepresentable` (iOS/tvOS) / `NSViewRepresentable` (macOS) wrapping an `MTKView`.
+A `UIViewRepresentable` (iOS/tvOS) / `NSViewRepresentable` (macOS) wrapping a plain view whose backing layer is a `CAMetalLayer` (UIKit: override `layerClass`; AppKit: `wantsLayer = true` and `makeBackingLayer()`). Frames are driven by a **`CAMetalDisplayLink`** (iOS 17, tvOS 17, macOS 14) running on a dedicated render thread, not by `MTKView` on the main thread (section 5).
 
-`MTKView` configuration:
+`CAMetalLayer` configuration:
 
 | Property | Value | Why |
 |---|---|---|
 | `device` | shared `MTLDevice` | one device app-wide |
-| `colorPixelFormat` | `.bgra8Unorm_srgb` | final composite writes linear values; hardware encodes sRGB |
+| `pixelFormat` | `.bgra8Unorm_srgb` | final composite writes linear values; hardware encodes sRGB |
 | `framebufferOnly` | `true` | the drawable is only a render target |
-| `clearColor` | `(0, 0, 0, 0)` | the theme gradient must show through |
-| `isOpaque` / layer opacity | `false` (UIKit: `view.isOpaque = false`, `backgroundColor = .clear`, `(layer as? CAMetalLayer)?.isOpaque = false`; AppKit: `layer?.isOpaque = false`) | premultiplied-alpha compositing over SwiftUI |
-| `preferredFramesPerSecond` | 60 | match tvOS UI |
-| `enableSetNeedsDisplay` | `false` | continuous rendering loop |
-| `isPaused` | driven by visibility (below) | save power |
-| `autoResizeDrawable` | `true` | follow layout and scale |
+| `isOpaque` | `false` (plus `view.isOpaque = false` and a clear background color on UIKit) | premultiplied-alpha compositing over SwiftUI; clear to `(0, 0, 0, 0)` each frame so the theme gradient shows through |
+| `drawableSize` | bounds × screen scale, set on the main thread in `layoutSubviews` / `layout` | follow layout and scale |
+| `maximumDrawableCount` | 3 | matches triple buffering |
+| display link `preferredFrameRateRange` | per month (section 13) | 30 or 60 fps |
 | user interaction | disabled; also `.allowsHitTesting(false)` in SwiftUI | never steals touches or tvOS focus |
 
-**Pausing.** Pause when the view leaves the window, when `scenePhase != .active`, or when the feature flag turns off. Resume with a time *continuation*, not a jump: the scene clock does not advance while paused, so particles don't teleport.
+**Pausing.** Set the display link's `isPaused` when the view leaves the window, when `scenePhase != .active`, when the feature flag turns off, or when a full-screen presentation covers the month view (on tvOS: settings, templates, view-mode picker, event management, quick add, permission primer; the day-detail slide-out only partly covers it, so keep rendering). `ContentView.isMonthBackgroundCovered` already computes this for the Canvas path; reuse it. Resume with a time *continuation*, not a jump: the scene clock does not advance while paused, so particles don't teleport.
 
-**Updates.** `updateUIView`/`updateNSView` passes the new `month`, `SceneSignals` target and `ThemeInfo` to the renderer. The renderer applies them on the next frame. The SwiftUI side never blocks on the GPU.
+**Updates.** `updateUIView`/`updateNSView` hands the new `month`, `SceneSignals` target, `ThemeInfo` and pause state to the renderer through a small lock-protected inbox (section 5). The renderer applies them on its next frame. SwiftUI never drives animation and never blocks on the GPU or the render thread.
 
 ---
 
 ## 5. Renderer and frame loop
 
-`BackgroundRenderer: NSObject, MTKViewDelegate` owns the device, command queue, `RendererResources`, the current `MonthScene` (and an outgoing one during a cross-fade), and the frame clock.
+`BackgroundRenderer` owns the device, command queue, `RendererResources`, the current `MonthScene` (and an outgoing one during a cross-fade), and the frame clock. It is the `CAMetalDisplayLink` delegate; each `metalDisplayLink(_:needsUpdate:)` callback renders one frame into `update.drawable`.
 
-Concurrency: the project defaults to `MainActor` isolation and `MTKView` calls `draw(in:)` on the main thread. Keep the renderer main-actor isolated. Do only *encoding* on the main thread; the GPU does the work. Never wait on GPU completion on the main thread except through the in-flight semaphore.
+**Threading.** The display link is added to the run loop of a **dedicated render thread** (a `Thread` with its own `RunLoop`, quality of service `.userInteractive`). All per-frame work (clock, transitions, uniform writes, encoding) happens there, so the background never competes with focus animations, scrolling or SwiftUI updates on the main thread.
+- The project defaults to `MainActor` isolation. Declare the renderer, scenes, systems and their helpers `nonisolated` so they run on the render thread.
+- The main thread talks to the renderer only through an inbox: a `Mutex<RendererInbox>` (Synchronization framework) holding the latest month, signals target, theme and pause flag. The render thread reads it once per frame. No other shared mutable state.
+- Never wait on GPU completion on any thread except through the in-flight semaphore on the render thread.
+- Take the frame size from `update.drawable.texture` and rebuild size-dependent targets when it changes, rather than reading layer properties off the main thread.
 
 **Per frame**
 
 1. `inFlight.wait()` (a `DispatchSemaphore(value: 3)`, i.e. triple buffering).
-2. Advance the clock: `dt = clamp(now - last, 0, 1/20)` with `CACurrentMediaTime()`; `time += dt`.
+2. Advance the clock from `update.targetPresentationTimestamp` (smoother than sampling `CACurrentMediaTime()`): `dt = clamp(now - last, 0, 1/20)`; `time += dt`.
 3. Resolve signals: update `DiscreteTransition`s against the latest `SceneSignals` target (section 9).
 4. `scene.update(frame)`: CPU-side logic (schedules, spawn decisions, transition-driven parameters). Write per-frame uniforms into this frame's slot of the uniform ring buffer.
 5. Encode compute: particle simulation, any procedural texture updates.
@@ -149,7 +153,7 @@ struct FrameUniforms {
 ## 6. Scene protocol
 
 ```swift
-@MainActor
+/// Runs on the render thread: declare conforming types `nonisolated`.
 protocol MonthScene: AnyObject {
     /// 1...12
     static var month: Int { get }
@@ -226,6 +230,31 @@ Full-screen pass with: vertical haze bands (top and bottom), procedural star fie
 ### 7.9 Bloom, tonemap, composite (`Post.metal`)
 - Bloom: threshold on the emissive and HDR layers (soft knee), dual-Kawase pyramid of 5 levels, added back with per-month strength.
 - Tonemap: ACES-fit curve (or Reinhard with white point 4.0). Then theme adaptation (section 10), global opacity, premultiply, and blue-noise dither to avoid banding in gentle gradients (critical on TVs).
+
+### 7.10 Swarms: GPU flow-field flocks (`Swarm.metal`)
+Bats (October) and bird flocks (August, September, November) use one GPU system. It gives the murmuration look (ribbons, a ripple that runs through the flock, gathering and scattering) without simulating each agent against its neighbors, so it costs no CPU and little GPU even with hundreds of agents.
+
+Each agent's position is an **analytic function of time and its index**, evaluated in the vertex shader:
+
+```text
+lead(t)      = a slowly wandering path for the flock center
+               (sum of 3 low-frequency Lissajous terms + 1D noise, kept in the sky region)
+lag_i        = per-agent delay along the path, 0…L seconds (L = 4–8 s)
+               → agents trail the leader and form a ribbon
+frame(t)     = local frame from lead'(t − lag_i): tangent and normal
+offset_i(t)  = per-agent offset in that frame, scaled by a shape envelope:
+               shape(u_i, t) = 1 + A · sin(k · u_i − ω t)      // the ripple that runs through the flock
+               where u_i = lag_i / L
+spread(t)    = 0…1 scatter amount (gathered ↔ scattered), from the scene's flock-state schedule
+pos_i(t)     = lead(t − lag_i) + frame · offset_i · shape · lerp(1, 4, spread) + small per-agent noise
+heading_i    = direction of d pos_i / dt (finite difference in the shader)
+flap_i       = sin(rate_i · t + φ_i)
+```
+
+- **Flock states** (gathered, rippling, scattering, regrouping) come from a deterministic schedule on the CPU. The CPU only sends `spread`, ripple amplitude and the lead path parameters. **Emergence and return** (bats leaving or entering a belfry, birds entering from off-screen) blend each agent between a source point and its flock position, staggered by index so they stream out in a column.
+- Agents render as instanced SDF silhouettes (section 7.7), sized and blurred by a depth value per agent.
+- Because positions are pure functions of time, swarms are fully deterministic, so snapshot tests work, and need no simulation state.
+- **Simplification is acceptable.** Bats and birds can be simple silhouettes with a two-pose flap. The flock motion carries the effect, not the anatomy.
 
 ---
 
@@ -315,7 +344,39 @@ Each month doc lists its particle and element counts per tier.
 
 ---
 
-## 13. Month switching, warm-up and lifecycle
+## 13. CPU budget and frame rate
+
+The app already works the CPU hard. The background's job is to look rich while costing the CPU almost nothing.
+
+**Budget:** at most **0.5 ms of CPU per frame**, render thread and main thread combined, measured on the oldest supported Apple TV. Zero main-thread work per frame.
+
+**Rules**
+1. **The CPU never loops over particles, blades, bats or drops.** Motion is either an analytic function of time evaluated in shaders (fireworks, swarms, grass, rain, snow) or simulated in GPU compute (wind-driven leaves, ropes). CPU per-frame work is limited to schedules and transitions over a few dozen items at most (flower slots, firework shells, bulb states).
+2. **One small upload per frame.** The CPU writes `FrameUniforms` and, where a month needs it, a small instance buffer (≤ 4 KB) into the ring buffer. Nothing else changes per frame.
+3. **No allocations per frame.** No Swift arrays, closures or objects created in the frame loop. Buffers, textures and pipelines are created once (pipelines at launch, on a background queue) and reused.
+4. **A fixed, small encoding.** Each month encodes the same short list of passes every frame (target: ≤ 12 draw or dispatch calls). Static geometry is generated once on the GPU.
+5. **Render off the main thread** with `CAMetalDisplayLink` (section 5).
+6. **Lowest frame rate that looks right** (table below). Halving the frame rate halves the per-frame cost. A special-day moment may raise its month to 60 fps for its duration.
+7. **Don't render what nobody sees** (pausing rules in section 4).
+8. **SwiftUI only reports changes** (month, selected day, theme, pause). Animation never runs through SwiftUI state.
+9. **Measure it.** Wrap the frame in an `os_signpost` interval. The debug HUD shows CPU ms per frame next to GPU ms. Every month PR attaches an Instruments *Time Profiler* capture alongside the *Metal System Trace*.
+
+**Frame rate per month**
+
+| Month | fps | Why |
+|---|---|---|
+| January, February, March, May, June, August, September, October, December | 30 | slow drift, growth and glow; 30 fps is indistinguishable here |
+| April | 60 | fast rain streaks |
+| July | 60 | fast sparks and trails |
+| November | 30, rising to 60 during strong gusts | leaves move fast only in gusts |
+
+Set this through `preferredFrameRateRange` on the display link. Timing uses real time (section 5), so motion speed doesn't depend on frame rate.
+
+**Interim Canvas mitigations (already shipped).** Until Metal lands, the Canvas scenes are capped at 30 fps and pause when the app is inactive or a full-screen sheet covers the month view (`AnimatedScene` in `BackgroundRendering.swift`, `isMonthBackgroundCovered` in `ContentView.swift`).
+
+---
+
+## 14. Month switching, warm-up and lifecycle
 
 - **Pipelines** compile at build time (`.metal` files) and are created asynchronously at launch for all months (`makeRenderPipelineState(descriptor:completionHandler:)`), so the first switch into a month never hitches. Optionally use an `MTLBinaryArchive`.
 - **Switching months** (navigating Feb → Mar): cross-fade the outgoing scene into the incoming one over **1.2 s**. Both render during the fade. The incoming scene is warmed up (particles pre-simulated) before the fade starts. After the fade, free the outgoing scene's buffers.
@@ -324,7 +385,7 @@ Each month doc lists its particle and element counts per tier.
 
 ---
 
-## 14. Accessibility
+## 15. Accessibility
 
 - **Reduce Motion** (`accessibilityReduceMotion`): freeze scene time at a pleasant, scene-specific "hero" moment. The scene still re-lights for selection changes (for example, the moon phase updates), but by a 2.5 s cross-fade between still frames instead of motion. No particles fall.
 - **Reduce Transparency:** lower `globalOpacity` to 0.35.
@@ -333,7 +394,7 @@ Each month doc lists its particle and element counts per tier.
 
 ---
 
-## 15. Fallback
+## 16. Fallback
 
 Keep the Canvas implementation (`MonthAnimations.swift`, `BackgroundRendering.swift`) compiling and working. Use it when:
 - `MTLCreateSystemDefaultDevice()` returns nil,
@@ -342,9 +403,11 @@ Keep the Canvas implementation (`MonthAnimations.swift`, `BackgroundRendering.sw
 
 Both paths read the same `SceneSignals` and the same transition logic.
 
+**Partial fallback for October bats.** If the GPU swarm (section 7.10) isn't ready when October's Metal scene ships, the existing Canvas bats (`BatFlock` and `OctoberScene.drawBat`) may be layered on top of the Metal October background as a stopgap. That keeps the CPU cost of the current bats, so treat it as temporary and replace it with the GPU swarm.
+
 ---
 
-## 16. Testing
+## 17. Testing
 
 - **Unit tests** (`Simple CalendarTests`):
   - `MoonPhase` accuracy against published new/full moon instants (within 1 hour).
@@ -352,17 +415,17 @@ Both paths read the same `SceneSignals` and the same transition logic.
   - `SceneSignals` special-day mapping per locale-independent identifier.
   - `ShaderTypes` struct strides.
 - **Snapshot tests:** render a month offscreen into a 1920×1080 texture at a fixed time, quality tier, theme (light and dark) and selection. Compare to recorded PNGs with a perceptual tolerance. Cover at least: each month's hero frame, each special-day moment's peak frame, and October at phases 0, 0.25, 0.5, 0.75.
-- **Performance:** a `#if DEBUG` HUD shows GPU ms, tier, and particle counts. Before merging a month, capture an Instruments *Metal System Trace* on the reference device during 30 s of focus navigation and attach the numbers to the PR.
+- **Performance:** a `#if DEBUG` HUD shows CPU ms, GPU ms, frame rate, tier, and particle counts. Before merging a month, capture an Instruments *Metal System Trace* and a *Time Profiler* run on the reference device during 30 s of focus navigation, and attach the numbers to the PR. A month fails review if it exceeds the CPU budget in section 13.
 - **Soak:** leave each month running for 2 hours with no growth in memory and no visible loops, pops or drift.
 
 ---
 
-## 17. Build order
+## 18. Build order
 
 | Milestone | Scope | Why this order |
 |---|---|---|
 | M0 Infrastructure | `MetalBackgroundView`, renderer, uniforms, layer targets, bloom/composite, noise textures, `DiscreteTransition`, `SceneSignals`, quality tiers, fallback switch, debug HUD | everything depends on it |
-| M1 October (pilot) | moon (celestial system), sky and stars, sprite clouds, bat particles, fog | exercises every system plus the selection-driven transition |
+| M1 October (pilot) | moon (celestial system), sky and stars, sprite clouds, GPU swarm for the bats (or the Canvas bats overlay as a stopgap, section 16), fog | exercises every system plus the selection-driven transition |
 | M2 Particle months | January, December, November, April | particle system at scale, wind, depth of field, light-theme recipes |
 | M3 Sky months | August, September, June | sun, god rays, raymarched clouds (High), butterflies |
 | M4 Garden and celebration months | February, March, May, July | SDF-heavy content, growth lifecycles, fireworks |

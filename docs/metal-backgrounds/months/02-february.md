@@ -90,5 +90,12 @@ Key light: high soft sun from the upper middle (0.5 W, −0.2 H), warmth 0.3.
 - [ ] Valentine's heart shower plays once per arrival.
 - [ ] Looks deliberate and readable on both light and dark themes.
 
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails (edges and corners only for new scenery), and stays within the CPU rules in architecture section 13.
+
+- **Clouds become hearts gradually:** instead of fixed shapes, a heart-cloud's density mask blends from cumulus to heart and back over 20–40 s while it drifts, so the viewer catches hearts forming.
+- **Materials:** rising hearts mix three looks: glossy candy (current), folded paper (matte with a center crease) and thin glass (transparent with a bright rim). The mix shifts toward glass as romance rises.
+- **Pairs:** about once a minute, two rising hearts drift together, touch, and merge into one slightly larger heart with a small sparkle.
+
 ## Porting reference
 `FebruaryHeartCloudsAnimation`, `FebruaryScene`, `CloudPainter.heartPuffs`, `HeartGeometry` in the Canvas code.

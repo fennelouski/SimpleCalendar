@@ -50,7 +50,7 @@ Key light: the sun itself (its position is the key light), intensity 1.0, warmth
 - Lighting toward the sun's *current* position, so as the sun crosses, the lit sides of the clouds swing. Towering tops (taller density masks) on the two nearest clouds.
 
 ### Birds
-- Four distant birds: chevron SDF with wings flapping at 4–6 rad/s and intermittent glides, crossing in 40–70 s, slight altitude wander. They fade at the edges.
+- A small, loose flock of 4–12 distant birds drawn with the GPU swarm system (architecture 7.10): simple chevron silhouettes, two-pose flap at 4–6 rad/s with intermittent glides, crossing in 40–70 s with slight altitude wander. They fade at the edges. Simplified on purpose; no CPU cost.
 
 ### Heat shimmer
 - A distortion pass over the bottom 18%: screen-space UV offset from scrolling noise (amplitude 1.5 pt, rising at 20 pt/s), applied to the scene layers *beneath* the calendar only (it distorts the background, never the UI).
@@ -91,7 +91,7 @@ Key light: the sun itself (its position is the key light), intensity 1.0, warmth
 | God rays | 16 | 12 | 8 |
 | Lens flare | 4 ghosts + streak | 3 ghosts | off |
 | Heat shimmer | on | on | off |
-| Birds | 4 | 4 | 2 |
+| Birds (GPU swarm) | 12 | 8 | 4 |
 
 ## Acceptance criteria
 - [ ] The sun feels blindingly bright on dark themes yet is never uncomfortable.
@@ -99,6 +99,13 @@ Key light: the sun itself (its position is the key light), intensity 1.0, warmth
 - [ ] No visible jump when the sun wraps around.
 - [ ] Sun height follows daylight via discrete transitions.
 - [ ] Perseid meteor night works and reverts cleanly.
+
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails (edges and corners only for new scenery), and stays within the CPU rules in architecture section 13.
+
+- **Clouds that evolve:** cloud density masks grow, billow and dissipate over 60–120 s instead of only translating.
+- **Cloud shadows:** a soft strip of distant land (rolling fields) along the bottom 5% shows cloud shadows sweeping across it.
+- **Building thunderhead:** on the hottest days (daylight above 14 h), one cumulus slowly grows into a tall anvil-topped thunderhead over about 10 minutes, then fades.
 
 ## Porting reference
 `AugustSunCloudsAnimation`, `SkyScene` (sun path, clouds, birds) and `SunPainter` in the Canvas code.

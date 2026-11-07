@@ -105,5 +105,13 @@ Density changes fade particles in or out by opacity (each particle has a stable 
 - [ ] Two-hour soak shows no visible loop or reset.
 - [ ] Within the GPU budget on the reference Apple TV.
 
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails (edges and corners only for new scenery), and stays within the CPU rules in architecture section 13.
+
+- **Spindrift:** during gusts above 0.5, fine snow lifts off the drift's crest and streams sideways for 1–3 s (far-layer specks spawned along the crest).
+- **A drift that builds:** the drift height grows by up to 25% over the first 30 minutes on screen, then holds. It resets only when the month changes.
+- **Sun dogs:** on Steady and Flurries days, two faint prismatic spots (red inner edge) appear about 22° either side of the low key light, just above the top edge, at 15% opacity.
+- **Crystal shape follows the day:** the day's hash picks a crystal habit: branching dendrites (60%), flat plates (25%) or needles (15%). It changes on the same 2.5 s discrete transition as the weather, applied only to newly spawned flakes.
+
 ## Porting reference
 Canvas implementation: `JanuarySnowAnimation` and `SnowRenderer.draw` / `SnowRenderer.drawSnowbank` in `Simple Calendar/MonthAnimations.swift` and `Simple Calendar/BackgroundRendering.swift`.

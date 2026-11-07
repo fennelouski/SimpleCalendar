@@ -114,5 +114,13 @@ Key light: the bulbs themselves (many small point lights), plus a dim cool ambie
 - [ ] Christmas silent night and the New Year's Eve countdown play correctly.
 - [ ] The cord and bulbs sway naturally with the wind.
 
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails (edges and corners only for new scenery), and stays within the CPU rules in architecture section 13.
+
+- **Snow on the strand:** small snow caps build up on top of the cord and the bulbs over about 10 minutes, and occasionally a clump falls off during a gust.
+- **Icicles:** short icicles slowly form along the lowest points of each swag, with a drip every few seconds that catches the bulb light.
+- **Old filaments:** now and then a bulb buzz-flickers for 0.3–0.6 s like an old filament (per bulb, never several at once).
+- **The one bulb out:** one bulb on the strand is dead all month (unlit glass), and finally lights on Christmas Eve.
+
 ## Porting reference
 `DecemberChristmasLightsAnimation` and `DecemberScene` (strand geometry, bulb glass path, brightness pattern) in `MonthAnimations.swift`, and January's `SnowRenderer`.

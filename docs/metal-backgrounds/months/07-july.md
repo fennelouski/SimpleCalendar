@@ -123,5 +123,12 @@ Key light: none at rest (ambient night); each burst becomes a temporary point li
 - [ ] Fully deterministic: the same time gives the same frame.
 - [ ] Within the GPU budget during the largest finale.
 
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails (edges and corners only for new scenery), and stays within the CPU rules in architecture section 13.
+
+- **Lake and skyline:** a dark lake along the bottom 6% reflects the bursts (vertically mirrored emissive layer, rippled, at 25%), and a low hill or city silhouette in front of it gives the show scale.
+- **Shaped shells:** about 1 in 25 shells bursts as a heart, star or ring-of-rings (star directions sampled from an SDF outline).
+- **Lingering smoke:** smoke from earlier bursts stays longer (up to 12 s) and is lit from inside by later bursts in their colors.
+
 ## Porting reference
 `JulyFireworksAnimation` and `JulyScene` (schedule, burst physics, styles) in `MonthAnimations.swift`.

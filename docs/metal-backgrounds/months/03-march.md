@@ -103,5 +103,13 @@ Key light: morning sun from the upper right (1.05 W, 0.0 H), warmth 0.35.
 - [ ] Hills green up across March via discrete transitions.
 - [ ] St. Patrick's Day shows all four-leaf clovers and a rainbow.
 
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails (edges and corners only for new scenery), and stays within the CPU rules in architecture section 13.
+
+- **Clover patches:** new shamrocks sprout next to existing ones along a spreading patch (runner growth) rather than at isolated random spots. Each patch lives for 2–4 cycles, then fades and starts somewhere else.
+- **Dew and mist:** early in each shamrock's life its leaflets carry 1–3 dew beads that glint (emissive), and a thin morning mist lifts off the far hill and dissipates over the first 30 s after the month appears.
+- **Leaflets fold:** real clover folds its leaflets in strong wind and at night. During gusts above 0.6, leaflets fold up toward the stem by up to 40% and reopen after.
+- **Hidden four-leaf clover:** besides the rare glowing ones, each visit hides one unglowing four-leaf clover among the others, revealed only by a glint every 8–12 s.
+
 ## Porting reference
 `MarchShamrocksAnimation` and `MarchScene` in `MonthAnimations.swift`.
