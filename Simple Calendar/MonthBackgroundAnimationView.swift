@@ -14,6 +14,8 @@ struct MonthBackgroundAnimationView: View {
     /// The day the user has selected/focused. Scenes that depict a specific day
     /// (October's moon phase) follow this; falls back to `currentDate`.
     var selectedDate: Date? = nil
+    /// True while the background is fully hidden (e.g. behind a full-screen sheet); scenes stop rendering.
+    var isPaused: Bool = false
     @StateObject private var featureFlags = FeatureFlags.shared
     
     // Hardcoded alpha at 60% (0.6) for all animations
@@ -60,6 +62,7 @@ struct MonthBackgroundAnimationView: View {
                 }
                 .ignoresSafeArea()
                 .allowsHitTesting(false) // Allow touches to pass through
+                .environment(\.backgroundScenePaused, isPaused)
             }
         }
     }

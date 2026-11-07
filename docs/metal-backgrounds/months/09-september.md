@@ -92,5 +92,12 @@ Key light: the low sun, warmth 0.6.
 - [ ] Leaf count and color progress across the month via discrete transitions, with no visible color pops.
 - [ ] Equinox leaf release plays once per arrival.
 
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails (edges and corners only for new scenery), and stays within the CPU rules in architecture section 13.
+
+- **Spider web:** a dewy orb web in the top-right corner (radial spokes and spiral as thin SDF lines with dew beads) catches the golden light; beads glint in turn. It sways slightly in gusts.
+- **Leaves let go:** a framing branch enters from the top-left corner. Some leaves visibly detach from it (a short tug, then release) before joining the fall.
+- **Migrating birds:** a loose skein of 8–16 geese crosses high and slowly every few minutes, drawn with the GPU swarm system (architecture 7.10) in a V or wavy-line formation. Simple silhouettes; no CPU cost.
+
 ## Porting reference
 `SeptemberLeavesAnimation`, `SkyScene`, `FallingLeavesRenderer` and `LeafPainter` in the Canvas code.

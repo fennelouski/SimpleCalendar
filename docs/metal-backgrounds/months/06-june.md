@@ -97,5 +97,13 @@ Key light: high sun beyond the top-left corner (0.06 W, −0.12 H), warmth 0.25.
 - [ ] Beam strength follows daylight via discrete transitions.
 - [ ] Solstice gathering moment works and releases cleanly.
 
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails (edges and corners only for new scenery), and stays within the CPU rules in architecture section 13.
+
+- **Resting butterflies:** every 40–80 s, one butterfly lands on an edge flower near the bottom corners and rests for 6–12 s, wings slowly opening and closing (flap rate ÷8), before flying on.
+- **Courting pairs:** occasionally two butterflies meet and spiral around each other for 4–6 s, then part.
+- **Dappled light:** a slowly shifting leaf-shadow pattern (caustic-like noise) modulates the beams.
+- **Dusk fireflies:** on days with daylight above 15 h, 20–40 fireflies (soft green-yellow pulses) appear in the lower third.
+
 ## Porting reference
 `JuneButterfliesAnimation` and `JuneScene` (species, wing paths, flight paths, beams, bokeh) in `MonthAnimations.swift`.

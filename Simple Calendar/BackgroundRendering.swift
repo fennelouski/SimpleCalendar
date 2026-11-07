@@ -72,18 +72,35 @@ enum BG {
 
 // MARK: - Animated canvas host
 
-/// Hosts a scene: a `Canvas` re-rendered every display frame with the seconds
-/// elapsed since the scene appeared.
+extension EnvironmentValues {
+    /// True while the month background is fully covered (e.g. a full-screen sheet on tvOS),
+    /// so scenes stop rendering frames nobody can see.
+    @Entry var backgroundScenePaused: Bool = false
+}
+
+/// Hosts a scene: a `Canvas` re-rendered with the seconds elapsed since the scene appeared.
+///
+/// Every shape in a scene is rebuilt on the CPU each frame, so frames are capped at
+/// `framesPerSecond` (30: the scenes move slowly, so this halves the CPU cost with no
+/// visible loss) and stop entirely while the app is not active or the background is covered.
 struct AnimatedScene: View {
+    static let framesPerSecond: Double = 30
+
     private let render: (inout GraphicsContext, CGSize, Double) -> Void
     @State private var epoch = Date()
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.backgroundScenePaused) private var isCovered
 
     init(render: @escaping (inout GraphicsContext, CGSize, Double) -> Void) {
         self.render = render
     }
 
+    private var isPaused: Bool {
+        isCovered || scenePhase != .active
+    }
+
     var body: some View {
-        TimelineView(.animation) { timeline in
+        TimelineView(.animation(minimumInterval: 1.0 / Self.framesPerSecond, paused: isPaused)) { timeline in
             let time = timeline.date.timeIntervalSince(epoch)
             Canvas { context, size in
                 guard size.width > 0, size.height > 0 else { return }

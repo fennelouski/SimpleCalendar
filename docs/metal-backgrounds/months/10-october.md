@@ -1,10 +1,10 @@
 # October: Harvest Moon
 
-> A deep autumn night. The moon (showing the true phase of the selected day) hangs over a field of stars as silver-lit clouds drift across it, a swirling colony of bats wheels through the sky, fog creeps along the ground, and two jack-o'-lanterns flicker in the corners.
+> A deep autumn night. The moon (showing the true phase of the selected day) hangs over a field of stars as silver-lit clouds drift across it, a murmuration of bats pours out of a belfry and wheels through the sky, fog creeps along the ground, and two jack-o'-lanterns flicker in the corners.
 
 ## Product description
 
-October is atmospheric and a little spooky, but cozy rather than frightening. The top of the screen falls into an indigo night full of twinkling stars. The moon is the star of the scene: a realistically lit sphere with dark maria, bright ray craters like Tycho and Copernicus, a soft terminator, and faint earthshine on its night side. Its phase is the *real* phase for the selected day. As the user moves between days, the moon smoothly waxes or wanes over 2.5 s. Thin clouds drift across the sky, silver-edged where they face the moon and occasionally passing right in front of it. A loose colony of bats flies as a flock, gathering and scattering, rim-lit by moonlight. Ground fog drifts along the bottom, and two carved pumpkins glow from within with candle flicker.
+October is atmospheric and a little spooky, but cozy rather than frightening. The top of the screen falls into an indigo night full of twinkling stars. The moon is the star of the scene: a realistically lit sphere with dark maria, bright ray craters like Tycho and Copernicus, a soft terminator, and faint earthshine on its night side. Its phase is the *real* phase for the selected day. As the user moves between days, the moon smoothly waxes or wanes over 2.5 s. Thin clouds drift across the sky, silver-edged where they face the moon and occasionally passing right in front of it. A colony of bats streams out of an old belfry and murmurates across the sky in ribbons and ripples, rim-lit by moonlight, before funneling back home. Ground fog drifts along the bottom, and two carved pumpkins glow from within with candle flicker.
 
 On full-moon days the moon is a true harvest moon: larger, warmer and brighter, with a stronger halo. On Halloween the bats swarm across the moon and the jack-o'-lanterns blaze.
 
@@ -32,7 +32,7 @@ Key light: the moon. Its position, plus intensity = illumination.
 | 1 | Sky | Night haze and star field (110) | top 55% |
 | 2 | Far | Moon with halo | slow swing across the top, y ≈ 13.5–20.5% |
 | 3 | Mid | Night clouds (4) passing in front of the moon | y 8–30% |
-| 4 | Mid | Bat colony (10–20 bats) | y 15–70% |
+| 4 | Far → Near | Belfry silhouette and bat murmuration (up to 400 bats) | belfry lower-left; flock in the upper 60% |
 | 5 | Mid | Jack-o'-lanterns | bottom-left (5.5% W, H − 46 pt, 78 pt) and bottom-right (94% W, H − 36 pt, 58 pt) |
 | 6 | Near | Ground fog | bottom 10% |
 | 7 | Post | Bloom on the moon, candle light and rim light | |
@@ -54,10 +54,25 @@ Key light: the moon. Its position, plus intensity = illumination.
 - Lit toward the moon; the lit color brightens with illumination (dim on a crescent night, silver on a full moon).
 - When a cloud passes in front of the moon, the moon is attenuated by the cloud's density (Beer-Lambert) and the cloud's edge around the moon gets a bright corona-like lining. On High, add a faint lunar corona (a colored diffraction ring, radius 1.4r) through thin cloud.
 
-### Bat colony
-- Boids flocking (port `BatFlock`): separation 25 pt, visual range 80 pt, alignment 0.05, cohesion 0.005, turn 0.4, speed 2–5 pt per 0.03 s tick (scale by real dt). Every 22 s the flock scatters for 5 s, then regroups. On High run the boids on the GPU (compute, neighbor grid).
-- **Bat SDF:** body, head, ears, and membrane wings with a scalloped trailing edge. The wing tip and wrist rise and fall with the flap (`flap = sin(rate·t + φ)`, rate 13–19 rad/s); the wings fold slightly on the upstroke. Bank angle from vertical velocity.
-- **Rim light:** edges facing the moon get a cool rim (`#BFCCFF`). Bats crossing the moon disc read as crisp silhouettes against it.
+### Bat murmuration
+The bats move as a true murmuration: hundreds of them streaming out of a belfry, folding into ribbons, rippling, scattering, regrouping, and streaming back home. Built on the GPU swarm system (architecture 7.10), so it costs no CPU.
+
+- **Count:** up to 400 bats (High), at three depths. Near bats are larger, slightly blurred and fewer.
+- **Belfry:** a small church-belfry silhouette in the lower-left corner (about 9% of W wide, sitting behind the left pumpkin and the fog), dark with a faint moonlit roof edge. It's the colony's home.
+- **Cycle** (deterministic schedule, about 90 s per loop, never visibly repeating because the lead path keeps wandering):
+
+  | Phase | Duration | What happens |
+  |---|---|---|
+  | Emerge | 8–12 s | bats pour out of the belfry in a column, staggered by index, and spiral up into the sky |
+  | Murmurate | 40–60 s | the flock wanders the upper sky as a ribbon; ripple waves run through it every 6–10 s; occasional quick expansions (as if dodging a predator) |
+  | Scatter | 5–8 s | the flock loosens across the sky (spread 1.0), then regroups |
+  | Return | 10–14 s | the flock funnels down and back into the belfry |
+  | Rest | 6–10 s | only a few stragglers flit near the belfry |
+
+- **Moonlight reacts:** while a cloud covers the moon (density at the moon > 0.5), the flock loosens (spread +0.3) and the rim light fades. When the moon reappears, the flock tightens and the rims brighten.
+- **Look (simplified on purpose):** bat silhouette SDF with ears and a scalloped wing edge, two-pose flap (`flap = sin(rate·t + φ)`, rate 13–19 rad/s). Rim light from the moon. Near bats crossing the moon disc show a faint warm glow through the wing membrane.
+- **Readability:** the lead path stays in the upper 60% of the screen and is biased toward the sides; at most 40 bats are inside the content-safe region at once. Ripple and expansion speeds stay below 300 pt/s for anything larger than 4 pt.
+- **Stopgap fallback:** if the GPU swarm isn't ready, layer the existing Canvas bats (`BatFlock` boids plus `OctoberScene.drawBat`) over the Metal October background (architecture section 16). That keeps their CPU cost and drops the belfry cycle, so replace it when the swarm lands.
 
 ### Jack-o'-lanterns
 - SDF pumpkin: five ribs (outer ribs darker) with a linear gradient and rib grooves, a waxy specular highlight, a curved stem, and a carved face (triangle eyes, nose, toothy mouth).
@@ -80,14 +95,15 @@ Key light: the moon. Its position, plus intensity = illumination.
 ## Special days
 - **Full moon (illumination ≥ 0.98 on the selected day):** *harvest moon*. Radius ×1.12, a warmer tint (`#FFF1D6`), halo ×1.4, cloud linings stronger. This rides on the same phase transition, with no separate moment.
 - **Halloween (October 31):** *swarm*.
-  - The flock grows to 40 bats.
-  - Within 2 s of arrival the flock does a tight sweep across the moon disc, then resumes normal flocking.
+  - The colony doubles (up to 800 on High) and skips the rest phase.
+  - Within 2 s of arrival the flock does a tight sweep across the moon disc, then resumes the murmuration.
   - Pumpkin flicker brightens ×1.3 and the fog thickens ×1.5.
   - Faint green-white wisps (curl-noise ribbons, 3 of them) drift through the fog.
   - These effects hold while October 31 remains selected; the sweep plays once per arrival.
 
 ## Theme adaptation
 - **Light:**
+  - The belfry becomes a pale blue-gray silhouette (`#7A8399` at 60%).
   - The night haze is reduced to 12% so the page doesn't darken.
   - The moon renders with stronger limb contrast and a thin cool outline so it reads on white.
   - Stars are off.
@@ -98,13 +114,13 @@ Key light: the moon. Its position, plus intensity = illumination.
 
 ## Readability guardrails
 - The moon's center stays above 21% of H.
-- At most 6 bats inside the content-safe region at a time (the flock's soft boundary keeps it in the upper 70% and biased to the sides).
+- At most 40 bats inside the content-safe region at a time (the lead path keeps the flock in the upper 60% and biased to the sides).
 - Fog stays in the bottom 10%. Pumpkins stay in the corners.
 
 ## Metal implementation notes
 - The moon is its own pass into the far layer at full resolution (crisp edges, no blur). Its halo goes to the emissive target.
 - The cloud pass outputs density at the moon's position for attenuation.
-- Boids: CPU (Medium and Low) or GPU compute with a uniform grid (High).
+- Bats: GPU swarm (architecture 7.10). The CPU writes only the flock-state schedule values (`spread`, ripple, emergence progress) and the lead path parameters.
 - `sceneParams[0] = (moonPhase, illumination, harvestMoon, halloween)`, `sceneParams[1] = (moonCenter.xy, moonRadius, cloudAtMoon)`.
 
 ## Quality tiers
@@ -112,7 +128,7 @@ Key light: the moon. Its position, plus intensity = illumination.
 |---|---|---|---|
 | Moon | full shader with normal relief | full shader | full shader, no relief |
 | Stars | 160 | 110 | 70 |
-| Bats | 20 (40 on Halloween), GPU boids | 16 (30), CPU | 10 (20), CPU |
+| Bats (GPU swarm) | 400 (800 on Halloween) | 220 (440) | 120 (240) |
 | Fog | volumetric | sprites | sprites |
 | Lunar corona | on | off | off |
 
@@ -121,9 +137,17 @@ Key light: the moon. Its position, plus intensity = illumination.
 - [ ] Phase changes animate over exactly 2.5 s, never stack, and pick up the latest selection when complete. Holding focus-scroll for 10 s produces a sequence of whole 2.5 s transitions, not a jitter.
 - [ ] The moon looks like a lit sphere with a rugged terminator and earthshine, not a flat disc with a mask.
 - [ ] Clouds attenuate the moon and get silver linings.
-- [ ] Bats flock, scatter and regroup, with moonlit rims.
+- [ ] Bats stream out of the belfry, murmurate with visible ripple waves, scatter and regroup, and return home, with moonlit rims.
+- [ ] The flock reacts when clouds cover and uncover the moon.
+- [ ] Bats add no measurable CPU cost (they're a pure GPU function of time).
 - [ ] Harvest moon on full-moon days; Halloween swarm once per arrival.
 - [ ] Snapshot tests at phases 0, 0.25, 0.5 and 0.75 in light and dark themes.
+
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails, and stays within the CPU rules in architecture section 13.
+
+- **Low harvest moon:** on full-moon days, the moon starts its swing low near the horizon line, larger and orange (`#FFC27A`), and whitens as it rises over about 3 minutes.
+- **Moonlit fog:** the fog band brightens where it lies under the moon's screen position.
 
 ## Porting reference
 `OctoberMoonBatsAnimation`, `OctoberScene`, `BatFlock` in `MonthAnimations.swift`, plus `MoonPhase`, `MoonPhaseAnimator` and `MoonPainter` in `MoonPhase.swift`. The phase math and the animator are already verified and should be reused, not rewritten.

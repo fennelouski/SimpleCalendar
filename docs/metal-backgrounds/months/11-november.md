@@ -89,5 +89,13 @@ Key light: diffuse overcast from above, (0.4 W, −0.6 H), intensity 0.55, warmt
 - [ ] Leaves thin out and brown across the month via discrete transitions.
 - [ ] Thanksgiving calm plays on arrival and holds.
 
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails (edges and corners only for new scenery), and stays within the CPU rules in architecture section 13.
+
+- **Bare branches:** dark branches enter from both top corners and sway in the gusts. Leaves visibly detach from them. They grow barer through the month (fewer attached leaves as `monthProgress` rises).
+- **Ground skitter and leaf devils:** some leaves cartwheel along the bottom edge instead of flying. Strong gusts occasionally spin up a small leaf whirlwind (8–14 leaves on a rising spiral) that collapses after 3–5 s.
+- **Weather on the leaves:** after a wet day (day hash), leaves look darker and glossier and fall straighter. In the last week of the month, the pile shows frost edges in the morning hours (real local time before 10:00).
+- **Geese:** a V of geese crosses high and slow every few minutes (GPU swarm, simple silhouettes).
+
 ## Porting reference
 `NovemberLeavesAnimation`, `NovemberScene.drawLeafPile`, `FallingLeavesRenderer` and `LeafPainter` in the Canvas code.

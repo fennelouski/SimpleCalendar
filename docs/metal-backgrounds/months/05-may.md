@@ -105,5 +105,12 @@ Key light: late-morning sun, upper right (0.92 W, −0.05 H), warmth 0.3.
 - [ ] The meadow fills in as May progresses, via discrete transitions.
 - [ ] Mother's Day bloom wave plays on arrival and holds.
 
+## Enhancements
+Small details that reward watching. Each keeps the month's original idea, follows its readability guardrails (edges and corners only for new scenery), and stays within the CPU rules in architecture section 13.
+
+- **Bees:** 2–4 bees (tiny striped SDFs with a blur-disc for wings) fly short curving hops between open flowers. When a bee lands, the flower head dips 3–5 pt and springs back.
+- **Flowers follow the sun:** open flower heads tilt up to 12° toward the key light.
+- **Dandelions:** one slot in four may grow a dandelion clock instead of a flower. When a gust passes, it releases 10–20 seeds that drift slowly up and across the scene and fade.
+
 ## Porting reference
 `MayFlowersAnimation` and `MayScene` (flower kinds, grass, petals, pollen) in `MonthAnimations.swift`.

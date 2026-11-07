@@ -37,17 +37,18 @@ The scenes currently draw with SwiftUI `Canvas`: paths and gradients are rebuilt
 4. **Seamless forever.** A scene can sit on screen for hours. There are no visible loops, resets, pops, or wrap-around jumps. Anything that recycles does so off-screen or while invisible.
 5. **Physically plausible light.** Every scene has a key light (sun, moon, lightning, bulbs) and everything in it is lit consistently by that light.
 6. **Deterministic.** Given the same time and selection, a frame looks the same, which makes snapshot tests possible.
+7. **Light on the CPU.** The app already works the CPU hard. The background renders off the main thread and costs under 0.5 ms of CPU per frame. Motion lives on the GPU, and scenes run at 30 fps unless they need 60. See *CPU budget and frame rate* in the architecture doc.
 
 ## Current state
 
 - The scenes ship today as SwiftUI `Canvas` renderers in `Simple Calendar/MonthAnimations.swift`, built on the toolkit in `Simple Calendar/BackgroundRendering.swift`. `Simple Calendar/MoonPhase.swift` has the moon phase astronomy and the discrete transition animator.
 - `MonthBackgroundAnimationView(currentDate:selectedDate:)` picks the month's scene. `ContentView` shows it behind the grid in month view only.
-- The Canvas scenes are the **visual reference and the fallback**. Each month spec points at the Canvas code to port from. Keep the Canvas path working after the Metal versions land.
+- The Canvas scenes run at 30 fps and pause while hidden (an interim CPU saving). They are the **visual reference and the fallback**. Each month spec points at the Canvas code to port from. Keep the Canvas path working after the Metal versions land.
 
 ## Definition of done (whole project)
 
 - All twelve months render through Metal on tvOS, iOS, and macOS, using the shared renderer described in the architecture doc.
 - Each month meets its own acceptance checklist.
-- The background costs at most the GPU budget in the architecture doc on the reference Apple TV, with no dropped frames during focus navigation.
+- The background stays within both the GPU budget and the CPU budget in the architecture doc on the reference Apple TV, with no dropped frames during focus navigation.
 - The Canvas fallback still works where Metal is unavailable or when the fallback is forced for debugging.
 - Snapshot tests exist for every month at fixed times and selections.
