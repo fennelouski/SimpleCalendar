@@ -137,6 +137,7 @@ Choose from 8 beautiful themes:
 - **ImageManager**: Unsplash integration with caching
 - **WeatherManager**: Weather data integration
 - **RequestQueueManager**: API rate limiting and queuing
+- **Month backgrounds**: animated scene behind the month grid for each month (`MonthBackgroundAnimationView`). The planned Metal rebuild is specified in [docs/metal-backgrounds](docs/metal-backgrounds/README.md)
 
 ### Design Patterns
 - **MVVM**: Model-View-ViewModel architecture

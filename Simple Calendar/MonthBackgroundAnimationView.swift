@@ -9,7 +9,11 @@ import SwiftUI
 
 /// Main view that selects and displays the appropriate month animation
 struct MonthBackgroundAnimationView: View {
+    /// Determines which month's scene is shown.
     let currentDate: Date
+    /// The day the user has selected/focused. Scenes that depict a specific day
+    /// (October's moon phase) follow this; falls back to `currentDate`.
+    var selectedDate: Date? = nil
     @StateObject private var featureFlags = FeatureFlags.shared
     
     // Hardcoded alpha at 60% (0.6) for all animations
@@ -44,7 +48,7 @@ struct MonthBackgroundAnimationView: View {
                         case 9:
                             SeptemberLeavesAnimation(alpha: animationAlpha)
                         case 10:
-                            OctoberMoonBatsAnimation(alpha: animationAlpha)
+                            OctoberMoonBatsAnimation(alpha: animationAlpha, moonDate: selectedDate ?? currentDate)
                         case 11:
                             NovemberLeavesAnimation(alpha: animationAlpha)
                         case 12:
