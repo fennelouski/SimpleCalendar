@@ -1585,50 +1585,6 @@ final class BatFlock {
     }
 }
 
-// MARK: - November: Wind-blown leaves
-
-struct NovemberLeavesAnimation: View {
-    let alpha: Double
-
-    init(alpha: Double = 1.0) {
-        self.alpha = alpha
-    }
-
-    var body: some View {
-        AnimatedScene { ctx, size, time in
-            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.7, 0.62, 0.55), intensity: 0.16, depth: 0.45)
-            AtmospherePainter.bottomHaze(in: &ctx, size: size, color: BG.rgb(0.85, 0.55, 0.3), intensity: 0.14, depth: 0.25)
-            FallingLeavesRenderer.draw(in: &ctx, size: size, time: time, count: 34, windBase: 55, gustiness: 70, fallSpeed: 30...80, salt: 9000)
-            NovemberScene.drawLeafPile(in: &ctx, size: size, time: time)
-        }
-        .opacity(alpha)
-    }
-}
-
-private enum NovemberScene {
-    static func drawLeafPile(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
-        let t = CGFloat(time)
-        let gust = sin(t * 0.23) * 0.6 + sin(t * 0.61 + 1) * 0.4
-        let count = Int(size.width / 22)
-        for i in 0..<count {
-            let x = BG.hash(i, 191) * size.width
-            let y = size.height - BG.hash(i, 192, -4, 26)
-            let rustle = Double(sin(t * 2.2 + CGFloat(i)) * 0.06 * max(0, gust))
-            let palette = LeafPalette.autumn[i % LeafPalette.autumn.count]
-            LeafPainter.draw(
-                in: &ctx,
-                at: CGPoint(x: x, y: y),
-                size: BG.hash(i, 193, 20, 34),
-                rotation: Double(BG.hash(i, 194) * 6.28) + rustle,
-                flip: BG.hash(i, 195, 0.55, 1),
-                palette: palette,
-                maple: i % 3 != 0,
-                opacity: 0.85
-            )
-        }
-    }
-}
-
 // MARK: - December: Glowing C9 light strand over snowfall
 
 struct DecemberChristmasLightsAnimation: View {
