@@ -52,7 +52,7 @@ struct MonthBackgroundAnimationView: View {
                         case 10:
                             OctoberMoonBatsAnimation(alpha: animationAlpha, moonDate: selectedDate ?? currentDate)
                         case 11:
-                            NovemberLeavesAnimation(alpha: animationAlpha)
+                            NovemberLeavesAnimation(alpha: animationAlpha, date: selectedDate ?? currentDate)
                         case 12:
                             DecemberChristmasLightsAnimation(alpha: animationAlpha)
                         default:

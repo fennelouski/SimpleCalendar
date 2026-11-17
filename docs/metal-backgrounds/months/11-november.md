@@ -98,4 +98,9 @@ Small details that reward watching. Each keeps the month's original idea, follow
 - **Geese:** a V of geese crosses high and slow every few minutes (GPU swarm, simple silhouettes).
 
 ## Porting reference
-`NovemberLeavesAnimation`, `NovemberScene.drawLeafPile`, `FallingLeavesRenderer` and `LeafPainter` in the Canvas code.
+The Canvas version lives in `Simple Calendar/NovemberScene.swift` (it was rebuilt as the showcase month). It already implements most of this spec, so port from it:
+
+- **Wind:** `NovemberWind` is one signal for the whole scene, and gusts travel (`strength(at: x, t)` lags `x / 600` s). `NovemberModel` integrates the drift so wind changes never teleport leaves.
+- **Selection:** `NovemberModel.Target` derives month progress, the breezy/blustery/gale character and Thanksgiving calm from the selected day, each through one discrete 2.5 s `NovemberTransition`.
+- **Scene:** overcast deck with a smouldering sun and light shafts, two ridges of bare trees with fading canopy colour, mist, three rows of rustling pile leaves, ground skitter, kicked leaves, a leaf whirlwind, wind streaks, corner branches with clinging leaves, geese, and the Thanksgiving golden swirl.
+- **Not yet ported from the Enhancements list:** frost on the pile and wet-day gloss.
