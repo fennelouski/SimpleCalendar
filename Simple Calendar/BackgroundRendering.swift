@@ -773,6 +773,29 @@ struct SceneDay {
         return 24 * acos(cosHour) / Double.pi
     }
 
+    /// Instant of an equinox or solstice (Meeus' mean formulae, good to within about an
+    /// hour for this century). `index`: 0 March equinox, 1 June solstice,
+    /// 2 September equinox, 3 December solstice.
+    static func season(_ index: Int, year: Int) -> Date {
+        let y = Double(year - 2000) / 1000
+        let terms: [[Double]] = [
+            [2451623.80984, 365242.37404, 0.05169, -0.00411, -0.00057],
+            [2451716.56767, 365241.62603, 0.00325, 0.00888, -0.00030],
+            [2451810.21715, 365242.01767, -0.11575, 0.00337, 0.00078],
+            [2451900.05952, 365242.74049, -0.06223, -0.00823, 0.00032]
+        ]
+        let c = terms[min(max(index, 0), 3)]
+        let jde = c[0] + c[1] * y + c[2] * y * y + c[3] * y * y * y + c[4] * y * y * y * y
+        return Date(timeIntervalSince1970: (jde - 2440587.5) * 86400)
+    }
+
+    /// True when this day is the local calendar day of equinox/solstice `index`.
+    func isSeasonDay(_ index: Int) -> Bool {
+        let calendar = Calendar(identifier: .gregorian)
+        let parts = calendar.dateComponents([.month, .day], from: SceneDay.season(index, year: year))
+        return parts.month == month && parts.day == day
+    }
+
     /// Easter Sunday (Gregorian, anonymous algorithm) for `year`.
     static func easter(year: Int) -> (month: Int, day: Int) {
         let a = year % 19

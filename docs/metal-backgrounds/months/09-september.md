@@ -100,4 +100,11 @@ Small details that reward watching. Each keeps the month's original idea, follow
 - **Migrating birds:** a loose skein of 8–16 geese crosses high and slowly every few minutes, drawn with the GPU swarm system (architecture 7.10) in a V or wavy-line formation. Simple silhouettes; no CPU cost.
 
 ## Porting reference
-`SeptemberLeavesAnimation`, `SkyScene`, `FallingLeavesRenderer` and `LeafPainter` in the Canvas code.
+The Canvas version lives in `Simple Calendar/SeptemberScene.swift` (rebuilt to the November standard). Port from it:
+
+- **Signature motion:** the light. `SeptemberScene.makeFrame` builds seven broad beams that fan from the low sun, sweep slowly and breathe, and are dimmed together by cloud occlusion (`sunlight`). `SeptemberFrame.light(at:)` samples that field. Leaves flare warm and translucent as they tumble through a beam (an additive overlay scaled by how face-on they are), dust motes show only inside beams, the spider web's dew beads glint as the light moves over them, and the seed heads along the bottom pick up a gold rim. A gentle integrated breeze (`SeptemberModel.drift`) carries leaves, clouds and motes, and gusts bend the grass, branch and web.
+- **Selection:** `SeptemberModel.Target` maps month progress to the leaf count (particle rank, 30% to 100%), the leaf colors (each leaf turns at its own threshold, smoothly) and haze warmth, and maps daylight to sun height and warmth, each through one discrete 2.5 s `SceneTransition`.
+- **Special day:** the September equinox (`SceneDay.isSeasonDay(2)`, Meeus mean equinox in local time) warms the light to 0.8 while selected and plays a 16 s `SceneMoment` once per arrival: wind ×4 for about 3 s and 40 extra leaves swept in from the left, swirling, then falling out of view.
+- **Scene:** amber sky and haze, a low sun with wide corona, volumetric beams, five golden clouds with sun-facing rims, a skein of geese (V or wavy line) every few minutes, hazy hills with turning trees, far/mid/near leaves (blurred far and near layers), golden motes, tall grass with backlit seed heads, a leafy branch at top-left whose leaves tug, let go and fall (and fade back in later), and a dewy orb web at top-right.
+- **Theme:** light theme halves the haze and gives the sun an orange rim. Dark theme makes the seed-head rims additive.
+- **Not ported:** edge-on rim light on leaves (only the face-on translucency is done), and curl turbulence in the equinox swirl (it uses a fixed spiral).
