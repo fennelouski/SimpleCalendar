@@ -42,7 +42,7 @@ Inside, `MonthBackgroundAnimationView` chooses:
 if Metal is available and FeatureFlags.metalBackgroundsEnabled (new flag, default true)
     → MetalBackgroundView(month:, signals:, theme:)
 else
-    → existing Canvas scene (MonthAnimations.swift)
+    → existing Canvas scene (<Month>Scene.swift)
 ```
 
 ---
@@ -396,7 +396,7 @@ Set this through `preferredFrameRateRange` on the display link. Timing uses real
 
 ## 16. Fallback
 
-Keep the Canvas implementation (`MonthAnimations.swift`, `BackgroundRendering.swift`) compiling and working. Use it when:
+Keep the Canvas implementation (the `<Month>Scene.swift` files and `BackgroundRendering.swift`) compiling and working. Use it when:
 - `MTLCreateSystemDefaultDevice()` returns nil,
 - running on visionOS,
 - `FeatureFlags.metalBackgroundsEnabled` is false (debug toggle in Settings for QA comparison).
