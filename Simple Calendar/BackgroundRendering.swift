@@ -657,3 +657,138 @@ enum LeafPainter {
         leaf.stroke(stem, with: .color(palette.dark), style: StrokeStyle(lineWidth: 0.035, lineCap: .round))
     }
 }
+
+// MARK: - Selection-driven state
+
+/// A value that glides to a new target over `duration` and only then looks at the
+/// current target again, so transitions never stack, queue or retarget mid-flight.
+/// On first use the target is shown immediately.
+final class SceneTransition {
+    private let duration: Double
+    private var shown: Double?
+    private var from = 0.0
+    private var delta = 0.0
+    private var startTime: Double?
+
+    init(duration: Double = 2.5) {
+        self.duration = duration
+    }
+
+    func value(target: Double, time: Double) -> Double {
+        guard shown != nil else {
+            shown = target
+            return target
+        }
+        if let start = startTime {
+            let progress = (time - start) / duration
+            if progress < 1 {
+                return from + delta * Double(BG.easeInOut(CGFloat(progress)))
+            }
+            startTime = nil
+            shown = from + delta
+        }
+        let current = shown ?? target
+        if abs(target - current) > 0.0005 {
+            from = current
+            delta = target - current
+            startTime = time
+        }
+        return current
+    }
+}
+
+/// A one-shot special-day effect. It starts when `arrived` turns true, plays once for
+/// `duration` seconds, and only re-arms after `arrived` has gone false again, so it
+/// never stacks and never replays while the same day stays selected.
+final class SceneMoment {
+    private let duration: Double
+    private var startTime: Double?
+    private var armed = true
+
+    init(duration: Double) {
+        self.duration = duration
+    }
+
+    /// Seconds into the moment (`0..<duration`), or nil while none is playing.
+    func elapsed(arrived: Bool, time: Double) -> Double? {
+        if let start = startTime {
+            let age = time - start
+            if age < duration { return age }
+            startTime = nil
+        }
+        guard arrived else {
+            armed = true
+            return nil
+        }
+        guard armed else { return nil }
+        armed = false
+        startTime = time
+        return 0
+    }
+}
+
+/// Calendar facts about the selected day that the scenes react to.
+struct SceneDay {
+    let year: Int
+    let month: Int
+    let day: Int
+    /// 1 = Sunday ... 7 = Saturday.
+    let weekday: Int
+    let dayOfYear: Int
+    let daysInMonth: Int
+
+    init(date: Date) {
+        let calendar = Calendar(identifier: .gregorian)
+        let parts = calendar.dateComponents([.year, .month, .day, .weekday], from: date)
+        year = parts.year ?? 2026
+        month = parts.month ?? 1
+        day = parts.day ?? 1
+        weekday = parts.weekday ?? 1
+        dayOfYear = calendar.ordinality(of: .day, in: .year, for: date) ?? (parts.day ?? 1)
+        daysInMonth = calendar.range(of: .day, in: .month, for: date)?.count ?? 30
+    }
+
+    /// 0 on the first of the month ... 1 on the last day.
+    var progress: Double {
+        daysInMonth > 1 ? min(max(Double(day - 1) / Double(daysInMonth - 1), 0), 1) : 0
+    }
+
+    /// A stable 0..<1 roll for this day: the same day always gets the same character.
+    func roll(_ salt: Int) -> Double {
+        Double(BG.hash(year * 400 + dayOfYear, salt))
+    }
+
+    /// True on the `n`th `weekday` of the month (`n = -1` for the last one).
+    func isNth(_ n: Int, weekday target: Int) -> Bool {
+        guard weekday == target else { return false }
+        if n > 0 { return (day - 1) / 7 + 1 == n }
+        return day + 7 > daysInMonth
+    }
+
+    /// Approximate hours of daylight at a mid-northern latitude (40° N).
+    var daylightHours: Double {
+        let declination = 23.44 * sin(2 * Double.pi * Double(284 + dayOfYear) / 365) * Double.pi / 180
+        let latitude = 40 * Double.pi / 180
+        let cosHour = min(max(-tan(latitude) * tan(declination), -1), 1)
+        return 24 * acos(cosHour) / Double.pi
+    }
+
+    /// Easter Sunday (Gregorian, anonymous algorithm) for `year`.
+    static func easter(year: Int) -> (month: Int, day: Int) {
+        let a = year % 19
+        let b = year / 100
+        let c = year % 100
+        let d = b / 4
+        let e = b % 4
+        let f = (b + 8) / 25
+        let g = (b - f + 1) / 3
+        let h = (19 * a + b - d - g + 15) % 30
+        let i = c / 4
+        let k = c % 4
+        let l = (32 + 2 * e + 2 * i - h - k) % 7
+        let m = (a + 11 * h + 22 * l) / 451
+        let month = (h + l - 7 * m + 114) / 31
+        let day = (h + l - 7 * m + 114) % 31 + 1
+        return (month, day)
+    }
+}
