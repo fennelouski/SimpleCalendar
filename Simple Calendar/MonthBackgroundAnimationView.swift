@@ -54,7 +54,7 @@ struct MonthBackgroundAnimationView: View {
                         case 11:
                             NovemberLeavesAnimation(alpha: animationAlpha, date: selectedDate ?? currentDate)
                         case 12:
-                            DecemberChristmasLightsAnimation(alpha: animationAlpha)
+                            DecemberChristmasLightsAnimation(alpha: animationAlpha, date: selectedDate ?? currentDate)
                         default:
                             EmptyView()
                         }
