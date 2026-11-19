@@ -38,7 +38,7 @@ struct MonthBackgroundAnimationView: View {
                         case 3:
                             MarchShamrocksAnimation(alpha: animationAlpha, date: selectedDate ?? currentDate)
                         case 4:
-                            AprilRainAnimation(alpha: animationAlpha)
+                            AprilRainAnimation(alpha: animationAlpha, date: selectedDate ?? currentDate)
                         case 5:
                             MayFlowersAnimation(alpha: animationAlpha, date: selectedDate ?? currentDate)
                         case 6:
