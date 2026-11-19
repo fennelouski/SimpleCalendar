@@ -122,13 +122,14 @@ final class JanuaryModel {
 
         // Crystal habit: switch only once its transition has fully settled.
         let habit = habitTransition.value(target: Double(target.habit), time: time)
-        let settled = Int(habit.rounded())
         if habitNew < 0 {
-            habitOld = settled
-            habitNew = settled
-        } else if abs(habit - Double(settled)) < 0.0001, settled != habitNew {
+            habitOld = target.habit
+            habitNew = target.habit
+        } else if abs(habit - Double(target.habit)) < 0.0001, target.habit != habitNew {
+            // Only once the transition has actually reached the selected habit (a 0 to 2
+            // change passes through 1 on the way).
             habitOld = habitNew
-            habitNew = settled
+            habitNew = target.habit
             habitChangedAt = time
         }
 
@@ -339,8 +340,9 @@ private enum JanuaryScene {
         drawFrost(in: &ctx, size: size, t: t, dark: dark)
     }
 
-    /// How many of a layer's particles are showing, 0...1, for a particle at `x`.
-    /// Squalls thicken the snow locally as they pass.
+    /// How many of a layer's particles are showing, 0...1, for a particle that began its
+    /// fall at `x` at time `t`. Squalls thicken the snow locally as they pass; sampling at
+    /// the start of the fall means a squall never makes a flake appear mid-air.
     static func coverage(look: JanuaryModel.Look, x: CGFloat, t: CGFloat) -> CGFloat {
         let local = look.density * (1 + 0.45 * JanuarySquall.strength(at: x, t))
         return local / 2.6
@@ -578,17 +580,19 @@ private enum JanuaryScene {
     // MARK: Snow
 
     /// Fine distant snow, batched into three paths by brightness. Particles fade in and
-    /// out by shrinking, so density changes never pop.
+    /// out by shrinking, so weather changes never pop.
     static func drawFarSnow(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: JanuaryModel.Look, dark: Bool) {
         var bands = [Path(), Path(), Path()]
         let span = size.height + 40
         for i in 0..<300 {
             let speed = BG.hash(i, 11, 22, 42)
-            let progress = BG.fract(BG.hash(i, 12) + t * speed / span)
+            let fallen = BG.hash(i, 12) + t * speed / span
+            let progress = BG.fract(fallen)
+            let born = (floor(fallen) - BG.hash(i, 12)) * span / speed
             let y = progress * span - 20
             let sway = sin(t * BG.hash(i, 13, 0.4, 0.9) + BG.hash(i, 14) * 6.28) * 14
             let x = BG.wrap(BG.hash(i, 15) * size.width + sway + look.drift * 0.45, length: size.width, margin: 20)
-            let visible = BG.clamp01((coverage(look: look, x: x, t: t) - BG.hash(i, 160)) / 0.06)
+            let visible = BG.clamp01((coverage(look: look, x: BG.hash(i, 15) * size.width, t: born) - BG.hash(i, 160)) / 0.06)
             guard visible > 0.02 else { continue }
             let radius = BG.hash(i, 16, 0.9, 2.1) * visible
             bands[i % 3].addPath(BG.circle(CGPoint(x: x, y: y), radius))
@@ -621,14 +625,16 @@ private enum JanuaryScene {
             let y = progress * span - 40
             let sway = sin(t * BG.hash(seed, 13, 0.3, 0.7) + BG.hash(seed, 14) * 6.28) * 32
             let x = BG.wrap(BG.hash(seed, 15) * size.width + sway + look.drift * 0.75, length: size.width, margin: 40)
-            // Mid crystals stay sparser in the middle of the screen than at its edges.
-            let edge = min(abs(x / size.width - 0.5), abs(y / size.height - 0.5)) * 2
-            let thin = BG.lerp(0.6, 1, BG.smoothstep(0.2, 0.7, edge))
-            let visible = BG.clamp01((coverage(look: look, x: x, t: t) * thin - BG.hash(seed, 160)) / 0.06)
+            // Mid crystals stay sparser down the middle of the screen than at its sides.
+            // Decided per fall (by lane and by the squall when the fall began), so a flake
+            // never shrinks away mid-air.
+            let born = (floor(fallen) - BG.hash(seed, 12)) * span / speed
+            let lane = BG.hash(seed, 15)
+            let thin = BG.lerp(0.6, 1, BG.smoothstep(0.2, 0.7, abs(lane - 0.5) * 2))
+            let visible = BG.clamp01((coverage(look: look, x: lane * size.width, t: born) * thin - BG.hash(seed, 160)) / 0.06)
             guard visible > 0.02 else { continue }
 
             // Flakes that formed before the last habit change keep the old habit.
-            let born = (floor(fallen) - BG.hash(seed, 12)) * span / speed
             let habit = born < look.habitChangedAt ? look.habitOld : look.habitNew
             let radius = BG.hash(seed, 16, 5, 11) * visible * (habit == 2 ? 0.9 : 1)
             let spin = t * BG.hash(seed, 18, -0.6, 0.6) + BG.hash(seed, 19) * 6.28

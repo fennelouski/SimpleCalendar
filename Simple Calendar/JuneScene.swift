@@ -110,7 +110,11 @@ final class JuneModel {
                 let crossing = JuneScene.crossing(k: k, time: CGFloat(time))
                 if crossing != crossings[k] {
                     crossings[k] = crossing
-                    species[k] = target.species[k]
+                    // While gathering they orbit on-screen, so the crossing boundary is
+                    // not off-screen then; wait for the next one.
+                    if gather < 0.001 {
+                        species[k] = target.species[k]
+                    }
                 }
             }
         }

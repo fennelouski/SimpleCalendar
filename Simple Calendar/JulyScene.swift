@@ -153,8 +153,9 @@ final class JulyShow {
     func advance(time t: CGFloat, weekend: CGFloat, favored: (Int, Int), special: Int) {
         if nextSlot == nil { nextSlot = t + 0.4 }
         guard var next = nextSlot else { return }
-        // After a pause, pick up again without firing everything that was missed.
-        if t - next > 8 { next = t - 8 }
+        // After a pause, pick up from now without backfilling missed slots (they would
+        // all appear at once, mid-flight).
+        if t - next > 2 { next = t }
         let interval = special == 1 ? 0.6 : BG.lerp(1.5, 1.2, weekend)
         let finaleEvery = special == 1 ? 5 : (weekend > 0.5 ? 7 : 9)
         while next <= t {
@@ -237,6 +238,14 @@ final class JulyShow {
 
 // MARK: - Lights
 
+/// The skyline geometry for the last canvas size.
+final class JulySkylineCache {
+    var size: CGSize = .zero
+    var city = Path()
+    var windows = Path()
+}
+
+
 /// A live burst acting as a point light this frame.
 private struct JulyLight {
     var position: CGPoint
@@ -264,8 +273,11 @@ private enum JulyScene {
         drawSky(in: &ctx, size: size, time: time, look: look, lights: lights, dark: dark)
         drawAirplane(in: &ctx, size: size, t: t)
         drawSmoke(in: &ctx, size: size, t: t, look: look, lights: lights, dark: dark)
+        // Thin each burst when many are in the air at once (the July 4 finale), so the
+        // busiest moments stay within budget.
+        let starScale: CGFloat = lights.count > 24 ? 0.5 : (lights.count > 14 ? 0.7 : 1)
         for shell in look.shells {
-            drawShell(shell, in: &ctx, size: size, t: t, dark: dark)
+            drawShell(shell, in: &ctx, size: size, t: t, dark: dark, starScale: starScale)
         }
         drawSkyline(in: &ctx, size: size, t: t, lights: lights, dark: dark)
         drawLake(in: &ctx, size: size, t: t, lights: lights, dark: dark)
@@ -350,7 +362,7 @@ private enum JulyScene {
 
     // MARK: Shells
 
-    static func drawShell(_ shell: JulyShell, in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, dark: Bool) {
+    static func drawShell(_ shell: JulyShell, in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, dark: Bool, starScale: CGFloat) {
         let g = geometry(shell, size: size)
         let age = t - shell.launch
         guard age >= 0 else { return }
@@ -385,7 +397,7 @@ private enum JulyScene {
         }
 
         let kind = shell.kind
-        let count = kind == 3 ? 44 : 60
+        let count = Int(CGFloat(kind == 3 ? 44 : 60) * starScale)
         let baseSpeed = BG.hash(shell.seed, 99, 150, 230)
         let drag: CGFloat = kind == 2 ? 0.9 : 1.6
         let gravity: CGFloat = kind == 2 ? 95 : 60
@@ -504,7 +516,11 @@ private enum JulyScene {
     static func skylineTop(size: CGSize) -> CGFloat { size.height * 0.9 }
 
     /// A city skyline along the far shore. Its edges catch the color of the bursts.
-    static func drawSkyline(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, lights: [JulyLight], dark: Bool) {
+    static let skyline = JulySkylineCache()
+
+    /// Building outlines and lit windows depend only on the canvas size, so they are
+    /// built once per size and reused every frame.
+    static func buildSkyline(size: CGSize) -> (city: Path, windows: Path) {
         let base = size.height * 0.94
         var city = Path()
         var windows = Path()
@@ -537,6 +553,18 @@ private enum JulyScene {
             x += w + BG.hash(i, 724, 0, 6)
             i += 1
         }
+        return (city, windows)
+    }
+
+    static func drawSkyline(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, lights: [JulyLight], dark: Bool) {
+        if skyline.size != size {
+            let built = buildSkyline(size: size)
+            skyline.city = built.city
+            skyline.windows = built.windows
+            skyline.size = size
+        }
+        let city = skyline.city
+        let windows = skyline.windows
         ctx.fill(city, with: .color(dark ? BG.rgb(0.05, 0.06, 0.12, 0.92) : BG.rgb(0.2, 0.22, 0.32, 0.75)))
         ctx.fill(windows, with: .color(BG.rgb(1, 0.85, 0.55, dark ? 0.7 : 0.5)))
         // Rim light from the bursts on the tops of the buildings.
