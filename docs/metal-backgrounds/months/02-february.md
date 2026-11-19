@@ -98,4 +98,12 @@ Small details that reward watching. Each keeps the month's original idea, follow
 - **Pairs:** about once a minute, two rising hearts drift together, touch, and merge into one slightly larger heart with a small sparkle.
 
 ## Porting reference
-`FebruaryHeartCloudsAnimation`, `FebruaryScene`, `CloudPainter.heartPuffs`, `HeartGeometry` in the Canvas code.
+The Canvas version lives in `Simple Calendar/FebruaryScene.swift` (rebuilt to the November standard). Port from it:
+
+- **Signature motion:** a heartbeat. `FebruaryModel` integrates the beat phase (about one beat every 9 s, quickening to one every 5.5 s on Feb 14) so a rate change never jumps, and `FebruaryAir.pulse(beat:x:width:)` shapes a "lub" and a softer "dub" that travel outward from the centre of the screen. The heart clouds swell with it (×1.04), the rising hearts' glow and glass rims brighten, the horizon blush warms and the frozen pond's sheen pulses, each at its own x. A gentle integrated breeze (`drift`) carries the hearts and snow.
+- **Clouds become hearts:** `morphPuffs` blends the heart puff set toward a squashed cumulus layout of the same puffs, cycling over 20–40 s per cloud, so viewers catch hearts forming and relaxing. Romance sets which clouds are allowed to (by rank), so the share of heart clouds rises from 40% to 80%.
+- **Selection:** romance `1 − clamp(|day − 14| / 14)` through one discrete 2.5 s `SceneTransition`: rosier cloud palette, more heart clouds, 10 to 20 rising hearts (the extra ones mostly glass), faster heartbeat.
+- **Special day:** Feb 14 plays a 12 s `SceneMoment` once per arrival: a warm pink swell along the bottom and 60 hearts bursting up in a fan, gone by 70% height.
+- **Scene:** blush sky with a high soft sun above the top edge, far snow specks and sparse crystals, pale hills, a frozen pond with two skaters on a slow figure-eight (with reflections), a bare tree at the left edge with a pair of lovebirds that shuffle together about once a minute and make a tiny heart, a street lamp at the right edge whose light catches passing snowflakes, five heart/cumulus clouds, rising hearts in three materials (glossy candy, folded paper with a crease and shaded half, thin glass with a bright rim), and about once a minute two hearts that drift together and merge into one with a sparkle.
+- **Theme:** light theme deepens the cloud shadow, adds a soft pink glow behind each cloud and gives the snow the cool offset shadow. Dark theme makes the lamp glow additive.
+- **Not ported:** fbm break-up of the heart cloud mask (the puff layout gives the billowy edge instead).
