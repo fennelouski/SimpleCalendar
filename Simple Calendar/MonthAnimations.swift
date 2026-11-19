@@ -12,25 +12,6 @@
 
 import SwiftUI
 
-// MARK: - January: Snowfall
-
-struct JanuarySnowAnimation: View {
-    let alpha: Double
-
-    init(alpha: Double = 1.0) {
-        self.alpha = alpha
-    }
-
-    var body: some View {
-        AnimatedScene { ctx, size, time in
-            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.78, 0.88, 1), intensity: 0.22, depth: 0.45)
-            SnowRenderer.draw(in: &ctx, size: size, time: time, density: 1, wind: CGFloat(sin(time * 0.05)) * 0.6)
-            SnowRenderer.drawSnowbank(in: &ctx, size: size, time: time, height: size.height * 0.045)
-        }
-        .opacity(alpha)
-    }
-}
-
 // MARK: - February: Heart clouds and floating hearts
 
 struct FebruaryHeartCloudsAnimation: View {

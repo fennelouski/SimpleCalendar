@@ -32,7 +32,7 @@ struct MonthBackgroundAnimationView: View {
                     Group {
                         switch month {
                         case 1:
-                            JanuarySnowAnimation(alpha: animationAlpha)
+                            JanuarySnowAnimation(alpha: animationAlpha, date: selectedDate ?? currentDate)
                         case 2:
                             FebruaryHeartCloudsAnimation(alpha: animationAlpha)
                         case 3:
