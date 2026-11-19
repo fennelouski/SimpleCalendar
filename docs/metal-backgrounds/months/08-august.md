@@ -108,4 +108,11 @@ Small details that reward watching. Each keeps the month's original idea, follow
 - **Building thunderhead:** on the hottest days (daylight above 14 h), one cumulus slowly grows into a tall anvil-topped thunderhead over about 10 minutes, then fades.
 
 ## Porting reference
-`AugustSunCloudsAnimation`, `SkyScene` (sun path, clouds, birds) and `SunPainter` in the Canvas code.
+The Canvas version lives in `Simple Calendar/AugustScene.swift` (rebuilt to the November standard). Port from it:
+
+- **Key light:** the sun (`AugustScene.makeFrame`) follows the 20-minute arc, fades in and out at the ends of the arc so the wrap is invisible, and is computed before anything is drawn so every element can answer to it. Each cloud's elliptical footprint over the sun gives `sunlight` (0 covered ... 1 clear). That one value dims the rays and corona, the flare and streak, the fields (via a shade overlay), and the heat.
+- **Signature motion:** `AugustAir.thermal` is one slow signal for the ground heat, multiplied by `sunlight`. It drives the heat-shimmer lines, the horizon mirage, how far the cumulus billow, how high and tight the hawks circle, and whether a dust devil can spin up.
+- **Selection:** `AugustModel.Target` maps the day's daylight to the sun's peak height, warmth and shimmer, a day-hash "hot day" to the thunderhead, and Aug 12–13 to Perseid night. Each goes through one discrete 2.5 s `SceneTransition`. `drift` integrates the breeze so clouds never jump.
+- **Scene:** sky gradient and haze, sun, Perseid dusk with stars and meteors from a top-right radiant, a hot-air balloon every few minutes, six cumulus that billow up, live a couple of minutes and dissipate (re-placed only while invisible), with towering tops on the nearest two and silver linings near the sun, a ten-minute thunderhead with an anvil on hot days, swallows with glides, hawks on thermals, hazy far hills with trees and a mirage, golden fields with hay bales and cloud shadows, a dust devil, heat shimmer, and lens flare (dark theme only).
+- **Theme:** light theme turns the flare off, darkens cloud undersides and halves the Perseid dusk.
+- **Not ported:** true UV-distortion heat shimmer (Canvas fakes it with faint rising wavy lines), ray capping inside the content-safe region, and the hexagonal flare ghost. The thunderhead uses a day hash rather than "daylight above 14 h", since August never reaches 14 h at 40° N.

@@ -15,7 +15,7 @@
 //                        the pile deepens
 //    * day character   - breezy / blustery / gale wind strength (hash of the date)
 //    * Thanksgiving    - the wind drops, the light warms, golden leaves spiral in
-//  All three change through one discrete 2.5 s transition and never stack.
+//  All three change through one discrete 2.5 s transition (`SceneTransition`) and never stack.
 //
 
 import SwiftUI
@@ -87,9 +87,9 @@ final class NovemberModel {
         var overcast: CGFloat { progress * 0.3 }
     }
 
-    private let progressTransition = NovemberTransition()
-    private let windTransition = NovemberTransition()
-    private let calmTransition = NovemberTransition()
+    private let progressTransition = SceneTransition()
+    private let windTransition = SceneTransition()
+    private let calmTransition = SceneTransition()
     private var drift: CGFloat = 0
     private var lastTime: Double?
 
@@ -107,42 +107,6 @@ final class NovemberModel {
         lastTime = time
 
         return Look(progress: CGFloat(progress), windScale: CGFloat(wind), calm: CGFloat(calm), drift: drift)
-    }
-}
-
-/// A value that glides to a new target over `duration` and only then looks at the
-/// current target again, so transitions never stack, queue or retarget mid-flight.
-final class NovemberTransition {
-    private let duration: Double
-    private var shown: Double?
-    private var from = 0.0
-    private var delta = 0.0
-    private var startTime: Double?
-
-    init(duration: Double = 2.5) {
-        self.duration = duration
-    }
-
-    func value(target: Double, time: Double) -> Double {
-        guard shown != nil else {
-            shown = target
-            return target
-        }
-        if let start = startTime {
-            let progress = (time - start) / duration
-            if progress < 1 {
-                return from + delta * Double(BG.easeInOut(CGFloat(progress)))
-            }
-            startTime = nil
-            shown = from + delta
-        }
-        let current = shown ?? target
-        if abs(target - current) > 0.0005 {
-            from = current
-            delta = target - current
-            startTime = time
-        }
-        return current
     }
 }
 

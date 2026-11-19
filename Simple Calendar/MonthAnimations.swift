@@ -1109,27 +1109,6 @@ private enum JulyScene {
     }
 }
 
-// MARK: - August: Blazing sun and drifting cumulus
-
-struct AugustSunCloudsAnimation: View {
-    let alpha: Double
-
-    init(alpha: Double = 1.0) {
-        self.alpha = alpha
-    }
-
-    var body: some View {
-        AnimatedScene { ctx, size, time in
-            AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(1, 0.93, 0.72), intensity: 0.16, depth: 0.45)
-            let sun = SkyScene.sunPosition(size: size, time: time, duration: 1200, start: 0.5, height: 0.14, radius: 62)
-            SunPainter.draw(in: &ctx, center: sun, radius: 62, time: time, warmth: 0.12, canvas: size)
-            SkyScene.drawBirds(in: &ctx, size: size, time: time)
-            SkyScene.drawClouds(in: &ctx, size: size, time: time, count: 6, yRange: 0.06...0.32, palette: .summer, light: sun, salt: 0)
-        }
-        .opacity(alpha)
-    }
-}
-
 // MARK: - September: Golden-hour sun, clouds and falling leaves
 
 struct SeptemberLeavesAnimation: View {
@@ -1182,24 +1161,6 @@ private enum SkyScene {
                 lightDirection: CGVector(dx: light.x - center.x, dy: light.y - center.y),
                 softness: BG.lerp(0.05, 0.025, depth)
             )
-        }
-    }
-
-    static func drawBirds(in ctx: inout GraphicsContext, size: CGSize, time: Double) {
-        let t = CGFloat(time)
-        for i in 0..<4 {
-            let duration = BG.hash(i, 141, 40, 70)
-            let progress = BG.fract(BG.hash(i, 142) + t / duration)
-            let x = -40 + progress * (size.width + 80)
-            let y = size.height * BG.hash(i, 143, 0.18, 0.4) + sin(t * 0.4 + CGFloat(i)) * 14
-            let span = BG.hash(i, 144, 10, 18)
-            let beat = sin(t * BG.hash(i, 145, 4, 6) + CGFloat(i))
-            let wingY = beat * span * 0.35
-            var bird = Path()
-            bird.move(to: CGPoint(x: x - span, y: y + wingY))
-            bird.addQuadCurve(to: CGPoint(x: x, y: y), control: CGPoint(x: x - span * 0.5, y: y - span * 0.35 + wingY * 0.3))
-            bird.addQuadCurve(to: CGPoint(x: x + span, y: y + wingY), control: CGPoint(x: x + span * 0.5, y: y - span * 0.35 + wingY * 0.3))
-            ctx.stroke(bird, with: .color(BG.rgb(0.2, 0.22, 0.3, 0.55)), style: StrokeStyle(lineWidth: 2, lineCap: .round, lineJoin: .round))
         }
     }
 }

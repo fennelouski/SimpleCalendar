@@ -11,8 +11,8 @@ import SwiftUI
 struct MonthBackgroundAnimationView: View {
     /// Determines which month's scene is shown.
     let currentDate: Date
-    /// The day the user has selected/focused. Scenes that depict a specific day
-    /// (October's moon phase) follow this; falls back to `currentDate`.
+    /// The day the user has selected/focused. Scenes react to this day (weather, moon
+    /// phase, daylight, special days); falls back to `currentDate`.
     var selectedDate: Date? = nil
     /// True while the background is fully hidden (e.g. behind a full-screen sheet); scenes stop rendering.
     var isPaused: Bool = false
@@ -46,7 +46,7 @@ struct MonthBackgroundAnimationView: View {
                         case 7:
                             JulyFireworksAnimation(alpha: animationAlpha)
                         case 8:
-                            AugustSunCloudsAnimation(alpha: animationAlpha)
+                            AugustSunCloudsAnimation(alpha: animationAlpha, date: selectedDate ?? currentDate)
                         case 9:
                             SeptemberLeavesAnimation(alpha: animationAlpha)
                         case 10:
