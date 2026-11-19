@@ -41,7 +41,8 @@ The scenes currently draw with SwiftUI `Canvas`: paths and gradients are rebuilt
 
 ## Current state
 
-- The scenes ship today as SwiftUI `Canvas` renderers in `Simple Calendar/MonthAnimations.swift`, built on the toolkit in `Simple Calendar/BackgroundRendering.swift`. `Simple Calendar/MoonPhase.swift` has the moon phase astronomy and the discrete transition animator.
+- The scenes ship today as SwiftUI `Canvas` renderers, one file per month (`Simple Calendar/JanuaryScene.swift` … `DecemberScene.swift`), built on the toolkit in `Simple Calendar/BackgroundRendering.swift`. The toolkit also has the shared selection-driven state: `SceneTransition` (the discrete 2.5 s transition), `SceneMoment` (one-shot special-day moments) and `SceneDay` (calendar facts, daylight, Easter, equinoxes and solstices). `Simple Calendar/MoonPhase.swift` has the moon phase astronomy, the cyclic phase animator and the moon renderer.
+- Every month follows the November pattern: a key light, depth layers, one signature motion system that drives the whole scene, small stateless moments from `floor(t / period)` cycles and hashes, and selection-driven behavior through discrete transitions. Each month spec's *Porting reference* describes its Canvas version.
 - `MonthBackgroundAnimationView(currentDate:selectedDate:)` picks the month's scene. `ContentView` shows it behind the grid in month view only.
 - The Canvas scenes run at 30 fps and pause while hidden (an interim CPU saving). They are the **visual reference and the fallback**. Each month spec points at the Canvas code to port from. Keep the Canvas path working after the Metal versions land.
 
