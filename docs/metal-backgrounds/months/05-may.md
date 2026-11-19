@@ -113,4 +113,11 @@ Small details that reward watching. Each keeps the month's original idea, follow
 - **Dandelions:** one slot in four may grow a dandelion clock instead of a flower. When a gust passes, it releases 10–20 seeds that drift slowly up and across the scene and fade.
 
 ## Porting reference
-`MayFlowersAnimation` and `MayScene` (flower kinds, grass, petals, pollen) in `MonthAnimations.swift`.
+The Canvas version lives in `Simple Calendar/MayScene.swift` (rebuilt to the November standard). Port from it:
+
+- **Signature motion:** `MayWind.gust(at: x, t)` is one gust signal that travels across the meadow (`x / 300` s lag). Both grass rows bend with it, and a second fill of the same blades (a horizontal gradient sampling the gust at 13 points) lays a silvery sheen on each wave. The same gusts nod the flower heads, sway the far blossom trees, shake the top-left blossom branch, and decide when dandelion seeds leave. Petals and pollen ride the integrated `drift`.
+- **Selection:** `MayModel.Target` maps month progress to active flower slots (5 to 9, faded in by rank), grass height (×0.8 to ×1.1) and pollen (faded in by rank), and the second Sunday of May to Mother's Day, each through one discrete 2.5 s `SceneTransition`.
+- **Special day:** Mother's Day grows a second, fixed flower in each slot in a left-to-right wave as the cycling flower fades (so nothing pops), holds it in full bloom while selected, and plays a 9 s `SceneMoment` petal shower from the top once per arrival.
+- **Scene:** sunlight pool at top-right, far pollen, a far meadow with blossoming trees near the edges, two grass rows with tip translucency and the gust sheen, flowers (`makeFlowers` computes every slot's state first so bees can use it) with stem leaves, soft shadows and glows, heads that turn up to ~12° toward the sun, dandelion clocks (one slot in four) whose seeds leave only in a gust and drift up and away, three bees hopping between open flowers (the head dips when one lands), a blossoming branch at top-left, petals blown across the screen (big ones ease off over the grid) and near pollen bokeh.
+- **Theme:** light theme uses deeper gold pollen with a normal-blend halo, gives daisies a soft violet petal edge, and halves the sunlight pool.
+- **Not ported:** the thin specular along each grass blade's midline.
