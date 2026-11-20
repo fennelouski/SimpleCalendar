@@ -30,7 +30,6 @@ struct JulyFireworksAnimation: View {
     /// The day whose character the scene reflects (the user's selection/focus).
     let date: Date
     @State private var model = JulyModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, date: Date = Date()) {
         self.alpha = alpha
@@ -40,11 +39,10 @@ struct JulyFireworksAnimation: View {
     var body: some View {
         let target = JulyModel.Target(date: date)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
+        AnimatedScene(daylight: { ctx, size, time, daylight in
             let look = state.look(target: target, time: time)
-            JulyScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+            JulyScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -256,32 +254,64 @@ private struct JulyLight {
 // MARK: - Scene
 
 private enum JulyScene {
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: JulyModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: JulyModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
+        let dark = daylight.isDark
+        let show = showLevel(daylight)
         var lights: [JulyLight] = []
         lights.reserveCapacity(24)
-        for shell in look.shells {
+        for shell in look.shells where show > 0.01 {
             let g = geometry(shell, size: size)
             let b = t - shell.launch - g.rise
             guard b >= 0, b < g.life else { continue }
             let flash = max(0, 1 - b / 0.4)
             let fade = 1 - BG.smoothstep(g.life * 0.5, g.life, b)
             let intensity = max(flash, 0.3 * fade) * shell.glow
-            lights.append(JulyLight(position: g.apex, hue: JulyPalette.all[shell.palette].0, intensity: intensity))
+            lights.append(JulyLight(position: g.apex, hue: JulyPalette.all[shell.palette].0, intensity: intensity * show))
         }
 
-        drawSky(in: &ctx, size: size, time: time, look: look, lights: lights, dark: dark)
+        drawSky(in: &ctx, size: size, time: time, look: look, lights: lights, daylight: daylight)
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight)
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: time, daylight: daylight, seed: 7)
         drawAirplane(in: &ctx, size: size, t: t)
-        drawSmoke(in: &ctx, size: size, t: t, look: look, lights: lights, dark: dark)
-        // Thin each burst when many are in the air at once (the July 4 finale), so the
-        // busiest moments stay within budget.
-        let starScale: CGFloat = lights.count > 24 ? 0.5 : (lights.count > 14 ? 0.7 : 1)
-        for shell in look.shells {
-            drawShell(shell, in: &ctx, size: size, t: t, dark: dark, starScale: starScale)
+        if show > 0.01 {
+            var night = ctx
+            night.opacity = Double(show)
+            drawSmoke(in: &night, size: size, t: t, look: look, lights: lights, dark: dark)
+            // Thin each burst when many are in the air at once (the July 4 finale), so the
+            // busiest moments stay within budget.
+            let starScale: CGFloat = lights.count > 24 ? 0.5 : (lights.count > 14 ? 0.7 : 1)
+            for shell in look.shells {
+                drawShell(shell, in: &night, size: size, t: t, dark: dark, starScale: starScale)
+            }
         }
-        drawSkyline(in: &ctx, size: size, t: t, lights: lights, dark: dark)
-        drawLake(in: &ctx, size: size, t: t, lights: lights, dark: dark)
-        drawShore(in: &ctx, size: size, t: t, lights: lights, dark: dark)
+        ctx.drawLayer { city in
+            drawSkyline(in: &city, size: size, t: t, lights: lights, dark: dark, windows: windowLevel(daylight))
+            drawLake(in: &city, size: size, t: t, lights: lights, dark: dark)
+            drawShore(in: &city, size: size, t: t, lights: lights, dark: dark)
+            WeatherPainter.dullLight(in: &city, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &city, size: size, daylight: daylight)
+            // The city art already has a night look; this only bridges dusk.
+            DaylightPainter.nightGrade(in: &city, size: size, daylight: daylight, strength: 0.35)
+        }
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight)
+    }
+
+    /// Fireworks begin once it is properly dark and run to a little after midnight;
+    /// a downpour or a thunderstorm calls the show off.
+    static func showLevel(_ daylight: SceneDaylight) -> CGFloat {
+        let h = daylight.localHour
+        let hours: CGFloat = h >= 12 ? 1 : 1 - BG.smoothstep(0.5, 1, CGFloat(h))
+        let weather = daylight.weather.map { (1 - BG.smoothstep(0.4, 0.8, $0.rain)) * (1 - $0.storm) } ?? 1
+        return BG.smoothstep(0.35, 0.08, daylight.light) * hours * weather
+    }
+
+    /// Office and apartment windows: on through the evening, fewer in the small hours.
+    static func windowLevel(_ daylight: SceneDaylight) -> CGFloat {
+        let evening = BG.smoothstep(0.8, 0.3, daylight.light)
+        let h = daylight.localHour
+        let smallHours: CGFloat = h >= 1 && h < 5.5 ? 0.35 : 1
+        return BG.lerp(0.3, 1, evening * smallHours)
     }
 
     /// Where a shell launches, peaks, and how long it rises and burns.
@@ -294,9 +324,10 @@ private enum JulyScene {
 
     // MARK: Sky
 
-    static func drawSky(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: JulyModel.Look, lights: [JulyLight], dark: Bool) {
-        AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.04, 0.06, 0.2), intensity: dark ? 0.38 : 0.15, depth: 0.65)
-        AtmospherePainter.stars(in: &ctx, size: size, time: time, count: dark ? 80 : 40, skyFraction: 0.5, intensity: dark ? 0.6 : 0.35)
+    static func drawSky(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: JulyModel.Look, lights: [JulyLight], daylight: SceneDaylight) {
+        let dark = daylight.isDark
+        AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.04, 0.06, 0.2), intensity: 0.38 * Double(daylight.night), depth: 0.65)
+        DaylightPainter.stars(in: &ctx, size: size, time: time, daylight: daylight, count: 80)
         // Each burst lights the sky around it, in its color (capped).
         for light in lights where light.intensity > 0.02 {
             let boost = Double(min(light.intensity, 1.5))
@@ -556,7 +587,7 @@ private enum JulyScene {
         return (city, windows)
     }
 
-    static func drawSkyline(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, lights: [JulyLight], dark: Bool) {
+    static func drawSkyline(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, lights: [JulyLight], dark: Bool, windows level: CGFloat) {
         if skyline.size != size {
             let built = buildSkyline(size: size)
             skyline.city = built.city
@@ -566,7 +597,7 @@ private enum JulyScene {
         let city = skyline.city
         let windows = skyline.windows
         ctx.fill(city, with: .color(dark ? BG.rgb(0.05, 0.06, 0.12, 0.92) : BG.rgb(0.2, 0.22, 0.32, 0.75)))
-        ctx.fill(windows, with: .color(BG.rgb(1, 0.85, 0.55, dark ? 0.7 : 0.5)))
+        ctx.fill(windows, with: .color(BG.rgb(1, 0.85, 0.55, (dark ? 0.7 : 0.5) * Double(level))))
         // Rim light from the bursts on the tops of the buildings.
         var r = 0.0, g = 0.0, b = 0.0, total = 0.0
         for light in lights {

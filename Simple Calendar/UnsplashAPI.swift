@@ -54,7 +54,9 @@ nonisolated enum CalendarNetworkConsent {
     // The legacy allowNetworkLocation preference is left untouched but no longer enables a provider.
     static let weather = "CalendarPlay.allowOnlineWeather"
     static let history = "feature_onThisDayEnabled"
-    static let keys = [photos, eventPhotos, weather, history]
+    /// Weather Backgrounds: hourly coarse-area lookup and Apple Weather for the background.
+    static let weatherBackgrounds = "CalendarPlay.weatherBackgrounds"
+    static let keys = [photos, eventPhotos, weather, history, weatherBackgrounds]
 
     static func allows(_ key: String, defaults: UserDefaults = .standard) -> Bool {
         defaults.bool(forKey: key) && (key != eventPhotos || defaults.bool(forKey: photos))
@@ -138,11 +140,7 @@ class UnsplashAPI {
     static let shared = UnsplashAPI()
     private let networkRequests: CalendarNetworkRequests
     private var backendBaseURL: String {
-        #if DEBUG
-        "http://localhost:3001/api/unsplash"
-        #else
-        "https://calendar-play-seven.vercel.app/api/unsplash"
-        #endif
+        CalendarBackend.baseURL + "/api/unsplash"
     }
     init(networkRequests: CalendarNetworkRequests = .shared) { self.networkRequests = networkRequests }
 

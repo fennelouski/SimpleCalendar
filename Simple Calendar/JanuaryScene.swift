@@ -27,7 +27,6 @@ struct JanuarySnowAnimation: View {
     /// The day whose character the scene reflects (the user's selection/focus).
     let date: Date
     @State private var model = JanuaryModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, date: Date = Date()) {
         self.alpha = alpha
@@ -37,11 +36,10 @@ struct JanuarySnowAnimation: View {
     var body: some View {
         let target = JanuaryModel.Target(date: date)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
-            let look = state.look(target: target, time: time)
-            JanuaryScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+        AnimatedScene(daylight: { ctx, size, time, daylight in
+            let look = state.look(target: target.with(daylight.weather), time: time)
+            JanuaryScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -51,13 +49,13 @@ struct JanuarySnowAnimation: View {
 final class JanuaryModel {
     struct Target {
         /// Flurries 0.5 / steady 1 / heavy 1.8.
-        let density: Double
+        var density: Double
         /// Base wind in points per second.
-        let windBase: Double
+        var windBase: Double
         /// Gust share: how hard squalls blow.
-        let gust: Double
+        var gust: Double
         /// 1 on heavy-snow days (haze, near bokeh, no sun dogs).
-        let heavy: Double
+        var heavy: Double
         /// 0 pale (longer day) ... 1 deep blue (shortest days).
         let shortDay: Double
         /// 0 dendrites, 1 plates, 2 needles.
@@ -78,6 +76,22 @@ final class JanuaryModel {
             let shape = day.roll(102)
             habit = shape < 0.6 ? 0 : (shape < 0.85 ? 1 : 2)
             newYear = day.month == 1 && day.day == 1 ? 1 : 0
+            aurora = day.roll(103) < 0.22 ? 1 : 0
+        }
+
+        /// Some clear winter nights carry a faint aurora (high latitudes only).
+        let aurora: Double
+
+        /// Real weather replaces the invented snowfall: how hard it snows, the wind, whiteout.
+        func with(_ weather: SceneWeather?) -> Target {
+            guard let weather else { return self }
+            var target = self
+            let snow = Double(weather.snow)
+            target.density = snow > 0.01 ? 0.4 + 1.5 * snow : (weather.rain > 0.05 ? 0 : 0.12)
+            target.windBase = 2 + weather.wind * 2.2
+            target.gust = 0.2 + 0.5 * Double(weather.windiness)
+            target.heavy = min(1, max(snow > 0.7 ? 1 : 0, Double(weather.fog) * 0.8))
+            return target
         }
     }
 
@@ -97,6 +111,8 @@ final class JanuaryModel {
         /// 0...1 New Year's glitter, and seconds into it.
         var glitter: CGFloat
         var glitterAge: CGFloat
+        /// 1 on the nights this day can show an aurora.
+        var aurora: CGFloat = 0
     }
 
     private let densityTransition = SceneTransition()
@@ -160,7 +176,8 @@ final class JanuaryModel {
             habitNew: habitNew,
             habitChangedAt: CGFloat(habitChangedAt),
             glitter: glitter,
-            glitterAge: glitterAge
+            glitterAge: glitterAge,
+            aurora: CGFloat(target.aurora)
         )
     }
 }
@@ -316,28 +333,79 @@ private enum JanuaryArt {
 // MARK: - Scene
 
 private enum JanuaryScene {
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: JanuaryModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: JanuaryModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
-        let sun = CGPoint(x: size.width * 0.1, y: size.height * 0.035)
+        let dark = daylight.isDark
+        let sun = daylight.sunPoint(in: size)
+        let cover = daylight.weather?.cover ?? 0
+        // The low winter sun only lights the haze while it is up and not hidden by cloud.
+        let sunLight = Double(BG.smoothstep(-4, 2, CGFloat(daylight.elevation)) * (1 - cover))
 
-        drawSky(in: &ctx, size: size, t: t, look: look, sun: sun)
-        drawSunDogs(in: &ctx, size: size, t: t, look: look, sun: sun)
-        drawFarHills(in: &ctx, size: size, t: t, look: look)
-        drawWhiteout(in: &ctx, size: size, t: t, look: look, row: 0)
-        drawMidPines(in: &ctx, size: size, t: t, look: look)
-        drawSnowDump(in: &ctx, size: size, t: t, look: look)
+        ctx.drawLayer { sky in
+            drawSky(in: &sky, size: size, t: t, look: look, sun: sun, sunLight: sunLight)
+            DaylightPainter.lowSunGrade(in: &sky, size: size, daylight: daylight)
+            DaylightPainter.nightGrade(in: &sky, size: size, daylight: daylight, strength: 0.9)
+        }
+        DaylightPainter.stars(in: &ctx, size: size, time: time, daylight: daylight, cover: look.heavy * 0.8)
+        drawAurora(in: &ctx, size: size, t: t, look: look, daylight: daylight)
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight, cover: look.heavy * 0.7)
+        if sunLight > 0.01 {
+            var dogs = ctx
+            dogs.opacity = sunLight * Double(BG.smoothstep(20, 6, CGFloat(daylight.elevation))) // sun dogs need a low sun
+            drawSunDogs(in: &dogs, size: size, t: t, look: look, sun: sun)
+        }
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: time, daylight: daylight, seed: 1)
 
-        drawFarSnow(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawCrystals(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawWhiteout(in: &ctx, size: size, t: t, look: look, row: 1)
+        ctx.drawLayer { land in
+            drawFarHills(in: &land, size: size, t: t, look: look)
+            drawWhiteout(in: &land, size: size, t: t, look: look, row: 0)
+            drawMidPines(in: &land, size: size, t: t, look: look)
+            drawSnowDump(in: &land, size: size, t: t, look: look)
 
-        drawDrift(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawHare(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawSpindrift(in: &ctx, size: size, t: t, look: look, dark: dark)
+            drawFarSnow(in: &land, size: size, t: t, look: look, dark: dark)
+            drawCrystals(in: &land, size: size, t: t, look: look, dark: dark)
+            drawWhiteout(in: &land, size: size, t: t, look: look, row: 1)
 
-        drawGlitterCascade(in: &ctx, size: size, look: look)
-        drawBokeh(in: &ctx, size: size, t: t, look: look, dark: dark)
+            drawDrift(in: &land, size: size, t: t, look: look, dark: dark)
+            drawHare(in: &land, size: size, t: t, look: look, dark: dark)
+            drawSpindrift(in: &land, size: size, t: t, look: look, dark: dark)
+
+            drawGlitterCascade(in: &land, size: size, look: look)
+            drawBokeh(in: &land, size: size, t: t, look: look, dark: dark)
+            WeatherPainter.dullLight(in: &land, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &land, size: size, daylight: daylight, strength: 0.7)
+            // Snow stays bright under the moon, so the night grade is lighter here.
+            DaylightPainter.nightGrade(in: &land, size: size, daylight: daylight, strength: 0.7)
+        }
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight, nativeSnow: true)
         drawFrost(in: &ctx, size: size, t: t, dark: dark)
+    }
+
+    /// A faint green-violet curtain on some clear, dark winter nights where the sun stays
+    /// low at noon (high latitudes). Slowly folds and drifts.
+    static func drawAurora(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: JanuaryModel.Look, daylight: SceneDaylight) {
+        let clear = (1 - look.heavy) * (1 - (daylight.weather?.cover ?? 0))
+        let north = BG.smoothstep(24, 14, CGFloat(daylight.noonElevation))
+        let amount = Double(daylight.stars * clear * north * look.aurora)
+        guard amount > 0.02 else { return }
+        ctx.blurredLayer(radius: 18) { sky in
+            for band in 0..<3 {
+                var curtain = Path()
+                let base = size.height * (0.12 + 0.07 * CGFloat(band))
+                curtain.move(to: CGPoint(x: -40, y: base))
+                var x: CGFloat = -40
+                while x <= size.width + 40 {
+                    let u = x / size.width
+                    let y = base + sin(u * 5 + t * 0.05 + CGFloat(band)) * size.height * 0.04 + sin(u * 13 - t * 0.08) * 10
+                    curtain.addLine(to: CGPoint(x: x, y: y))
+                    x += 30
+                }
+                let fold = 0.6 + 0.4 * sin(t * 0.03 + CGFloat(band) * 2)
+                sky.stroke(curtain, with: .linearGradient(
+                    Gradient(colors: [BG.rgb(0.3, 1, 0.6, 0.22 * amount * Double(fold)), BG.rgb(0.55, 0.4, 1, 0.12 * amount)]),
+                    startPoint: CGPoint(x: 0, y: base), endPoint: CGPoint(x: 0, y: base - 120)), lineWidth: 70)
+            }
+        }
     }
 
     /// How many of a layer's particles are showing, 0...1, for a particle that began its
@@ -350,7 +418,7 @@ private enum JanuaryScene {
 
     // MARK: Sky
 
-    static func drawSky(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: JanuaryModel.Look, sun: CGPoint) {
+    static func drawSky(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: JanuaryModel.Look, sun: CGPoint, sunLight: Double) {
         let s = Double(look.shortDay)
         let heavy = Double(look.heavy)
         let squall = Double(JanuarySquall.strength(t - size.width / 440))
@@ -365,7 +433,7 @@ private enum JanuaryScene {
         AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(r, g, b), intensity: 0.22 * (1 + 0.3 * heavy) + 0.08 * squall, depth: 0.45)
 
         // A pale, low winter sun behind the haze (the key light).
-        let veil = 1 - 0.6 * heavy - 0.4 * squall
+        let veil = (1 - 0.6 * heavy - 0.4 * squall) * sunLight
         ctx.glow(at: sun, radius: size.width * 0.32, color: BG.rgb(1, 0.95, 0.85), intensity: 0.22 * veil)
         ctx.glow(at: sun, radius: 70, color: BG.rgb(1, 0.97, 0.9), intensity: 0.5 * veil)
         ctx.fill(BG.circle(sun, 26), with: .color(BG.rgb(1, 0.99, 0.95, 0.55 * veil)))

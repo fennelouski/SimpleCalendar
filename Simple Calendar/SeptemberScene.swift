@@ -28,7 +28,6 @@ struct SeptemberLeavesAnimation: View {
     /// The day whose character the scene reflects (the user's selection/focus).
     let date: Date
     @State private var model = SeptemberModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, date: Date = Date()) {
         self.alpha = alpha
@@ -38,11 +37,12 @@ struct SeptemberLeavesAnimation: View {
     var body: some View {
         let target = SeptemberModel.Target(date: date)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
-            let look = state.look(target: target, time: time)
-            SeptemberScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+        AnimatedScene(daylight: { ctx, size, time, daylight in
+            var weathered = target
+            weathered.windScale = daylight.weather.map { 0.4 + 1.6 * Double($0.windiness) } ?? 1
+            let look = state.look(target: weathered, time: time)
+            SeptemberScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -62,6 +62,9 @@ final class SeptemberModel {
             shortDay = 1 - min(max((day.daylightHours - 11.6) / 1.3, 0), 1)
             equinox = day.isSeasonDay(2) ? 1 : 0
         }
+
+        /// The real wind's strength relative to the usual breeze (1 without weather).
+        var windScale: Double = 1
     }
 
     struct Look {
@@ -101,7 +104,7 @@ final class SeptemberModel {
             surge = BG.smoothstep(0, 0.5, releaseAge) * (1 - BG.smoothstep(2.5, 3.5, releaseAge))
         }
 
-        let wind = SeptemberAir.breeze(CGFloat(time)) * (1 + 3 * surge)
+        let wind = SeptemberAir.breeze(CGFloat(time)) * (1 + 3 * surge) * CGFloat(target.windScale)
         if let last = lastTime {
             let dt = CGFloat(min(max(time - last, 0), 0.1))
             drift += dt * wind
@@ -314,48 +317,64 @@ private enum SeptemberArt {
 // MARK: - Scene
 
 private enum SeptemberScene {
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: SeptemberModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: SeptemberModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
-        let frame = makeFrame(size: size, t: t, look: look)
+        let dark = daylight.isDark
+        let frame = makeFrame(size: size, t: t, look: look, daylight: daylight)
 
-        drawSky(in: &ctx, size: size, look: look, frame: frame, dark: dark)
+        ctx.drawLayer { sky in
+            drawSky(in: &sky, size: size, look: look, frame: frame, dark: dark)
+            DaylightPainter.lowSunGrade(in: &sky, size: size, daylight: daylight, strength: 0.8)
+            DaylightPainter.nightGrade(in: &sky, size: size, daylight: daylight, strength: 0.9)
+        }
+        DaylightPainter.stars(in: &ctx, size: size, time: time, daylight: daylight)
+        // September's full moon is the harvest moon: drawn a little larger.
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight, radius: 30 + 12 * CGFloat(MoonPhase.illumination(daylight.moonPhase)))
         drawSun(in: &ctx, frame: frame, look: look, dark: dark)
-        drawClouds(in: &ctx, size: size, t: t, look: look, frame: frame)
+        ctx.drawLayer { clouds in
+            drawClouds(in: &clouds, size: size, t: t, look: look, frame: frame)
+            DaylightPainter.nightGrade(in: &clouds, size: size, daylight: daylight, strength: 0.85)
+        }
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: time, daylight: daylight, seed: 9)
         drawBeams(in: &ctx, size: size, frame: frame, look: look)
-        drawGeese(in: &ctx, size: size, t: t)
-        drawHills(in: &ctx, size: size, frame: frame, look: look)
+        var flock = ctx
+        flock.opacity = Double(BG.smoothstep(0.2, 0.6, daylight.light))
+        drawGeese(in: &flock, size: size, t: t)
 
-        ctx.blurredLayer(radius: 1.6) { far in
-            for i in 0..<30 {
-                drawFalling(layer: 0, index: i, in: &far, size: size, t: t, look: look, frame: frame)
+        ctx.drawLayer { land in
+            drawHills(in: &land, size: size, frame: frame, look: look)
+            WeatherPainter.rainbow(in: &land, size: size, daylight: daylight, strength: WeatherPainter.rainbowChance(daylight))
+            land.blurredLayer(radius: 1.6) { far in
+                for i in 0..<30 {
+                    drawFalling(layer: 0, index: i, in: &far, size: size, t: t, look: look, frame: frame)
+                }
             }
-        }
-        drawMotes(in: &ctx, size: size, t: t, look: look, frame: frame)
-        for i in 0..<40 {
-            drawFalling(layer: 1, index: i, in: &ctx, size: size, t: t, look: look, frame: frame)
-        }
-        drawRelease(in: &ctx, size: size, t: t, look: look, frame: frame)
-        drawGrass(in: &ctx, size: size, t: t, look: look, frame: frame, dark: dark)
-        drawBranch(in: &ctx, size: size, t: t, look: look, frame: frame)
-        drawWeb(in: &ctx, size: size, t: t, look: look, frame: frame, dark: dark)
-
-        ctx.blurredLayer(radius: 5) { near in
-            for i in 0..<6 {
-                drawFalling(layer: 2, index: i, in: &near, size: size, t: t, look: look, frame: frame)
+            drawMotes(in: &land, size: size, t: t, look: look, frame: frame)
+            for i in 0..<40 {
+                drawFalling(layer: 1, index: i, in: &land, size: size, t: t, look: look, frame: frame)
             }
+            drawRelease(in: &land, size: size, t: t, look: look, frame: frame)
+            drawGrass(in: &land, size: size, t: t, look: look, frame: frame, dark: dark)
+            drawBranch(in: &land, size: size, t: t, look: look, frame: frame)
+            drawWeb(in: &land, size: size, t: t, look: look, frame: frame, dark: dark)
+            land.blurredLayer(radius: 5) { near in
+                for i in 0..<6 {
+                    drawFalling(layer: 2, index: i, in: &near, size: size, t: t, look: look, frame: frame)
+                }
+            }
+            WeatherPainter.dullLight(in: &land, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &land, size: size, daylight: daylight, strength: 0.7)
+            DaylightPainter.nightGrade(in: &land, size: size, daylight: daylight)
         }
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight)
     }
 
-    static func makeFrame(size: CGSize, t: CGFloat, look: SeptemberModel.Look) -> SeptemberFrame {
+    static func makeFrame(size: CGSize, t: CGFloat, look: SeptemberModel.Look, daylight: SceneDaylight) -> SeptemberFrame {
         let r: CGFloat = 58
-        let progress = BG.fract(0.7 + t / 4000)
-        let margin = r * 4
-        let height = BG.lerp(0.13, 0.17, look.shortDay)
-        let sun = CGPoint(
-            x: -margin + progress * (size.width + margin * 2),
-            y: size.height * (height + 0.05) - size.height * 0.07 * 4 * progress * (1 - progress)
-        )
-        let fade = BG.smoothstep(0, 0.03, progress) * (1 - BG.smoothstep(0.97, 1, progress))
+        // The real sun: everything golden in the scene is lit from where it actually is.
+        let sun = daylight.sunPoint(in: size)
+        let fade = daylight.sunUp
+        let overcast = 1 - 0.85 * (daylight.weather?.cover ?? 0)
 
         var cover: CGFloat = 0
         for k in 0..<5 {
@@ -377,7 +396,7 @@ private enum SeptemberScene {
             sun: sun,
             sunRadius: r,
             sunFade: fade,
-            sunlight: 1 - 0.8 * cover,
+            sunlight: (1 - 0.8 * cover) * overcast,
             beams: beams,
             reach: max(size.width, size.height) * 1.1
         )

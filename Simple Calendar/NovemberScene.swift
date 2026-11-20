@@ -36,10 +36,10 @@ struct NovemberLeavesAnimation: View {
     var body: some View {
         let target = NovemberModel.Target(date: date)
         let state = model
-        AnimatedScene { ctx, size, time in
-            let look = state.look(target: target, time: time)
-            NovemberScene.draw(in: &ctx, size: size, time: time, look: look)
-        }
+        AnimatedScene(daylight: { ctx, size, time, daylight in
+            let look = state.look(target: target.with(daylight.weather), time: time)
+            NovemberScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -51,7 +51,7 @@ final class NovemberModel {
     /// What the selected day asks for.
     struct Target {
         let progress: Double   // 0 on Nov 1 ... 1 on Nov 30
-        let windScale: Double  // breezy 0.6 / blustery 1 / gale 1.5
+        var windScale: Double  // breezy 0.6 / blustery 1 / gale 1.5
         let calm: Double       // 1 on Thanksgiving
 
         init(date: Date) {
@@ -67,6 +67,14 @@ final class NovemberModel {
             // US Thanksgiving: the fourth Thursday, always the 22nd...28th.
             let isThanksgiving = parts.month == 11 && parts.weekday == 5 && (22...28).contains(day)
             calm = isThanksgiving ? 1 : 0
+        }
+
+        /// Real wind replaces the invented breezy / blustery / gale day.
+        func with(_ weather: SceneWeather?) -> Target {
+            guard let weather else { return self }
+            var target = self
+            target.windScale = 0.35 + 1.3 * Double(weather.windiness)
+            return target
         }
     }
 
@@ -261,71 +269,116 @@ private enum NovemberBranches {
 // MARK: - Scene
 
 private enum NovemberScene {
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: NovemberModel.Look) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: NovemberModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
-        let sun = CGPoint(x: size.width * 0.8, y: size.height * 0.07)
+        let sun = daylight.sunPoint(in: size)
 
-        drawSky(in: &ctx, size: size, t: t, look: look, sun: sun)
-        drawGeese(in: &ctx, size: size, t: t)
+        drawSky(in: &ctx, size: size, t: t, look: look, sun: sun, daylight: daylight)
+        drawGeese(in: &ctx, size: size, t: t, daylight: daylight)
 
-        drawRidge(in: &ctx, size: size, layer: 0)
-        drawTrees(in: &ctx, size: size, t: t, look: look, layer: 0)
-        drawMist(in: &ctx, size: size, look: look, layer: 0)
-        drawRidge(in: &ctx, size: size, layer: 1)
-        drawTrees(in: &ctx, size: size, t: t, look: look, layer: 1)
-        drawMist(in: &ctx, size: size, look: look, layer: 1)
+        // The far valley, then the farms' windows, which must not be dimmed with it.
+        ctx.drawLayer { far in
+            drawRidge(in: &far, size: size, layer: 0)
+            drawFarms(in: &far, size: size)
+            drawTrees(in: &far, size: size, t: t, look: look, layer: 0)
+            drawMist(in: &far, size: size, look: look, layer: 0, daylight: daylight)
+            WeatherPainter.dullLight(in: &far, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &far, size: size, daylight: daylight)
+            DaylightPainter.nightGrade(in: &far, size: size, daylight: daylight, strength: 0.9)
+        }
+        drawFarmLights(in: &ctx, size: size, t: t, daylight: daylight)
 
-        drawGround(in: &ctx, size: size, look: look)
-        drawPile(in: &ctx, size: size, t: t, look: look, row: 0)
+        ctx.drawLayer { near in
+            drawRidge(in: &near, size: size, layer: 1)
+            drawTrees(in: &near, size: size, t: t, look: look, layer: 1)
+            drawMist(in: &near, size: size, look: look, layer: 1, daylight: daylight)
 
-        // Far leaves, softly out of focus.
-        ctx.blurredLayer(radius: 1.6) { far in
-            for i in 0..<30 {
-                drawAirborne(layer: 0, index: i, in: &far, size: size, t: t, look: look)
+            drawGround(in: &near, size: size, look: look)
+            drawPile(in: &near, size: size, t: t, look: look, row: 0)
+
+            // Far leaves, softly out of focus.
+            near.blurredLayer(radius: 1.6) { far in
+                for i in 0..<30 {
+                    drawAirborne(layer: 0, index: i, in: &far, size: size, t: t, look: look)
+                }
             }
-        }
-        drawWhirlwind(in: &ctx, size: size, t: t, look: look)
-        for i in 0..<34 {
-            drawAirborne(layer: 1, index: i, in: &ctx, size: size, t: t, look: look)
-        }
-        drawHarvestSwirl(in: &ctx, size: size, t: t, look: look)
-
-        drawPile(in: &ctx, size: size, t: t, look: look, row: 1)
-        drawSkitter(in: &ctx, size: size, t: t, look: look)
-        drawPile(in: &ctx, size: size, t: t, look: look, row: 2)
-        drawKicked(in: &ctx, size: size, t: t, look: look)
-
-        // Near leaves, large and blurred as one layer.
-        ctx.blurredLayer(radius: 6) { near in
-            for i in 0..<6 {
-                drawAirborne(layer: 2, index: i, in: &near, size: size, t: t, look: look)
+            drawWhirlwind(in: &near, size: size, t: t, look: look)
+            for i in 0..<34 {
+                drawAirborne(layer: 1, index: i, in: &near, size: size, t: t, look: look)
             }
-        }
+            drawHarvestSwirl(in: &near, size: size, t: t, look: look)
 
-        drawStreaks(in: &ctx, size: size, t: t, look: look)
-        drawBranches(in: &ctx, size: size, t: t, look: look)
+            drawPile(in: &near, size: size, t: t, look: look, row: 1)
+            drawSkitter(in: &near, size: size, t: t, look: look)
+            drawPile(in: &near, size: size, t: t, look: look, row: 2)
+            drawKicked(in: &near, size: size, t: t, look: look)
+
+            // Near leaves, large and blurred as one layer.
+            near.blurredLayer(radius: 6) { close in
+                for i in 0..<6 {
+                    drawAirborne(layer: 2, index: i, in: &close, size: size, t: t, look: look)
+                }
+            }
+
+            drawStreaks(in: &near, size: size, t: t, look: look, daylight: daylight)
+            drawBranches(in: &near, size: size, t: t, look: look)
+            WeatherPainter.dullLight(in: &near, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &near, size: size, daylight: daylight, strength: 0.8)
+            DaylightPainter.nightGrade(in: &near, size: size, daylight: daylight)
+        }
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight)
     }
 
     // MARK: Sky
 
-    static func drawSky(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: NovemberModel.Look, sun: CGPoint) {
+    static func drawSky(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: NovemberModel.Look, sun: CGPoint, daylight: SceneDaylight) {
         let grey = Double(look.overcast)
         let calm = Double(look.calm)
+        let light = Double(daylight.light)
+        let golden = Double(daylight.golden)
+        // Overcast by day; at night the cloud deck is a faint moonlit blue-grey.
+        func tone(_ day: (Double, Double, Double, Double), _ night: (Double, Double, Double, Double)) -> Color {
+            BG.rgb(night.0 + (day.0 - night.0) * light, night.1 + (day.1 - night.1) * light,
+                   night.2 + (day.2 - night.2) * light, night.3 + (day.3 - night.3) * light)
+        }
         let sky = Gradient(stops: [
-            .init(color: BG.rgb(0.5 - 0.06 * grey, 0.45 - 0.03 * grey, 0.43, 0.34 + 0.1 * grey), location: 0),
-            .init(color: BG.rgb(0.74, 0.62, 0.52, 0.2), location: 0.45),
+            .init(color: tone((0.5 - 0.06 * grey, 0.45 - 0.03 * grey, 0.43, 0.34 + 0.1 * grey), (0.1, 0.11, 0.17, 0.3)), location: 0),
+            .init(color: tone((0.74, 0.62, 0.52, 0.2), (0.12, 0.12, 0.2, 0.14)), location: 0.45),
+            // The low band burns rose and amber at sunrise and sunset.
+            .init(color: BG.rgb(0.95, 0.6 - 0.1 * golden, 0.42, 0.45 * golden), location: 0.62),
             .init(color: BG.rgb(0.95, 0.7, 0.45, 0), location: 0.82)
         ])
         ctx.fill(
             Path(CGRect(origin: .zero, size: size)),
             with: .linearGradient(sky, startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height))
         )
-        AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.7, 0.62, 0.55), intensity: 0.16 + grey * 0.4, depth: 0.45)
-        AtmospherePainter.bottomHaze(in: &ctx, size: size, color: BG.rgb(0.85, 0.55, 0.3), intensity: 0.14 * (1 + calm), depth: 0.25)
+        AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.7, 0.62, 0.55), intensity: (0.16 + grey * 0.4) * light, depth: 0.45)
+        AtmospherePainter.bottomHaze(in: &ctx, size: size, color: BG.rgb(0.85, 0.55, 0.3), intensity: 0.14 * (1 + calm) * light + 0.25 * golden, depth: 0.25)
 
-        // A pale sun smouldering behind the cloud deck.
-        ctx.glow(at: sun, radius: size.width * 0.5, color: BG.rgb(1, 0.86, 0.62), intensity: 0.32 + 0.25 * calm - grey * 0.4)
+        // Night: a few stars in the breaks of the overcast, and the moon behind it.
+        DaylightPainter.stars(in: &ctx, size: size, time: Double(t), daylight: daylight, count: 70, cover: 0.45 + 0.3 * CGFloat(grey))
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight, radius: 30, cover: 0.5)
 
+        // The sun smoulders behind the cloud deck wherever it really is, reddening as it sets.
+        let sunGlow = BG.smoothstep(-5, 3, CGFloat(daylight.elevation)) * (1 - 0.7 * (daylight.weather?.cover ?? 0))
+        ctx.glow(at: sun, radius: size.width * 0.5,
+                 color: BG.rgb(1, 0.86 - 0.3 * golden, 0.62 - 0.3 * golden),
+                 intensity: max(0.32 + 0.25 * calm - grey * 0.4 + 0.25 * golden, 0) * Double(sunGlow))
+
+        // Clouds take the light of the moment: lit from the sun by day, dim and blue by night.
+        let lightSource = daylight.elevation > -4 ? sun : daylight.moonPoint(in: size)
+        ctx.drawLayer { clouds in
+            drawCloudDeck(in: &clouds, size: size, look: look, light: lightSource)
+            DaylightPainter.lowSunGrade(in: &clouds, size: size, daylight: daylight, strength: 1.2)
+            DaylightPainter.nightGrade(in: &clouds, size: size, daylight: daylight, strength: 0.85)
+        }
+
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: Double(t), daylight: daylight, seed: 11)
+        let cover = Double(daylight.weather?.cover ?? 0)
+        drawShafts(in: &ctx, size: size, t: t, calm: calm, sun: sun, strength: Double(daylight.sunUp) * (1 - 0.6 * golden) * (1 - cover))
+    }
+
+    static func drawCloudDeck(in ctx: inout GraphicsContext, size: CGSize, look: NovemberModel.Look, light sun: CGPoint) {
         for k in 0..<5 {
             let depth = CGFloat(k) / 4
             let width = BG.lerp(420, 700, depth) * BG.hash(k, 331, 0.9, 1.1)
@@ -342,11 +395,16 @@ private enum NovemberScene {
                 softness: 0.05
             )
         }
+    }
 
-        // Broken light falling through the deck.
+    /// Broken light falling through the deck, aimed from wherever the sun is.
+    static func drawShafts(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, calm: Double, sun: CGPoint, strength: Double) {
+        guard strength > 0.01 else { return }
+        let aim = atan2(size.height * 0.9 - sun.y, size.width * 0.5 - sun.x)
         ctx.blurredLayer(radius: 26) { shafts in
+            shafts.opacity = strength
             for i in 0..<5 {
-                let angle = 1.95 + CGFloat(i) * 0.13 + sin(t * 0.07 + CGFloat(i)) * 0.03
+                let angle = aim - 0.26 + CGFloat(i) * 0.13 + sin(t * 0.07 + CGFloat(i)) * 0.03
                 let spread = BG.hash(i, 335, 0.03, 0.06)
                 let breathe = 0.5 + 0.5 * sin(t * 0.2 + CGFloat(i) * 1.7)
                 let length = size.height * 1.1
@@ -368,7 +426,10 @@ private enum NovemberScene {
     }
 
     /// A V of geese crossing high and slow every couple of minutes.
-    static func drawGeese(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat) {
+    static func drawGeese(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, daylight: SceneDaylight) {
+        // Geese travel by day and settle at dusk.
+        let presence = Double(BG.smoothstep(0.15, 0.6, daylight.light))
+        guard presence > 0.01 else { return }
         let period: CGFloat = 110
         let position = t / period + 0.2
         let cycle = Int(floor(position))
@@ -391,7 +452,7 @@ private enum NovemberScene {
             goose.move(to: CGPoint(x: p.x - 11, y: p.y + flap))
             goose.addQuadCurve(to: p, control: CGPoint(x: p.x - 5, y: p.y - 5 + flap * 0.3))
             goose.addQuadCurve(to: CGPoint(x: p.x + 11, y: p.y + flap), control: CGPoint(x: p.x + 5, y: p.y - 5 + flap * 0.3))
-            ctx.stroke(goose, with: .color(BG.rgb(0.16, 0.12, 0.12, 0.6)), style: StrokeStyle(lineWidth: 2.2, lineCap: .round, lineJoin: .round))
+            ctx.stroke(goose, with: .color(BG.rgb(0.16, 0.12, 0.12, 0.6 * presence)), style: StrokeStyle(lineWidth: 2.2, lineCap: .round, lineJoin: .round))
         }
     }
 
@@ -419,6 +480,53 @@ private enum NovemberScene {
             ? [BG.rgb(0.5, 0.38, 0.33, 0.3), BG.rgb(0.75, 0.6, 0.5, 0.1)]
             : [BG.rgb(0.38, 0.27, 0.22, 0.42), BG.rgb(0.55, 0.4, 0.3, 0.2)]
         ctx.fill(fill, with: .linearGradient(Gradient(colors: colors), startPoint: CGPoint(x: 0, y: top), endPoint: CGPoint(x: 0, y: size.height)))
+    }
+
+    // MARK: Farms
+
+    private static let farmSpots: [CGFloat] = [0.1, 0.29, 0.53, 0.7, 0.88]
+
+    /// One small farmhouse on the far ridge: body, gable roof and its two windows.
+    private static func farm(_ index: Int, size: CGSize) -> (body: CGRect, roof: Path, windows: [CGRect]) {
+        let x = size.width * farmSpots[index]
+        let w = size.height * BG.hash(index, 901, 0.024, 0.032)
+        let h = w * 0.62
+        let base = ridgeY(x, size: size, layer: 0) + 3
+        let body = CGRect(x: x - w / 2, y: base - h, width: w, height: h)
+        var roof = Path()
+        roof.move(to: CGPoint(x: body.minX - w * 0.08, y: body.minY))
+        roof.addLine(to: CGPoint(x: x, y: body.minY - h * 0.7))
+        roof.addLine(to: CGPoint(x: body.maxX + w * 0.08, y: body.minY))
+        roof.closeSubpath()
+        let pane = w * 0.16
+        let windows = [0.27, 0.62].map { CGRect(x: body.minX + w * $0, y: body.minY + h * 0.3, width: pane, height: pane * 1.15) }
+        return (body, roof, windows)
+    }
+
+    static func drawFarms(in ctx: inout GraphicsContext, size: CGSize) {
+        let ink = BG.rgb(0.34, 0.25, 0.21, 0.5)
+        for i in farmSpots.indices {
+            let farm = farm(i, size: size)
+            ctx.fill(Path(farm.body), with: .color(ink))
+            ctx.fill(farm.roof, with: .color(ink))
+        }
+    }
+
+    /// Windows light one by one as dusk falls, go dark at each household's bedtime and
+    /// a few come back on before dawn. Drawn after the night grade so they glow.
+    static func drawFarmLights(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, daylight: SceneDaylight) {
+        for i in farmSpots.indices {
+            let farm = farm(i, size: size)
+            for (j, pane) in farm.windows.enumerated() {
+                let lit = DaylightPainter.windowLit(i * 2 + j, salt: 910, daylight: daylight)
+                guard lit > 0.01 else { continue }
+                let flicker = 0.93 + 0.07 * sin(t * BG.hash(i * 2 + j, 913, 0.8, 1.6) + CGFloat(j))
+                let alpha = Double(lit * flicker)
+                let c = CGPoint(x: pane.midX, y: pane.midY)
+                ctx.glow(at: c, radius: pane.width * 5, color: BG.rgb(1, 0.72, 0.38), intensity: 0.45 * alpha)
+                ctx.fill(Path(pane), with: .color(BG.rgb(1, 0.82, 0.5, 0.95 * alpha)))
+            }
+        }
     }
 
     static func drawTrees(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: NovemberModel.Look, layer: Int) {
@@ -457,8 +565,11 @@ private enum NovemberScene {
         }
     }
 
-    static func drawMist(in ctx: inout GraphicsContext, size: CGSize, look: NovemberModel.Look, layer: Int) {
+    static func drawMist(in ctx: inout GraphicsContext, size: CGSize, look: NovemberModel.Look, layer: Int, daylight: SceneDaylight) {
         let y = size.height * (layer == 0 ? 0.79 : 0.88)
+        // Ground fog gathers overnight, lies thickest around sunrise and burns off by mid-morning.
+        let morning = daylight.isMorning ? 1 - BG.smoothstep(4, 16, CGFloat(daylight.elevation)) : 0
+        let fog = Double(1 + 1.4 * max(morning, 0.5 * daylight.night))
         ctx.blurredLayer(radius: 22) { mist in
             for i in 0..<3 {
                 let seed = i + layer * 10
@@ -469,7 +580,7 @@ private enum NovemberScene {
                 mist.fill(
                     BG.ellipse(c, rx, ry),
                     with: .radialGradient(
-                        Gradient(colors: [BG.rgb(0.88, 0.78, 0.7, 0.3), BG.rgb(0.88, 0.78, 0.7, 0)]),
+                        Gradient(colors: [BG.rgb(0.88, 0.78, 0.7, min(0.3 * fog, 0.62)), BG.rgb(0.88, 0.78, 0.7, 0)]),
                         center: c, startRadius: 0, endRadius: rx
                     )
                 )
@@ -749,12 +860,13 @@ private enum NovemberScene {
     // MARK: Wind and foreground
 
     /// Thin streaks that appear in the air as a gust sweeps through.
-    static func drawStreaks(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: NovemberModel.Look) {
+    static func drawStreaks(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: NovemberModel.Look, daylight: SceneDaylight) {
+        let visibility = 0.35 + 0.65 * Double(daylight.light)
         for i in 0..<26 {
             let y = size.height * BG.hash(i, 360, 0.05, 0.85)
             let x = BG.wrap(BG.hash(i, 361) * size.width + look.drift * BG.hash(i, 362, 1.2, 2.2), length: size.width, margin: 220)
             let gust = NovemberWind.strength(at: x, t) * min(look.force, 1.5)
-            let alpha = Double(gust) * 0.22
+            let alpha = Double(gust) * 0.22 * visibility
             guard alpha > 0.01 else { continue }
             let length = 50 + 170 * gust
             let head = CGPoint(x: x, y: y)

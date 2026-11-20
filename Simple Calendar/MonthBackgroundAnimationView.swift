@@ -9,6 +9,12 @@ import SwiftUI
 
 /// Main view that selects and displays the appropriate month animation
 struct MonthBackgroundAnimationView: View {
+    /// Only the month we are living in follows the real weather.
+    static func isCurrentMonth(_ date: Date) -> Bool {
+        let calendar = Calendar.current
+        return calendar.isDate(date, equalTo: SunClock.now(), toGranularity: .month)
+    }
+
     /// Determines which month's scene is shown.
     let currentDate: Date
     /// The day the user has selected/focused. Scenes react to this day (weather, moon
@@ -63,6 +69,7 @@ struct MonthBackgroundAnimationView: View {
                 .ignoresSafeArea()
                 .allowsHitTesting(false) // Allow touches to pass through
                 .environment(\.backgroundScenePaused, isPaused)
+                .environment(\.sceneWeatherActive, MonthBackgroundAnimationView.isCurrentMonth(currentDate))
             }
         }
     }

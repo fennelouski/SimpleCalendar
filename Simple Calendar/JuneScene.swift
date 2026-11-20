@@ -13,7 +13,7 @@
 //
 //  The scene also follows the selected day:
 //    * daylight      - longer days strengthen the beams and cool the light slightly;
-//                      on the longest days fireflies glow in the lower third
+//                      fireflies come out on warm evenings, most on the longest days
 //    * day character - which species fly (hash); a butterfly only changes species
 //                      while it is off-screen
 //    * solstice      - the butterflies gather and orbit in the brightest beam
@@ -29,7 +29,6 @@ struct JuneButterfliesAnimation: View {
     /// The day whose character the scene reflects (the user's selection/focus).
     let date: Date
     @State private var model = JuneModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, date: Date = Date()) {
         self.alpha = alpha
@@ -39,11 +38,10 @@ struct JuneButterfliesAnimation: View {
     var body: some View {
         let target = JuneModel.Target(date: date)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
+        AnimatedScene(daylight: { ctx, size, time, daylight in
             let look = state.look(target: target, time: time, width: size.width)
-            JuneScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+            JuneScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -260,19 +258,43 @@ private enum JuneScene {
         Int(floor(BG.hash(k, 82) + t / BG.hash(k, 81, 38, 58)))
     }
 
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: JuneModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: JuneModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
+        let dark = daylight.isDark
         let frame = makeFrame(size: size, t: t, look: look)
+        let cover = daylight.weather?.cover ?? 0
+        // Beams, dapples and dust need direct sun; they fade with the sun and under cloud.
+        let sunshine = Double(daylight.sunUp * (1 - cover))
+        let flying = Double(BG.smoothstep(0.35, 0.75, daylight.light) * (1 - (daylight.weather?.rain ?? 0)))
 
-        drawSunAndBeams(in: &ctx, size: size, t: t, look: look, frame: frame, dark: dark)
-        drawMotes(in: &ctx, size: size, t: t, look: look, frame: frame)
-        drawBokeh(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawGarden(in: &ctx, size: size, t: t, frame: frame, dark: dark)
-        drawFireflies(in: &ctx, size: size, t: t, look: look)
-        drawButterflies(in: &ctx, size: size, t: t, look: look, frame: frame)
-        drawCourting(in: &ctx, size: size, t: t, look: look)
-        drawResting(in: &ctx, size: size, t: t, look: look)
-        drawCanopy(in: &ctx, size: size, t: t)
+        DaylightPainter.stars(in: &ctx, size: size, time: time, daylight: daylight, cover: 0.3)
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight)
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: time, daylight: daylight, seed: 6)
+        if sunshine > 0.01 {
+            var lit = ctx
+            lit.opacity = sunshine
+            drawSunAndBeams(in: &lit, size: size, t: t, look: look, frame: frame, dark: dark)
+            drawMotes(in: &lit, size: size, t: t, look: look, frame: frame)
+            drawBokeh(in: &lit, size: size, t: t, look: look, dark: dark)
+        }
+        ctx.drawLayer { garden in
+            drawGarden(in: &garden, size: size, t: t, frame: frame, dark: dark)
+            WeatherPainter.rainbow(in: &garden, size: size, daylight: daylight, strength: WeatherPainter.rainbowChance(daylight))
+            if flying > 0.02 {
+                var wings = garden
+                wings.opacity = flying
+                drawButterflies(in: &wings, size: size, t: t, look: look, frame: frame)
+                drawCourting(in: &wings, size: size, t: t, look: look)
+            }
+            drawResting(in: &garden, size: size, t: t, look: look)
+            drawCanopy(in: &garden, size: size, t: t)
+            WeatherPainter.dullLight(in: &garden, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &garden, size: size, daylight: daylight)
+            DaylightPainter.nightGrade(in: &garden, size: size, daylight: daylight)
+        }
+        // Midsummer evenings: fireflies, most on the longest days.
+        DaylightPainter.fireflies(in: &ctx, size: size, time: time, daylight: daylight, season: 0.7 + 0.3 * look.longDay)
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight)
     }
 
     /// The beam the butterflies gather in on the solstice.
@@ -508,21 +530,6 @@ private enum JuneScene {
                 guard light > 0.1 else { continue }
                 patch.fill(BG.ellipse(p, 30 + 20 * light, 9), with: .color(BG.rgb(1, 0.95, 0.7, 0.35 * Double(light))))
             }
-        }
-    }
-
-    /// On the longest days, fireflies pulse softly in the lower third.
-    static func drawFireflies(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: JuneModel.Look) {
-        guard look.longDay > 0.01 else { return }
-        for i in 0..<30 {
-            let x = BG.wrap(BG.hash(i, 1130) * size.width + sin(t * 0.3 + CGFloat(i)) * 40, length: size.width, margin: 20)
-            let y = size.height * BG.hash(i, 1131, 0.7, 0.95) + sin(t * 0.5 + CGFloat(i) * 2) * 14
-            let pulse = pow(max(0, sin(t * BG.hash(i, 1132, 0.5, 1.1) + BG.hash(i, 1133) * 6.28)), 6)
-            let alpha = Double(pulse * look.longDay)
-            guard alpha > 0.03 else { continue }
-            let p = CGPoint(x: x, y: y)
-            ctx.glow(at: p, radius: 12, color: BG.rgb(0.8, 1, 0.4), intensity: 0.55 * alpha, additive: true)
-            ctx.fill(BG.circle(p, 1.4), with: .color(BG.rgb(0.95, 1, 0.7, alpha)))
         }
     }
 

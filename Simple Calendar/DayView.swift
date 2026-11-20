@@ -409,7 +409,9 @@ struct DayView: View {
         let normalizedDayDate = calendar.startOfDay(for: day.date)
         let isFocused = normalizedFocusedDate != nil && normalizedFocusedDate == normalizedDayDate
         if day.isSelected || isFocused {
-            return monthlyPalette.calendarSurface
+            // selectedDay is a translucent tint of primary, so the regular text color reads on it;
+            // calendarSurface (the cell background color) vanished against it in both color schemes.
+            return monthlyPalette.textPrimary
         } else if day.isToday {
             return monthlyPalette.accent
         } else if day.isCurrentMonth {
@@ -419,7 +421,7 @@ struct DayView: View {
         }
         #else
         if day.isSelected {
-            return monthlyPalette.calendarSurface
+            return monthlyPalette.textPrimary
         } else if day.isToday {
             return monthlyPalette.accent
         } else if day.isCurrentMonth {

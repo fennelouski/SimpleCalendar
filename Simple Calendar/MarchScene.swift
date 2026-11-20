@@ -30,7 +30,6 @@ struct MarchShamrocksAnimation: View {
     /// The day whose character the scene reflects (the user's selection/focus).
     let date: Date
     @State private var model = MarchModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, date: Date = Date()) {
         self.alpha = alpha
@@ -40,11 +39,12 @@ struct MarchShamrocksAnimation: View {
     var body: some View {
         let target = MarchModel.Target(date: date)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
-            let look = state.look(target: target, time: time)
-            MarchScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+        AnimatedScene(daylight: { ctx, size, time, daylight in
+            var weathered = target
+            weathered.windScale = daylight.weather.map { 0.35 + 1.2 * Double($0.windiness) }
+            let look = state.look(target: weathered, time: time)
+            MarchScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -66,6 +66,9 @@ final class MarchModel {
             equinox = max(0, 1 - max(0, distance - 1) / 3)
             stPatrick = day.month == 3 && day.day == 17 ? 1 : 0
         }
+
+        /// Real wind, when Weather Backgrounds is on, in place of the lion-to-lamb month.
+        var windScale: Double?
     }
 
     struct Look {
@@ -75,8 +78,9 @@ final class MarchModel {
         /// Wind displacement accumulated since the scene appeared.
         var drift: CGFloat
 
-        /// The lion (1.4) to the lamb (0.45).
-        var windScale: CGFloat { BG.lerp(1.4, 0.45, progress) }
+        var windOverride: CGFloat?
+        /// The lion (1.4) to the lamb (0.45), or the real wind.
+        var windScale: CGFloat { windOverride ?? BG.lerp(1.4, 0.45, progress) }
         var warmth: CGFloat { BG.lerp(0.35, 0.5, equinox) }
     }
 
@@ -90,13 +94,14 @@ final class MarchModel {
         let progress = progressTransition.value(target: target.progress, time: time)
         let equinox = equinoxTransition.value(target: target.equinox, time: time)
         let patrick = patrickTransition.value(target: target.stPatrick, time: time)
-        let scale = BG.lerp(1.4, 0.45, CGFloat(progress))
+        let scale = target.windScale.map { CGFloat($0) } ?? BG.lerp(1.4, 0.45, CGFloat(progress))
         if let last = lastTime {
             let dt = CGFloat(min(max(time - last, 0), 0.1))
             drift += dt * MarchWind.speed(CGFloat(time)) * scale
         }
         lastTime = time
-        return Look(progress: CGFloat(progress), equinox: CGFloat(equinox), stPatrick: CGFloat(patrick), drift: drift)
+        return Look(progress: CGFloat(progress), equinox: CGFloat(equinox), stPatrick: CGFloat(patrick), drift: drift,
+                    windOverride: target.windScale.map { CGFloat($0) })
     }
 }
 
@@ -168,26 +173,74 @@ private enum MarchArt {
 private enum MarchScene {
     static let heights: [CGFloat] = [0.1, 0.072, 0.042]
 
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: MarchModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: MarchModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
-        let sun = CGPoint(x: size.width * 1.02, y: -size.height * 0.02)
+        let dark = daylight.isDark
+        let sun = daylight.sunPoint(in: size)
+        let cover = daylight.weather?.cover ?? 0
+        // Sunlit things: the kite is flown by day, the gold motes only shimmer in sunshine.
+        let sunshine = Double(daylight.light * (1 - cover))
+        let rain = Double(daylight.weather?.rain ?? 0)
 
-        drawSky(in: &ctx, size: size, look: look, sun: sun, dark: dark)
-        drawClouds(in: &ctx, size: size, t: t, look: look, sun: sun)
-        drawKite(in: &ctx, size: size, t: t, look: look)
-        drawMotes(in: &ctx, size: size, t: t, look: look, near: false, dark: dark)
+        ctx.drawLayer { sky in
+            drawSky(in: &sky, size: size, look: look, sun: sun, dark: dark)
+            drawClouds(in: &sky, size: size, t: t, look: look, sun: sun)
+            DaylightPainter.lowSunGrade(in: &sky, size: size, daylight: daylight, strength: 1.1)
+            DaylightPainter.nightGrade(in: &sky, size: size, daylight: daylight, strength: 0.9)
+        }
+        DaylightPainter.stars(in: &ctx, size: size, time: time, daylight: daylight)
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight)
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: time, daylight: daylight, seed: 3)
+        if sunshine > 0.02 {
+            var flown = ctx
+            flown.opacity = Double(BG.smoothstep(0.3, 0.7, daylight.light)) * (1 - rain)
+            drawKite(in: &flown, size: size, t: t, look: look)
+            flown.opacity = sunshine
+            drawMotes(in: &flown, size: size, t: t, look: look, near: false, dark: dark)
+        }
 
-        drawHill(in: &ctx, size: size, t: t, look: look, layer: 0, dark: dark)
-        drawFarDetails(in: &ctx, size: size, t: t, look: look)
-        drawMist(in: &ctx, size: size, t: t)
-        drawRainbow(in: &ctx, size: size, look: look)
-        drawHill(in: &ctx, size: size, t: t, look: look, layer: 1, dark: dark)
-        drawCottage(in: &ctx, size: size, t: t, look: look)
-        drawShamrocks(in: &ctx, size: size, t: t, look: look, layer: 1)
-        drawHill(in: &ctx, size: size, t: t, look: look, layer: 2, dark: dark)
-        drawCloudShadows(in: &ctx, size: size, look: look, sun: sun)
-        drawShamrocks(in: &ctx, size: size, t: t, look: look, layer: 2)
-        drawMotes(in: &ctx, size: size, t: t, look: look, near: true, dark: dark)
+        ctx.drawLayer { land in
+            drawHill(in: &land, size: size, t: t, look: look, layer: 0, dark: dark)
+            drawFarDetails(in: &land, size: size, t: t, look: look)
+            drawMist(in: &land, size: size, t: t)
+            var bow = look
+            bow.stPatrick = max(look.stPatrick, WeatherPainter.rainbowChance(daylight))
+            drawRainbow(in: &land, size: size, look: bow)
+            drawHill(in: &land, size: size, t: t, look: look, layer: 1, dark: dark)
+            drawCottage(in: &land, size: size, t: t, look: look)
+            drawShamrocks(in: &land, size: size, t: t, look: look, layer: 1)
+            drawHill(in: &land, size: size, t: t, look: look, layer: 2, dark: dark)
+            var shadows = land
+            shadows.opacity = Double(daylight.sunUp * (1 - cover))
+            drawCloudShadows(in: &shadows, size: size, look: look, sun: sun)
+            drawShamrocks(in: &land, size: size, t: t, look: look, layer: 2)
+            WeatherPainter.dullLight(in: &land, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &land, size: size, daylight: daylight)
+            DaylightPainter.nightGrade(in: &land, size: size, daylight: daylight)
+        }
+        drawCottageLights(in: &ctx, size: size, t: t, daylight: daylight)
+        if sunshine > 0.02 {
+            var motes = ctx
+            motes.opacity = sunshine
+            drawMotes(in: &motes, size: size, t: t, look: look, near: true, dark: dark)
+        }
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight)
+    }
+
+    /// The cottage's two windows glow from dusk until bedtime (and again before dawn).
+    static func drawCottageLights(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, daylight: SceneDaylight) {
+        let x = size.width * 0.075
+        let base = hillY(layer: 1, x: x, size: size) + 4
+        let w: CGFloat = 46
+        let panes = [CGRect(x: -0.34, y: -0.3, width: 0.13, height: 0.11), CGRect(x: 0.21, y: -0.3, width: 0.13, height: 0.11)]
+        for (i, pane) in panes.enumerated() {
+            let lit = DaylightPainter.windowLit(i, salt: 930, daylight: daylight)
+            guard lit > 0.01 else { continue }
+            let rect = CGRect(x: x + pane.minX * w, y: base + pane.minY * w, width: pane.width * w, height: pane.height * w)
+            let flicker = Double(0.9 + 0.1 * sin(t * 2.3 + CGFloat(i) * 1.7))
+            ctx.glow(at: CGPoint(x: rect.midX, y: rect.midY), radius: w * 0.5, color: BG.rgb(1, 0.72, 0.38), intensity: 0.5 * Double(lit) * flicker)
+            ctx.fill(Path(rect), with: .color(BG.rgb(1, 0.82, 0.5, 0.95 * Double(lit) * flicker)))
+        }
     }
 
     // MARK: Sky

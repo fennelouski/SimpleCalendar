@@ -29,7 +29,6 @@ struct AugustSunCloudsAnimation: View {
     /// The day whose character the scene reflects (the user's selection/focus).
     let date: Date
     @State private var model = AugustModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, date: Date = Date()) {
         self.alpha = alpha
@@ -39,11 +38,12 @@ struct AugustSunCloudsAnimation: View {
     var body: some View {
         let target = AugustModel.Target(date: date)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
-            let look = state.look(target: target, time: time)
-            AugustScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+        AnimatedScene(daylight: { ctx, size, time, daylight in
+            var look = state.look(target: target.with(daylight.weather), time: time)
+            // The scene's own dusk now follows the real sky.
+            look.night = daylight.night
+            AugustScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight, meteorPeak: CGFloat(target.meteorNight))
+        })
         .opacity(alpha)
     }
 }
@@ -55,7 +55,7 @@ final class AugustModel {
         /// 0 on a long early-August day ... 1 on a short late-August day.
         let shortDay: Double
         /// 1 on thunderhead days.
-        let hot: Double
+        var hot: Double
         /// 1 on the Perseid peak.
         let meteorNight: Double
 
@@ -64,6 +64,15 @@ final class AugustModel {
             shortDay = 1 - min(max((day.daylightHours - 12.8) / 1.3, 0), 1)
             hot = day.roll(311) < 0.4 ? 1 : 0
             meteorNight = day.month == 8 && (day.day == 12 || day.day == 13) ? 1 : 0
+        }
+
+        /// A real hot, unsettled afternoon or a thunderstorm raises the thunderhead.
+        func with(_ weather: SceneWeather?) -> Target {
+            guard let weather else { return self }
+            var target = self
+            let hotAndBuilding = weather.temperature > 26 && weather.cloud > 0.25
+            target.hot = max(Double(weather.storm), hotAndBuilding ? 1 : 0)
+            return target
         }
     }
 
@@ -141,10 +150,14 @@ private struct AugustFrame {
 private enum AugustScene {
     static let sunRadius: CGFloat = 62
 
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: AugustModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: AugustModel.Look, daylight: SceneDaylight, meteorPeak: CGFloat) {
         let t = CGFloat(time)
-        let frame = makeFrame(size: size, t: t, look: look)
+        let dark = daylight.isDark
+        let frame = makeFrame(size: size, t: t, look: look, daylight: daylight)
         let day = 1 - look.night
+        let cover = daylight.weather?.cover ?? 0
+        // Perseids are active all month: a few meteors on any clear night, a shower at the peak.
+        let meteors = daylight.stars * (1 - cover) * BG.lerp(0.35, 1, meteorPeak)
 
         drawSky(in: &ctx, size: size, t: t, look: look, dark: dark)
         if day > 0.01 {
@@ -152,7 +165,9 @@ private enum AugustScene {
             sunCtx.opacity = Double(day * frame.sunFade * (0.45 + 0.55 * frame.sunlight))
             SunPainter.draw(in: &sunCtx, center: frame.sun, radius: sunRadius, time: time, warmth: look.warmth, canvas: size, flare: false)
         }
-        drawMeteors(in: &ctx, size: size, t: t, night: look.night)
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight)
+        drawMeteors(in: &ctx, size: size, t: t, night: meteors)
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: time, daylight: daylight, seed: 8)
         drawBalloon(in: &ctx, size: size, t: t, frame: frame, day: day)
         drawThunderhead(in: &ctx, size: size, t: t, look: look, frame: frame, dark: dark)
         for cloud in frame.clouds {
@@ -161,25 +176,28 @@ private enum AugustScene {
         drawSwallows(in: &ctx, size: size, t: t, night: look.night)
         drawHawks(in: &ctx, size: size, t: t, look: look, frame: frame)
 
-        drawFarHills(in: &ctx, size: size, t: t, look: look, frame: frame)
-        drawFields(in: &ctx, size: size, look: look, frame: frame)
-        drawDustDevil(in: &ctx, size: size, t: t, look: look, frame: frame)
-        drawShimmer(in: &ctx, size: size, t: t, look: look, frame: frame)
+        ctx.drawLayer { land in
+            drawFarHills(in: &land, size: size, t: t, look: look, frame: frame)
+            WeatherPainter.rainbow(in: &land, size: size, daylight: daylight, strength: WeatherPainter.rainbowChance(daylight))
+            drawFields(in: &land, size: size, look: look, frame: frame)
+            drawDustDevil(in: &land, size: size, t: t, look: look, frame: frame)
+            drawShimmer(in: &land, size: size, t: t, look: look, frame: frame)
+            WeatherPainter.dullLight(in: &land, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &land, size: size, daylight: daylight)
+            // The fields already darken with the scene's night; this only adds the moonlit blue.
+            DaylightPainter.nightGrade(in: &land, size: size, daylight: daylight, strength: 0.4)
+        }
+        DaylightPainter.fireflies(in: &ctx, size: size, time: time, daylight: daylight, season: 0.45, top: 0.75)
         if dark {
             drawFlare(in: &ctx, size: size, frame: frame, day: day)
         }
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight)
     }
 
-    static func makeFrame(size: CGSize, t: CGFloat, look: AugustModel.Look) -> AugustFrame {
-        // Sun: one crossing every 20 minutes, fully off-screen (and faded) when it wraps.
-        let progress = BG.fract(0.5 + t / 1200)
-        let margin = sunRadius * 4
-        let peak = BG.lerp(0.12, 0.17, look.shortDay)
-        let sun = CGPoint(
-            x: -margin + progress * (size.width + margin * 2),
-            y: size.height * (peak + 0.07) - size.height * 0.07 * 4 * progress * (1 - progress)
-        )
-        let sunFade = BG.smoothstep(0, 0.06, progress) * (1 - BG.smoothstep(0.94, 1, progress))
+    static func makeFrame(size: CGSize, t: CGFloat, look: AugustModel.Look, daylight: SceneDaylight) -> AugustFrame {
+        // The real sun: rising at the left, highest at noon, setting at the right.
+        let sun = daylight.sunPoint(in: size)
+        let sunFade = daylight.sunUp * (1 - 0.8 * (daylight.weather?.cover ?? 0))
 
         var clouds: [AugustCloud] = []
         clouds.reserveCapacity(6)

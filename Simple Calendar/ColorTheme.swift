@@ -464,6 +464,29 @@ enum ColorTheme: Int, CaseIterable, Identifiable {
         case .system:
             // For tvOS, return a simple theme since system colors are not available
             #if os(tvOS)
+            if colorScheme == .light {
+                // Daytime look: frosted-glass cells and dark text over a bright sky.
+                return ColorPalette(
+                    name: "System",
+                    primary: Color(hex: "0A64C8"),
+                    secondary: Color(hex: "5A6472"),
+                    accent: Color(hex: "C2410C"),
+                    background: Color(hex: "DCE8F5"),
+                    surface: Color.white.opacity(0.55),
+                    textPrimary: Color(hex: "111827"),
+                    textSecondary: Color(hex: "111827").opacity(0.62),
+                    border: Color.black.opacity(0.18),
+                    highlight: Color(hex: "0A64C8"),
+                    gridLine: Color.black.opacity(0.16),
+                    eventColors: [
+                        Color(hex: "0A64C8"),
+                        Color(hex: "15803D"),
+                        Color(hex: "C2410C"),
+                        Color(hex: "7E22CE")
+                    ],
+                    icon: "circle.grid.3x3"
+                )
+            }
             return ColorPalette(
                 name: "System",
                 primary: Color.blue,

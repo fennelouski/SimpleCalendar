@@ -70,6 +70,17 @@ class FeatureFlags: ObservableObject {
         didSet { UserDefaults.standard.set(daylightVisualizationDayView, forKey: "feature_daylightVisualizationDayView") }
     }
 
+    /// Drive the background sky and the light/dark look from the sun at the approximate location.
+    @Published var followSunAppearance: Bool = FeatureFlags.followSunDefault {
+        didSet { UserDefaults.standard.set(followSunAppearance, forKey: "feature_followSunAppearance") }
+    }
+
+    #if os(tvOS)
+    static let followSunDefault = true
+    #else
+    static let followSunDefault = false
+    #endif
+
     @Published var monthlyThemesEnabled: Bool = true {
         didSet { UserDefaults.standard.set(monthlyThemesEnabled, forKey: "feature_monthlyThemesEnabled") }
     }
@@ -215,6 +226,8 @@ class FeatureFlags: ObservableObject {
             daylightVisualizationCalendar = true
         }
 
+        followSunAppearance = UserDefaults.standard.object(forKey: "feature_followSunAppearance") as? Bool ?? FeatureFlags.followSunDefault
+
         daylightVisualizationDayView = UserDefaults.standard.bool(forKey: "feature_daylightVisualizationDayView")
         if daylightVisualizationDayView == false && UserDefaults.standard.object(forKey: "feature_daylightVisualizationDayView") == nil {
             daylightVisualizationDayView = true
@@ -328,6 +341,7 @@ class FeatureFlags: ObservableObject {
         aiEventSuggestions = true
         collaborationFeatures = true
         daylightVisualizationCalendar = true
+        followSunAppearance = FeatureFlags.followSunDefault
         daylightVisualizationDayView = true
         monthlyThemesEnabled = true  // Default to on
         useMonthlyThemeMode = true   // Default to on
@@ -359,6 +373,7 @@ class FeatureFlags: ObservableObject {
         UserDefaults.standard.set(aiEventSuggestions, forKey: "feature_aiEventSuggestions")
         UserDefaults.standard.set(collaborationFeatures, forKey: "feature_collaborationFeatures")
         UserDefaults.standard.set(daylightVisualizationCalendar, forKey: "feature_daylightVisualizationCalendar")
+        UserDefaults.standard.set(followSunAppearance, forKey: "feature_followSunAppearance")
         UserDefaults.standard.set(daylightVisualizationDayView, forKey: "feature_daylightVisualizationDayView")
         UserDefaults.standard.set(monthlyThemesEnabled, forKey: "feature_monthlyThemesEnabled")
         UserDefaults.standard.set(useMonthlyThemeMode, forKey: "feature_useMonthlyThemeMode")

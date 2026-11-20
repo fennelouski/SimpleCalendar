@@ -4,7 +4,7 @@ import CryptoKit
 /// Hash exactly the buffered bytes sent to our API for CloudFront origin access control.
 nonisolated enum CalendarAPIRequest {
     static let maximumBodyBytes = 65_536
-    private static let hosts = ["calendar-play-seven.vercel.app", "calendar-play-api.vercel.app", "d2ntnk2ucb7yym.cloudfront.net"]
+    private static let hosts = [CalendarBackend.host, "calendar-play-seven.vercel.app", "calendar-play-api.vercel.app", "d2ntnk2ucb7yym.cloudfront.net"]
 
     static func prepared(_ request: URLRequest) throws -> URLRequest {
         guard let url = request.url, hosts.contains(url.host?.lowercased() ?? ""), url.path.hasPrefix("/api/") else { return request }
