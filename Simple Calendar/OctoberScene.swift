@@ -30,7 +30,6 @@ struct OctoberMoonBatsAnimation: View {
     /// The day whose moon phase is shown (the user's current selection/focus).
     let moonDate: Date
     @State private var model = OctoberModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, moonDate: Date = Date()) {
         self.alpha = alpha
@@ -40,11 +39,10 @@ struct OctoberMoonBatsAnimation: View {
     var body: some View {
         let target = OctoberModel.Target(date: moonDate)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
+        AnimatedScene(daylight: { ctx, size, time, daylight in
             let look = state.look(target: target, time: time)
-            OctoberScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+            OctoberScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -115,6 +113,8 @@ private struct OctoberFrame {
     var cover: CGFloat
     /// 0...1 moonlight reaching the scene.
     var moonlight: CGFloat
+    /// 0...1 the moon is above the horizon and not hidden by real cloud.
+    var moonUp: CGFloat
     var clouds: [OctoberCloud]
     var belfry: CGPoint
     var belfryScale: CGFloat
@@ -198,44 +198,76 @@ private enum OctoberArt {
 // MARK: - Scene
 
 private enum OctoberScene {
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: OctoberModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: OctoberModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
-        let frame = makeFrame(size: size, t: t, look: look)
+        let dark = daylight.isDark
+        let frame = makeFrame(size: size, t: t, look: look, daylight: daylight)
+        // Bats leave the belfry as the light goes and are home by first light.
+        let batTime = Double(BG.smoothstep(0.65, 0.25, daylight.light))
 
-        AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(0.07, 0.05, 0.2), intensity: dark ? 0.32 : 0.12, depth: 0.65)
-        if dark {
-            // Moonlight washes out the faint stars.
-            AtmospherePainter.stars(in: &ctx, size: size, time: time, count: 110, skyFraction: 0.55, intensity: Double(0.8 * (1 - 0.45 * frame.moonlight)))
+        ctx.drawLayer { sky in
+            AtmospherePainter.topHaze(in: &sky, size: size, color: BG.rgb(0.07, 0.05, 0.2), intensity: 0.12 + 0.2 * Double(daylight.night), depth: 0.65)
+            DaylightPainter.lowSunGrade(in: &sky, size: size, daylight: daylight)
         }
-        drawShootingStar(in: &ctx, size: size, t: t)
-        drawMoon(in: &ctx, size: size, t: t, look: look, frame: frame, dark: dark)
-        drawClouds(in: &ctx, size: size, look: look, frame: frame)
+        // Moonlight washes out the faint stars.
+        DaylightPainter.stars(in: &ctx, size: size, time: time, daylight: daylight, count: 110, cover: 0.45 * frame.moonlight)
+        if daylight.stars > 0.3 { drawShootingStar(in: &ctx, size: size, t: t) }
+        if frame.moonUp > 0.01 {
+            var moon = ctx
+            moon.opacity = Double(frame.moonUp * (1 - 0.6 * daylight.light))
+            drawMoon(in: &moon, size: size, t: t, look: look, frame: frame, dark: dark)
+        }
+        ctx.drawLayer { clouds in
+            drawClouds(in: &clouds, size: size, look: look, frame: frame)
+            DaylightPainter.nightGrade(in: &clouds, size: size, daylight: daylight, strength: 0.5)
+        }
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: time, daylight: daylight, seed: 10)
 
-        drawHills(in: &ctx, size: size, t: t, frame: frame, dark: dark)
-        drawBelfry(in: &ctx, frame: frame, dark: dark)
-        drawBats(in: &ctx, size: size, t: t, look: look, frame: frame, dark: dark, near: false)
+        ctx.drawLayer { land in
+            drawHills(in: &land, size: size, t: t, frame: frame, dark: dark)
+            drawBelfry(in: &land, frame: frame, dark: dark)
+            if batTime > 0.01 {
+                var flock = land
+                flock.opacity = batTime
+                drawBats(in: &flock, size: size, t: t, look: look, frame: frame, dark: dark, near: false)
+            }
+            WeatherPainter.dullLight(in: &land, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &land, size: size, daylight: daylight)
+            // The art is already a night scene; this only bridges dusk.
+            DaylightPainter.nightGrade(in: &land, size: size, daylight: daylight, strength: 0.35)
+        }
 
-        let blaze: CGFloat = 1 + 0.3 * look.halloween
+        // Jack-o'-lanterns are lit at dusk and blown out at bedtime (Halloween: all night).
+        let lit = lanternsLit(daylight, halloween: look.halloween)
+        let blaze: CGFloat = (1 + 0.3 * look.halloween) * lit
         let flicker = (0.78 + 0.12 * sin(t * 13) + 0.1 * sin(t * 23.7 + 1)) * blaze
         drawPumpkin(in: &ctx, at: CGPoint(x: size.width * 0.055, y: size.height - 46), size: 78, flicker: flicker)
         drawPumpkin(in: &ctx, at: CGPoint(x: size.width * 0.94, y: size.height - 36), size: 58, flicker: (0.85 + 0.15 * sin(t * 17 + 2)) * blaze)
         drawFog(in: &ctx, size: size, t: t, look: look, frame: frame, dark: dark)
-        drawWisps(in: &ctx, size: size, t: t, look: look)
-        ctx.blurredLayer(radius: 2.5) { near in
-            drawBats(in: &near, size: size, t: t, look: look, frame: frame, dark: dark, near: true)
+        if batTime > 0.01 {
+            var wisps = ctx
+            wisps.opacity = batTime
+            drawWisps(in: &wisps, size: size, t: t, look: look)
+            wisps.blurredLayer(radius: 2.5) { near in
+                drawBats(in: &near, size: size, t: t, look: look, frame: frame, dark: dark, near: true)
+            }
         }
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight)
     }
 
-    static func makeFrame(size: CGSize, t: CGFloat, look: OctoberModel.Look) -> OctoberFrame {
-        // The moon swings slowly across the top of the sky (no wrap-around jump). A
-        // harvest moon starts its swing a little lower and rises over about 3 minutes.
-        let orbit = 2 * CGFloat.pi * t / 1500 + 0.95
-        let rise = look.harvest * (1 - BG.smoothstep(0, 180, t))
+    static func lanternsLit(_ daylight: SceneDaylight, halloween: CGFloat) -> CGFloat {
+        let dusk = BG.smoothstep(0.75, 0.25, daylight.light)
+        let h = daylight.localHour
+        let evening: CGFloat = h >= 12 ? 1 : 1 - BG.smoothstep(0, 0.75, CGFloat(h))
+        return dusk * max(evening, halloween)
+    }
+
+    static func makeFrame(size: CGSize, t: CGFloat, look: OctoberModel.Look, daylight: SceneDaylight) -> OctoberFrame {
+        // The moon of the selected day's phase, where such a moon would be at this hour.
         let radius = min(size.width, size.height) * 0.075 * (1 + 0.12 * look.harvest)
-        let moon = CGPoint(
-            x: size.width * (0.5 + 0.33 * sin(orbit)),
-            y: size.height * (0.17 - 0.035 * cos(orbit) + 0.1 * rise)
-        )
+        let moon = daylight.moonPoint(in: size, phase: look.phase)
+        let moonUp = BG.smoothstep(-2, 4, CGFloat(daylight.moonElevation(phase: look.phase)))
+        let weatherCover = daylight.weather?.cover ?? 0
 
         var clouds: [OctoberCloud] = []
         clouds.reserveCapacity(4)
@@ -258,7 +290,8 @@ private enum OctoberScene {
             moon: moon,
             moonRadius: radius,
             cover: cover,
-            moonlight: look.illumination * (1 - 0.75 * cover),
+            moonlight: look.illumination * (1 - 0.75 * cover) * moonUp * (1 - weatherCover),
+            moonUp: moonUp * (1 - weatherCover),
             clouds: clouds,
             belfry: CGPoint(x: size.width * 0.1, y: size.height - 18),
             belfryScale: belfryScale

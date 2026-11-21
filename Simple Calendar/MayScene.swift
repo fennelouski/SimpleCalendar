@@ -28,7 +28,6 @@ struct MayFlowersAnimation: View {
     /// The day whose character the scene reflects (the user's selection/focus).
     let date: Date
     @State private var model = MayModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, date: Date = Date()) {
         self.alpha = alpha
@@ -38,11 +37,10 @@ struct MayFlowersAnimation: View {
     var body: some View {
         let target = MayModel.Target(date: date)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
+        AnimatedScene(daylight: { ctx, size, time, daylight in
             let look = state.look(target: target, time: time)
-            MayScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+            MayScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -190,9 +188,15 @@ private enum MayScene {
     static let slots = 9
     static let period: CGFloat = 28
 
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: MayModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: MayModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
-        let sun = CGPoint(x: size.width * 0.92, y: -size.height * 0.05)
+        let dark = daylight.isDark
+        let sun = daylight.sunPoint(in: size)
+        let cover = daylight.weather?.cover ?? 0
+        let rain = daylight.weather?.rain ?? 0
+        let sunshine = Double(daylight.light * (1 - cover))
+        // Bees work the meadow by day and stay home in the rain.
+        let beeTime = Double(BG.smoothstep(0.35, 0.75, daylight.light) * (1 - rain))
         var flowers = makeFlowers(size: size, t: t, look: look, sun: sun)
         var bees = makeBees(flowers: flowers, size: size, t: t)
         for i in bees.indices where bees[i].landed > 0 {
@@ -202,32 +206,61 @@ private enum MayScene {
             bees[i].position.y += dip
         }
 
-        drawSky(in: &ctx, size: size, sun: sun, dark: dark)
-        drawPollen(in: &ctx, size: size, t: t, look: look, dark: dark, near: false)
-        drawFarMeadow(in: &ctx, size: size, t: t)
-        drawGrass(in: &ctx, size: size, t: t, look: look, row: 0)
-        for flower in flowers {
-            drawFlower(flower, in: &ctx, size: size, t: t, look: look, sun: sun, dark: dark)
+        ctx.drawLayer { sky in
+            drawSky(in: &sky, size: size, sun: sun, dark: dark, sunLight: Double(daylight.sunUp * (1 - cover)))
+            DaylightPainter.lowSunGrade(in: &sky, size: size, daylight: daylight, strength: 1.1)
+            DaylightPainter.nightGrade(in: &sky, size: size, daylight: daylight, strength: 0.9)
         }
-        drawSeeds(in: &ctx, size: size, t: t, look: look, flowers: flowers)
-        drawGrass(in: &ctx, size: size, t: t, look: look, row: 1)
-        drawBees(bees, in: &ctx, t: t)
-        drawBranch(in: &ctx, size: size, t: t)
-        drawPetals(in: &ctx, size: size, t: t, look: look)
-        drawShower(in: &ctx, size: size, t: t, look: look)
-        drawPollen(in: &ctx, size: size, t: t, look: look, dark: dark, near: true)
+        DaylightPainter.stars(in: &ctx, size: size, time: time, daylight: daylight)
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight)
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: time, daylight: daylight, seed: 5)
+        if sunshine > 0.02 {
+            var glint = ctx
+            glint.opacity = sunshine
+            drawPollen(in: &glint, size: size, t: t, look: look, dark: dark, near: false)
+        }
+
+        ctx.drawLayer { meadow in
+            drawFarMeadow(in: &meadow, size: size, t: t)
+            WeatherPainter.rainbow(in: &meadow, size: size, daylight: daylight, strength: WeatherPainter.rainbowChance(daylight))
+            drawGrass(in: &meadow, size: size, t: t, look: look, row: 0)
+            for flower in flowers {
+                drawFlower(flower, in: &meadow, size: size, t: t, look: look, sun: sun, dark: dark)
+            }
+            drawSeeds(in: &meadow, size: size, t: t, look: look, flowers: flowers)
+            drawGrass(in: &meadow, size: size, t: t, look: look, row: 1)
+            if beeTime > 0.02 {
+                var busy = meadow
+                busy.opacity = beeTime
+                drawBees(bees, in: &busy, t: t)
+            }
+            drawBranch(in: &meadow, size: size, t: t)
+            drawPetals(in: &meadow, size: size, t: t, look: look)
+            drawShower(in: &meadow, size: size, t: t, look: look)
+            WeatherPainter.dullLight(in: &meadow, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &meadow, size: size, daylight: daylight)
+            DaylightPainter.nightGrade(in: &meadow, size: size, daylight: daylight)
+        }
+        // The first fireflies of the year come out late in the month.
+        DaylightPainter.fireflies(in: &ctx, size: size, time: time, daylight: daylight, season: BG.smoothstep(0.5, 1, look.progress) * 0.6, top: 0.65)
+        if sunshine > 0.02 {
+            var glint = ctx
+            glint.opacity = sunshine
+            drawPollen(in: &glint, size: size, t: t, look: look, dark: dark, near: true)
+        }
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight)
     }
 
     // MARK: Sky and land
 
-    static func drawSky(in ctx: inout GraphicsContext, size: CGSize, sun: CGPoint, dark: Bool) {
+    static func drawSky(in ctx: inout GraphicsContext, size: CGSize, sun: CGPoint, dark: Bool, sunLight: Double) {
         let sky = Gradient(stops: [
             .init(color: BG.rgb(0.6, 0.8, 1, 0.16), location: 0),
             .init(color: BG.rgb(0.9, 0.95, 1, 0.06), location: 0.6),
             .init(color: BG.rgb(0.95, 1, 0.85, 0.12), location: 1)
         ])
         ctx.fill(Path(CGRect(origin: .zero, size: size)), with: .linearGradient(sky, startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height)))
-        ctx.glow(at: sun, radius: size.width * 0.5, color: BG.rgb(1, 0.95, 0.78), intensity: dark ? 0.22 : 0.12)
+        ctx.glow(at: sun, radius: size.width * 0.5, color: BG.rgb(1, 0.95, 0.78), intensity: (dark ? 0.22 : 0.12) * sunLight)
     }
 
     static func hillY(_ x: CGFloat, size: CGSize) -> CGFloat {

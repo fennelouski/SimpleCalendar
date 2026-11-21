@@ -152,13 +152,18 @@ struct ContentView: View {
 #if os(tvOS)
         // On tvOS, use full screen layout optimized for TV
         ZStack {
-            // Full screen background with gradient
-            CalendarGradientBackground(
-                baseColor: themeManager.currentPalette.calendarBackground,
-                colorScheme: colorScheme,
-                intensity: .light
-            )
-            .ignoresSafeArea()
+            // Full screen background: the live sky when following the sun, else the theme gradient
+            if featureFlags.followSunAppearance {
+                DaylightSkyBackground(weatherActive: MonthBackgroundAnimationView.isCurrentMonth(calendarViewModel.currentDate))
+                    .ignoresSafeArea()
+            } else {
+                CalendarGradientBackground(
+                    baseColor: themeManager.currentPalette.calendarBackground,
+                    colorScheme: colorScheme,
+                    intensity: .light
+                )
+                .ignoresSafeArea()
+            }
             
             // Background animations (only in month view) - Edge to edge
             if calendarViewModel.viewMode == .month {
@@ -168,6 +173,11 @@ struct ContentView: View {
                     isPaused: isMonthBackgroundCovered
                 )
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .ignoresSafeArea()
+            }
+
+            if featureFlags.followSunAppearance {
+                DaylightSkyWash(weatherActive: MonthBackgroundAnimationView.isCurrentMonth(calendarViewModel.currentDate))
                     .ignoresSafeArea()
             }
             

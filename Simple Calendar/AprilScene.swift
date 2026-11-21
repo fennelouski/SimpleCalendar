@@ -31,7 +31,6 @@ struct AprilRainAnimation: View {
     /// The day whose character the scene reflects (the user's selection/focus).
     let date: Date
     @State private var model = AprilModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, date: Date = Date()) {
         self.alpha = alpha
@@ -41,11 +40,10 @@ struct AprilRainAnimation: View {
     var body: some View {
         let target = AprilModel.Target(date: date)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
-            let look = state.look(target: target, time: time)
-            AprilScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+        AnimatedScene(daylight: { ctx, size, time, daylight in
+            let look = state.look(target: target.with(daylight.weather), time: time)
+            AprilScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -55,12 +53,34 @@ struct AprilRainAnimation: View {
 final class AprilModel {
     struct Target {
         /// Rain cycle weights for drizzle, light, steady, heavy and downpour.
-        let weights: [Double]
+        var weights: [Double]
         /// Share of lightning slots that fire (0 drizzle day, 0.3 showers, 1 thunderstorm).
-        let lightning: Double
+        var lightning: Double
         /// Cloud-base darkness for the day.
-        let darkness: Double
-        let easter: Double
+        var darkness: Double
+        var easter: Double
+
+        /// Real weather drives the storm: the rain level follows the real rain, lightning
+        /// only in real thunder, and a dry, bright hour is the storm breaking (sunbeams,
+        /// a rainbow). A dry, grey hour keeps a fine drizzle under low cloud.
+        func with(_ weather: SceneWeather?) -> Target {
+            guard let weather else { return self }
+            var target = self
+            let rain = Double(weather.rain)
+            if rain < 0.03 {
+                let bright = weather.cloud < 0.6
+                target.weights = [1, 0, 0, 0, 0]
+                target.easter = bright ? 1 : 0
+                target.darkness = bright ? 0 : weather.cloud * 0.5
+            } else {
+                let level = min(4, max(0, Int((rain * 4).rounded())))
+                target.weights = (0..<5).map { $0 == level ? 0.7 : (abs($0 - level) == 1 ? 0.15 : 0) }
+                target.easter = 0
+                target.darkness = min(1, max(Double(weather.storm), weather.cloud * 0.6 + rain * 0.3))
+            }
+            target.lightning = Double(weather.storm)
+            return target
+        }
 
         init(date: Date) {
             let day = SceneDay(date: date)
@@ -262,28 +282,62 @@ private struct AprilFlash {
 // MARK: - Scene
 
 private enum AprilScene {
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: AprilModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: AprilModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
+        let dark = daylight.isDark
         let flash = lightning(t: t, look: look)
         let slant = AprilWind.slant(t, gustScale: look.gustScale)
 
-        drawSky(in: &ctx, size: size, look: look, flash: flash, dark: dark)
+        ctx.drawLayer { sky in
+            drawSky(in: &sky, size: size, look: look, flash: flash, dark: dark)
+            DaylightPainter.lowSunGrade(in: &sky, size: size, daylight: daylight)
+            DaylightPainter.nightGrade(in: &sky, size: size, daylight: daylight, strength: 0.85)
+        }
+        // Stars and moon only through the breaks of a passing storm.
+        DaylightPainter.stars(in: &ctx, size: size, time: time, daylight: daylight, cover: 1 - 0.8 * look.easter)
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight, cover: 1 - 0.8 * look.easter)
         if flash.intensity > 0.01 {
             drawBolt(in: &ctx, size: size, seed: flash.cycle, intensity: flash.intensity, dark: dark)
         }
-        drawSunBreak(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawTreeline(in: &ctx, size: size, look: look)
-        drawClouds(in: &ctx, size: size, t: t, look: look, flash: flash, dark: dark)
-        drawShafts(in: &ctx, size: size, look: look)
-        drawRain(in: &ctx, size: size, t: t, look: look, slant: slant, flash: flash, layer: 0, dark: dark)
-        drawRain(in: &ctx, size: size, t: t, look: look, slant: slant, flash: flash, layer: 1, dark: dark)
-        drawWater(in: &ctx, size: size, t: t, look: look, flash: flash, dark: dark)
-        drawWalker(in: &ctx, size: size, t: t, look: look)
-        drawSplashes(in: &ctx, size: size, t: t, look: look, dark: dark)
+        if daylight.sunUp > 0.01 {
+            var sunlit = ctx
+            sunlit.opacity = Double(daylight.sunUp)
+            drawSunBreak(in: &sunlit, size: size, t: t, look: look, dark: dark)
+        }
+
+        ctx.drawLayer { land in
+            drawTreeline(in: &land, size: size, look: look)
+            drawClouds(in: &land, size: size, t: t, look: look, flash: flash, dark: dark)
+            var shafts = land
+            shafts.opacity = Double(daylight.sunUp)
+            drawShafts(in: &shafts, size: size, look: look)
+            drawRain(in: &land, size: size, t: t, look: look, slant: slant, flash: flash, layer: 0, dark: dark)
+            drawRain(in: &land, size: size, t: t, look: look, slant: slant, flash: flash, layer: 1, dark: dark)
+            drawWater(in: &land, size: size, t: t, look: look, flash: flash, dark: dark)
+            drawWalker(in: &land, size: size, t: t, look: look)
+            drawSplashes(in: &land, size: size, t: t, look: look, dark: dark)
+            DaylightPainter.lowSunGrade(in: &land, size: size, daylight: daylight, strength: 0.8)
+            DaylightPainter.nightGrade(in: &land, size: size, daylight: daylight, strength: 0.85)
+        }
+        drawHouseLights(in: &ctx, size: size, t: t, daylight: daylight)
         ctx.blurredLayer(radius: 2.5) { near in
             drawRain(in: &near, size: size, t: t, look: look, slant: slant, flash: flash, layer: 2, dark: dark)
         }
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight, nativeRain: true)
         drawWindowDrops(in: &ctx, size: size, t: t, look: look, dark: dark)
+    }
+
+    /// Lit windows along the far treeline from dusk, blurred and doubled by the rain.
+    static func drawHouseLights(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, daylight: SceneDaylight) {
+        let base = size.height * 0.935
+        for i in 0..<7 {
+            let lit = DaylightPainter.windowLit(i, salt: 940, daylight: daylight)
+            guard lit > 0.01 else { continue }
+            let p = CGPoint(x: size.width * (0.08 + 0.13 * CGFloat(i) + BG.hash(i, 941, -0.03, 0.03)), y: base - BG.hash(i, 942, 6, 16))
+            let shimmer = Double(0.85 + 0.15 * sin(t * 1.3 + CGFloat(i) * 2.1))
+            ctx.glow(at: p, radius: 26, color: BG.rgb(1, 0.75, 0.42), intensity: 0.45 * Double(lit) * shimmer)
+            ctx.fill(BG.circle(p, 2.6), with: .color(BG.rgb(1, 0.85, 0.55, 0.9 * Double(lit) * shimmer)))
+        }
     }
 
     /// Distant lightning: a strike and a weaker re-strike (never more than two pulses),

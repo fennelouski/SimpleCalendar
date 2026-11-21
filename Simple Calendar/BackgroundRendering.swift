@@ -76,6 +76,8 @@ extension EnvironmentValues {
     /// True while the month background is fully covered (e.g. a full-screen sheet on tvOS),
     /// so scenes stop rendering frames nobody can see.
     @Entry var backgroundScenePaused: Bool = false
+    /// True when the scene shows the current month, the only one that follows the real weather.
+    @Entry var sceneWeatherActive: Bool = false
 }
 
 /// Hosts a scene: a `Canvas` re-rendered with the seconds elapsed since the scene appeared.
@@ -86,12 +88,20 @@ extension EnvironmentValues {
 struct AnimatedScene: View {
     static let framesPerSecond: Double = 30
 
-    private let render: (inout GraphicsContext, CGSize, Double) -> Void
+    private let render: (inout GraphicsContext, CGSize, Double, SceneDaylight) -> Void
     @State private var epoch = Date()
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.backgroundScenePaused) private var isCovered
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.sceneWeatherActive) private var weatherActive
+    @ObservedObject private var featureFlags = FeatureFlags.shared
 
     init(render: @escaping (inout GraphicsContext, CGSize, Double) -> Void) {
+        self.render = { ctx, size, time, _ in render(&ctx, size, time) }
+    }
+
+    /// For scenes that follow the time of day: `daylight` is recomputed every frame.
+    init(daylight render: @escaping (inout GraphicsContext, CGSize, Double, SceneDaylight) -> Void) {
         self.render = render
     }
 
@@ -99,12 +109,22 @@ struct AnimatedScene: View {
         isCovered || scenePhase != .active
     }
 
+    /// The time of day and (for the current month) the weather for one frame.
+    private func conditions(at now: Date) -> SceneDaylight {
+        var daylight = featureFlags.followSunAppearance
+            ? SceneDaylight.at(now)
+            : SceneDaylight.fixed(dark: colorScheme == .dark)
+        if weatherActive { daylight.weather = SceneWeatherService.shared.conditions(at: now) }
+        return daylight
+    }
+
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / Self.framesPerSecond, paused: isPaused)) { timeline in
             let time = timeline.date.timeIntervalSince(epoch)
+            let daylight = conditions(at: SunClock.now())
             Canvas { context, size in
                 guard size.width > 0, size.height > 0 else { return }
-                render(&context, size, time)
+                render(&context, size, time, daylight)
             }
         }
     }

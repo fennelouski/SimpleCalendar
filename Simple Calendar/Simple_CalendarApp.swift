@@ -44,6 +44,7 @@ struct Simple_CalendarApp: App {
                 .environmentObject(featureFlags)
                 .environmentObject(monthlyThemeManager)
                 .environmentObject(holidayManager)
+                .followsSunAppearance()
                 } else if let startupError {
                     ContentUnavailableView {
                         Label("Saved events could not be opened", systemImage: "externaldrive.badge.exclamationmark")

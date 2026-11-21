@@ -42,6 +42,7 @@ struct SettingsContentView: View {
     @AppStorage("CalendarPlay.allowOnlinePhotos") private var allowOnlinePhotos = false
     @AppStorage("CalendarPlay.allowEventPhotoQueries") private var allowEventPhotoQueries = false
     @AppStorage("CalendarPlay.allowOnlineWeather") private var allowOnlineWeather = false
+    @AppStorage(CalendarNetworkConsent.weatherBackgrounds) private var weatherBackgrounds = false
     @State private var preservedFocusedCategory: CalendarHoliday.CalendarHolidayCategory? = nil
     @State private var preservedFocusedRegionRow: String? = nil
     @State private var focusRestoreTrigger: UUID = UUID()
@@ -302,6 +303,38 @@ struct SettingsContentView: View {
                                     themeManager: themeManager
                                 ) {
                                     featureFlags.backgroundAnimationsEnabled.toggle()
+                                }
+
+                                Divider()
+
+                                // tvOS: Day and night sky that follows the sun
+                                SettingsRowView(
+                                    title: "Follow the Sun".localized,
+                                    description: featureFlags.followSunAppearance ? "Enabled - Light by day, dark by night, with twilight, sunrise and sunset".localized : "Disabled - Uses the Apple TV appearance setting".localized,
+                                    icon: featureFlags.followSunAppearance ? "checkmark.circle.fill" : "xmark.circle.fill",
+                                    iconColor: featureFlags.followSunAppearance ? themeManager.currentPalette.primary : themeManager.currentPalette.textSecondary.opacity(0.5),
+                                    themeManager: themeManager
+                                ) {
+                                    featureFlags.followSunAppearance.toggle()
+                                }
+
+                                Divider()
+
+                                // tvOS: This month's background follows the real weather (opt-in)
+                                SettingsRowView(
+                                    title: "Weather Backgrounds".localized,
+                                    description: weatherBackgrounds ? "Enabled - This month's background follows the weather where you are".localized : "Disabled - Backgrounds show seasonal weather".localized,
+                                    icon: weatherBackgrounds ? "checkmark.circle.fill" : "xmark.circle.fill",
+                                    iconColor: weatherBackgrounds ? themeManager.currentPalette.primary : themeManager.currentPalette.textSecondary.opacity(0.5),
+                                    themeManager: themeManager
+                                ) {
+                                    weatherBackgrounds.toggle()
+                                    CalendarNetworkRequests.shared.refreshConsent()
+                                }
+                                if weatherBackgrounds {
+                                    AppleWeatherAttributionView()
+                                        .padding(.horizontal, 16)
+                                        .padding(.bottom, 8)
                                 }
 #else
                                 // iOS/macOS: Separate info button and toggle
@@ -873,8 +906,13 @@ struct SettingsContentView: View {
                                 .disabled(!allowOnlinePhotos)
                             Text("When both photo options are on, event details can be sent automatically to find matching photos. Leave this off to enter your own search terms.")
                                 .font(.subheadline)
+                            #if os(tvOS)
+                            Text("Sunrise, sunset and the sky use this device's time zone. Weather Backgrounds uses your approximate area, estimated from your IP address, to get Apple Weather.")
+                                .font(.subheadline)
+                            #else
                             Text("Sunrise, sunset and daylight times use a local estimate from this device's time zone and region. The estimate can differ from your city. No network location lookup is made.")
                                 .font(.subheadline)
+                            #endif
                             #if os(tvOS)
                             Toggle("Allow online maps", isOn: $allowOnlineWeather)
                                 .onChange(of: allowOnlineWeather) { _, _ in CalendarNetworkRequests.shared.refreshConsent() }

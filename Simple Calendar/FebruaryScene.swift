@@ -28,7 +28,6 @@ struct FebruaryHeartCloudsAnimation: View {
     /// The day whose character the scene reflects (the user's selection/focus).
     let date: Date
     @State private var model = FebruaryModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, date: Date = Date()) {
         self.alpha = alpha
@@ -38,11 +37,10 @@ struct FebruaryHeartCloudsAnimation: View {
     var body: some View {
         let target = FebruaryModel.Target(date: date)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
+        AnimatedScene(daylight: { ctx, size, time, daylight in
             let look = state.look(target: target, time: time)
-            FebruaryScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+            FebruaryScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -210,26 +208,50 @@ private enum FebruaryHeartLook {
 // MARK: - Scene
 
 private enum FebruaryScene {
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: FebruaryModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: FebruaryModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
+        let dark = daylight.isDark
         let centerPulse = FebruaryAir.pulse(beat: look.beat, x: size.width / 2, width: size.width)
+        let sun = daylight.sunPoint(in: size)
+        let sunLight = Double(BG.smoothstep(-4, 3, CGFloat(daylight.elevation)) * (1 - (daylight.weather?.cover ?? 0)))
 
-        drawSky(in: &ctx, size: size, look: look, pulse: centerPulse, dark: dark)
-        drawFarSnow(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawHills(in: &ctx, size: size)
-        drawPond(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawClouds(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawTree(in: &ctx, size: size, t: t, look: look)
-        drawLamp(in: &ctx, size: size, t: t, look: look, dark: dark)
+        ctx.drawLayer { sky in
+            drawSky(in: &sky, size: size, look: look, pulse: centerPulse, sun: sun, sunLight: sunLight)
+            DaylightPainter.lowSunGrade(in: &sky, size: size, daylight: daylight, strength: 1.2)
+            DaylightPainter.nightGrade(in: &sky, size: size, daylight: daylight, strength: 0.9)
+        }
+        DaylightPainter.stars(in: &ctx, size: size, time: time, daylight: daylight)
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight)
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: time, daylight: daylight, seed: 2)
+
+        ctx.drawLayer { park in
+            drawFarSnow(in: &park, size: size, t: t, look: look, dark: dark)
+            drawHills(in: &park, size: size)
+            drawPond(in: &park, size: size, t: t, look: look, dark: dark)
+            // The heart clouds catch the sunset and go dusky violet after dark.
+            drawClouds(in: &park, size: size, t: t, look: look, dark: dark)
+            drawTree(in: &park, size: size, t: t, look: look)
+            drawPair(in: &park, size: size, t: t, look: look)
+            WeatherPainter.dullLight(in: &park, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &park, size: size, daylight: daylight)
+            DaylightPainter.nightGrade(in: &park, size: size, daylight: daylight, strength: 0.85)
+        }
+        // Lights and glowing hearts are not dimmed by the night: they light it.
+        drawLamp(in: &ctx, size: size, t: t, look: look, lit: lampLit(daylight))
         drawHearts(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawPair(in: &ctx, size: size, t: t, look: look)
         drawShower(in: &ctx, size: size, look: look)
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight)
         drawCrystals(in: &ctx, size: size, t: t, look: look, dark: dark)
+    }
+
+    /// The park lamp comes on as the light fails and burns through the night.
+    static func lampLit(_ daylight: SceneDaylight) -> CGFloat {
+        BG.smoothstep(0.75, 0.25, daylight.light)
     }
 
     // MARK: Sky and land
 
-    static func drawSky(in ctx: inout GraphicsContext, size: CGSize, look: FebruaryModel.Look, pulse: CGFloat, dark: Bool) {
+    static func drawSky(in ctx: inout GraphicsContext, size: CGSize, look: FebruaryModel.Look, pulse: CGFloat, sun: CGPoint, sunLight: Double) {
         let r = Double(look.romance)
         let sky = Gradient(stops: [
             .init(color: BG.rgb(1, 0.72 + 0.04 * (1 - r), 0.85, 0.24 + 0.06 * r), location: 0),
@@ -238,8 +260,8 @@ private enum FebruaryScene {
         ])
         ctx.fill(Path(CGRect(origin: .zero, size: size)), with: .linearGradient(sky, startPoint: .zero, endPoint: CGPoint(x: 0, y: size.height)))
         AtmospherePainter.topHaze(in: &ctx, size: size, color: BG.rgb(1, 0.78, 0.88), intensity: 0.2, depth: 0.5)
-        // High soft sun just above the top edge (the key light).
-        ctx.glow(at: CGPoint(x: size.width * 0.5, y: -size.height * 0.12), radius: size.width * 0.45, color: BG.rgb(1, 0.95, 0.9), intensity: 0.28)
+        // The soft winter sun wherever it is in the sky (the key light).
+        ctx.glow(at: sun, radius: size.width * 0.45, color: BG.rgb(1, 0.95, 0.9), intensity: 0.28 * sunLight)
     }
 
     static func hillY(_ x: CGFloat, size: CGSize) -> CGFloat {
@@ -375,16 +397,13 @@ private enum FebruaryScene {
     }
 
     /// A street lamp at the right edge, its warm pink-gold light catching the snow.
-    static func drawLamp(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: FebruaryModel.Look, dark: Bool) {
+    static func drawLamp(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: FebruaryModel.Look, lit: CGFloat) {
+        let dark = lit > 0.5
         let height = min(size.height * 0.24, 240)
         let base = CGPoint(x: size.width * 0.94, y: hillY(size.width * 0.94, size: size) + 10)
         let lantern = CGPoint(x: base.x, y: base.y - height * 0.92)
-        let flicker = Double(0.94 + 0.06 * sin(t * 3.1) * sin(t * 1.7 + 1))
-        if dark {
-            ctx.glow(at: lantern, radius: height * 0.75, color: BG.rgb(1, 0.82, 0.7), intensity: 0.35 * flicker)
-        } else {
-            ctx.glow(at: lantern, radius: height * 0.55, color: BG.rgb(1, 0.75, 0.6), intensity: 0.2 * flicker)
-        }
+        let flicker = Double(0.94 + 0.06 * sin(t * 3.1) * sin(t * 1.7 + 1)) * Double(0.15 + 0.85 * lit)
+        ctx.glow(at: lantern, radius: height * BG.lerp(0.55, 0.75, lit), color: BG.rgb(1, 0.82, 0.7), intensity: Double(BG.lerp(0.2, 0.35, lit)) * flicker)
         ctx.fill(FebruaryArt.lamp.applying(CGAffineTransform(translationX: base.x, y: base.y).scaledBy(x: height, y: height)), with: .color(BG.rgb(0.2, 0.16, 0.22, 0.85)))
         ctx.fill(BG.ellipse(lantern, height * 0.05, height * 0.05), with: .color(BG.rgb(1, 0.92, 0.75, 0.95 * flicker)))
         ctx.glow(at: lantern, radius: height * 0.12, color: BG.rgb(1, 0.9, 0.7), intensity: 0.7 * flicker, additive: dark)

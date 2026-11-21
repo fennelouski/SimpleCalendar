@@ -7,7 +7,7 @@ enum EventDescriptionParser {
     static func parse(_ text: String, selectedDate: Date, session: URLSession? = nil) async throws -> ParsedEventResponse {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, text.count <= 2000 else { throw URLError(.badURL) }
-        var request = URLRequest(url: URL(string: "https://calendar-play-seven.vercel.app/api/parse-event")!)
+        var request = URLRequest(url: URL(string: CalendarBackend.baseURL + "/api/parse-event")!)
         request.httpMethod = "POST"
         request.timeoutInterval = 45
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

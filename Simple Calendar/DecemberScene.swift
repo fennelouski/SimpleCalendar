@@ -32,7 +32,6 @@ struct DecemberChristmasLightsAnimation: View {
     /// The day whose character the scene reflects (the user's selection/focus).
     let date: Date
     @State private var model = DecemberModel()
-    @Environment(\.colorScheme) private var colorScheme
 
     init(alpha: Double = 1.0, date: Date = Date()) {
         self.alpha = alpha
@@ -42,11 +41,13 @@ struct DecemberChristmasLightsAnimation: View {
     var body: some View {
         let target = DecemberModel.Target(date: date)
         let state = model
-        let dark = colorScheme == .dark
-        AnimatedScene { ctx, size, time in
-            let look = state.look(target: target, time: time)
-            DecemberScene.draw(in: &ctx, size: size, time: time, look: look, dark: dark)
-        }
+        AnimatedScene(daylight: { ctx, size, time, daylight in
+            var look = state.look(target: target, time: time)
+            look.power = DecemberScene.lightsOn(daylight, look: look)
+            // Real weather decides whether it is snowing; without it the village always is.
+            look.snow = daylight.weather.map { BG.smoothstep(0, 0.6, $0.snow) } ?? 1
+            DecemberScene.draw(in: &ctx, size: size, time: time, look: look, daylight: daylight)
+        })
         .opacity(alpha)
     }
 }
@@ -82,6 +83,10 @@ final class DecemberModel {
         var drift: CGFloat
         /// Seconds into the New Year's Eve countdown, or -1.
         var countdown: CGFloat
+        /// 0...1 the strand is switched on (dusk to bedtime, all night on the holidays).
+        var power: CGFloat = 1
+        /// 0...1 how much snow is falling.
+        var snow: CGFloat = 1
     }
 
     static let countdownDuration: Double = 17
@@ -290,20 +295,34 @@ private enum DecemberScene {
     static let bulbsPerSwag = 7
     static let bulbLength: CGFloat = 36
 
-    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: DecemberModel.Look, dark: Bool) {
+    static func draw(in ctx: inout GraphicsContext, size: CGSize, time: Double, look: DecemberModel.Look, daylight: SceneDaylight) {
         let t = CGFloat(time)
+        let dark = daylight.isDark
         let swags = makeSwags(size: size, t: t)
         let bulbs = makeBulbs(swags: swags, t: t, look: look)
 
-        drawSky(in: &ctx, size: size, look: look, bulbs: bulbs, dark: dark)
-        drawSleigh(in: &ctx, size: size, t: t, look: look)
-        drawFarHills(in: &ctx, size: size, t: t)
-        drawFarSnow(in: &ctx, size: size, t: t, look: look, dark: dark)
-        drawVillage(in: &ctx, size: size, t: t, dark: dark)
-        drawTree(in: &ctx, size: size, t: t, look: look, dark: dark)
+        ctx.drawLayer { sky in
+            drawSky(in: &sky, size: size, look: look, bulbs: bulbs, dark: dark)
+            DaylightPainter.lowSunGrade(in: &sky, size: size, daylight: daylight)
+            DaylightPainter.nightGrade(in: &sky, size: size, daylight: daylight, strength: 0.6)
+        }
+        DaylightPainter.stars(in: &ctx, size: size, time: time, daylight: daylight)
+        DaylightPainter.moon(in: &ctx, size: size, daylight: daylight)
+        WeatherPainter.cloudDeck(in: &ctx, size: size, time: time, daylight: daylight, seed: 12)
+        if daylight.stars > 0.2 { drawSleigh(in: &ctx, size: size, t: t, look: look) }
+        ctx.drawLayer { village in
+            drawFarHills(in: &village, size: size, t: t)
+            drawFarSnow(in: &village, size: size, t: t, look: look, dark: dark)
+            drawVillage(in: &village, size: size, t: t, dark: dark, windows: villageWindows(daylight))
+            drawTree(in: &village, size: size, t: t, look: look, dark: dark)
+            WeatherPainter.dullLight(in: &village, size: size, daylight: daylight)
+            DaylightPainter.lowSunGrade(in: &village, size: size, daylight: daylight)
+            DaylightPainter.nightGrade(in: &village, size: size, daylight: daylight, strength: 0.45)
+        }
         drawCrystals(in: &ctx, size: size, t: t, look: look, bulbs: bulbs, dark: dark)
         drawSlowFlakes(in: &ctx, size: size, t: t, look: look, dark: dark)
         drawStar(in: &ctx, size: size, t: t, look: look)
+        WeatherPainter.foreground(in: &ctx, size: size, time: time, daylight: daylight, nativeSnow: true)
 
         drawCord(in: &ctx, size: size, t: t, swags: swags, bulbs: bulbs, dark: dark)
         for bulb in bulbs {
@@ -378,6 +397,7 @@ private enum DecemberScene {
                 if index == DecemberArt.deadBulb {
                     on *= look.christmas
                 }
+                on *= look.power
                 if buzzing && index == buzzBulb && on > 0.5 {
                     on *= BG.hash(Int(t * 30), 744) < 0.55 ? 1 : 0.25
                 }
@@ -629,7 +649,22 @@ private enum DecemberScene {
 
     /// A row of snow-roofed houses along the bottom with lit windows that come and go,
     /// and chimney smoke leaning with the breeze.
-    static func drawVillage(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, dark: Bool) {
+    /// Holiday lights on a timer: on as the light fails, off at bedtime, all night on
+    /// Christmas Eve, Christmas and New Year's Eve.
+    static func lightsOn(_ daylight: SceneDaylight, look: DecemberModel.Look) -> CGFloat {
+        let dusk = BG.smoothstep(0.8, 0.35, daylight.light)
+        let h = CGFloat(daylight.localHour)
+        let evening: CGFloat = h >= 12 ? 1 - BG.smoothstep(23.25, 23.5, h) : 0
+        return dusk * max(evening, look.christmas, look.newYearsEve)
+    }
+
+    /// The village's windows through the evening, fewer in the small hours.
+    static func villageWindows(_ daylight: SceneDaylight) -> CGFloat {
+        let h = daylight.localHour
+        return BG.smoothstep(0.8, 0.3, daylight.light) * (h >= 1 && h < 5.5 ? 0.3 : 1)
+    }
+
+    static func drawVillage(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, dark: Bool, windows level: CGFloat) {
         let ground = size.height * 0.978
         var bodies = Path()
         var roofs = Path()
@@ -681,12 +716,12 @@ private enum DecemberScene {
 
         let ink = dark ? BG.rgb(0.12, 0.13, 0.22, 0.85) : BG.rgb(0.25, 0.28, 0.4, 0.7)
         ctx.blurredLayer(radius: 7) { glow in
-            glow.fill(windows, with: .color(BG.rgb(1, 0.75, 0.35, 0.7)))
+            glow.fill(windows, with: .color(BG.rgb(1, 0.75, 0.35, 0.7 * Double(level))))
         }
         ctx.fill(bodies, with: .color(ink))
         ctx.fill(roofs, with: .color(ink))
         ctx.stroke(snow, with: .color(BG.rgb(0.96, 0.98, 1, 0.92)), style: StrokeStyle(lineWidth: 3.4, lineCap: .round, lineJoin: .round))
-        ctx.fill(windows, with: .color(BG.rgb(1, 0.82, 0.45, 0.95)))
+        ctx.fill(windows, with: .color(BG.rgb(1, 0.82, 0.45, 0.95 * Double(level))))
 
         // Snowy ground.
         ctx.fill(
@@ -800,7 +835,7 @@ private enum DecemberScene {
     // MARK: Snow
 
     static func drawFarSnow(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: DecemberModel.Look, dark: Bool) {
-        let amount = BG.lerp(0.6, 0.25, look.christmas)
+        let amount = BG.lerp(0.6, 0.25, look.christmas) * look.snow
         var bands = [Path(), Path()]
         let span = size.height + 40
         for i in 0..<200 {
@@ -825,7 +860,7 @@ private enum DecemberScene {
     /// Mid crystals; those near the strand glow in the color of the nearest bulbs.
     static func drawCrystals(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: DecemberModel.Look, bulbs: [DecemberBulb], dark: Bool) {
         var crystals = Path()
-        let amount = BG.lerp(0.6, 0.3, look.christmas)
+        let amount = BG.lerp(0.6, 0.3, look.christmas) * look.snow
         let span = size.height + 80
         let reachY = size.height * 0.13 + 150
         for i in 0..<44 {
@@ -878,7 +913,7 @@ private enum DecemberScene {
 
     /// Christmas: snowfall softens into large, slow flakes.
     static func drawSlowFlakes(in ctx: inout GraphicsContext, size: CGSize, t: CGFloat, look: DecemberModel.Look, dark: Bool) {
-        let amount = look.christmas
+        let amount = look.christmas * look.snow
         guard amount > 0.01 else { return }
         var flakes = Path()
         let span = size.height + 60
